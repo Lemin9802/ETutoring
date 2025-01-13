@@ -1,4 +1,8 @@
 
+using ETutoring.Business.Interfaces;
+using ETutoring.Business.Services;
+using ETutoring.DataAccess.Extensions;
+
 namespace ETutoring.API
 {
     public class Program
@@ -14,6 +18,10 @@ namespace ETutoring.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.AddDbContextAndIdentity();
+
+            builder.Services.AddScoped<IIdentityServices, IdentityServices>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
