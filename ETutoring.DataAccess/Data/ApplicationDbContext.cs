@@ -1,8 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ETutoring.DataAccess.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace ETutoring.DataAccess.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        builder.Entity<ApplicationUser>(b => b.ToTable("users"));
+        builder.Entity<IdentityRole<Guid>>(b => b.ToTable("roles"));
+        builder.Entity<IdentityUserRole<Guid>>(b => b.ToTable("user_roles"));
+        builder.Entity<IdentityUserClaim<Guid>>(b => b.ToTable("user_claims"));
+        builder.Entity<IdentityUserLogin<Guid>>(b => b.ToTable("user_logins"));
+        builder.Entity<IdentityRoleClaim<Guid>>(b => b.ToTable("role_claims"));
+        builder.Entity<IdentityUserToken<Guid>>(b => b.ToTable("user_tokens"));
+    }
 }
