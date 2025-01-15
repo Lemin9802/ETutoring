@@ -55,15 +55,14 @@ public class TokenService : ITokenService
 
     public string GenerateRefreshToken()
     {
-        // Generate a random 32-byte array
-        var randomNumber = new byte[32];
+        var randomNumber = new byte[64];
         using (var rng = RandomNumberGenerator.Create())
         {
             rng.GetBytes(randomNumber);
         }
 
-        // Convert the byte array to a base64 string
-        return Convert.ToBase64String(randomNumber);
+        // Use Base64Url encoding to make the token URL-safe
+        return Base64UrlEncoder.Encode(randomNumber);
     }
 
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
