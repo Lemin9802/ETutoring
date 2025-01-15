@@ -16,6 +16,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+        // Use snake_case naming convention for PostgreSQL
+        //builder.HasAnnotation("Relational:DefaultSchema", "public");
+
         builder.Entity<ApplicationUser>(b => b.ToTable("users"));
         builder.Entity<IdentityRole<Guid>>(b => b.ToTable("roles"));
         builder.Entity<IdentityUserRole<Guid>>(b => b.ToTable("user_roles"));

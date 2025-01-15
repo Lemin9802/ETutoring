@@ -6,6 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Helpers\" />
-    <Folder Include="Utilities\" />
+    <Folder Include="Common\" />
   </ItemGroup>
 </Project>

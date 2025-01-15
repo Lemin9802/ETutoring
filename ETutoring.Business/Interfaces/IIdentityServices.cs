@@ -5,5 +5,7 @@ namespace ETutoring.Business.Interfaces;
 
 public interface IIdentityServices
 {
-    Task<ServiceResult<(string AccessToken, string RefreshToken)>> LoginAsync(LoginDto model);
+    Task<Result<(string AccessToken, string RefreshToken)>> LoginAsync(LoginDto model);
+
+    Task<Result<(string AccessToken, string RefreshToken)>> RefreshTokenAsync(string refreshToken);
 }
