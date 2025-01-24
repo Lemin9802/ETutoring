@@ -44,7 +44,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       // Send user info to your .NET backend to sync the user
       const response = await fetch(
         `${process.env.BACKEND_URL}/api/auth/sync-google-user`,

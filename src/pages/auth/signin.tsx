@@ -53,7 +53,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
         {/* Google Button */}
         {providers &&
           Object.values(providers).map(
-            (provider: any) =>
+            (provider) =>
               provider.name === "Google" && (
                 <button
                   key={provider.id}
