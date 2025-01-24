@@ -33,7 +33,6 @@ public class TokenService : ITokenService
         };
 
         // Add roles as claims
-
         var roles = await _userManager.GetRolesAsync(user);
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
@@ -63,36 +62,5 @@ public class TokenService : ITokenService
 
         // Use Base64Url encoding to make the token URL-safe
         return Base64UrlEncoder.Encode(randomNumber);
-    }
-
-    public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
-    {
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = false, // We skip the lifetime validation here
-            ValidIssuer = _configuration["Jwt:Issuer"],
-            ValidAudience = _configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!))
-        };
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        try
-        {
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-            if (securityToken is JwtSecurityToken jwtSecurityToken &&
-                jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return principal;
-            }
-        }
-        catch
-        {
-            return null;
-        }
-
-        return null;
     }
 }

@@ -9,6 +9,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
     public DateTime? RefreshTokenExpiryTime { get; private set; }
 
+    public string? ProfilePicture { get; set; }
 
     public void AddRefreshToken(string token, DateTime expiryTime)
     {
@@ -17,4 +18,6 @@ public class ApplicationUser : IdentityUser<Guid>
 
         RefreshTokens.Add(new RefreshToken(token, expiryTime));
     }
+
+
 }
