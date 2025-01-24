@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Text.Json;
 
 namespace ETutoring.DataAccess.Extensions;
 
 public static class DependencyExtension
 {
-    public static void AddDbContextAndIdentity(this IHostApplicationBuilder builder)
+    public static async void AddDbContextAndIdentity(this IHostApplicationBuilder builder)
     {
         string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -31,11 +32,34 @@ public static class DependencyExtension
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        //Using snake_case for routes
+        builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+        //Using snake_case for all request body properties
+        builder.Services.AddControllers().AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+
+            // For form
+            options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
+        });
+
+        // Google Authentication
+        builder.Services.AddAuthentication().AddGoogle(options =>
+        {
+            options.ClientId = builder.Configuration["GoogleAuth:ClientId"] ?? throw new InvalidOperationException();
+            options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"] ?? throw new InvalidOperationException();
+        });
+
         // Apply migrations during app initialization
         using (var scope = builder.Services.BuildServiceProvider().CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            dbContext.Database.Migrate();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+            await roleManager.SeedRolesAsync();
+
+            await dbContext.Database.MigrateAsync();
         }
     }
 }

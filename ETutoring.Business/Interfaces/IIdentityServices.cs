@@ -1,11 +1,15 @@
 ﻿using ETutoring.Business.Dtos.Auth;
 using ETutoring.Core.Utilities;
+using ETutoring.DataAccess.Entities;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace ETutoring.Business.Interfaces;
 
 public interface IIdentityServices
 {
-    Task<Result<(string AccessToken, string RefreshToken)>> LoginAsync(LoginDto model);
+    Task<AuthResult<(string AccessToken, string RefreshToken)>> LoginAsync(LoginRequest model);
 
-    Task<Result<(string AccessToken, string RefreshToken)>> RefreshTokenAsync(string refreshToken);
+    Task<AuthResult<(string AccessToken, string RefreshToken)>> RefreshTokenAsync(string refreshToken);
+
+    Task<AuthResult<ApplicationUser>> SyncGoogleUserAsync(GoogleUserRequest request);
 }
