@@ -15,6 +15,9 @@ const nextConfig = {
     "rc-upload",
     "rc-dropdown",
   ],
+  images: {
+    domains: ["lh3.googleusercontent.com"],
+  },
 };
 
 export default nextConfig;
