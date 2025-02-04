@@ -1,4 +1,7 @@
+import { APIResponse } from "@/types/APIResponse";
+import { jwtDecode } from "jwt-decode";
 import NextAuth, { NextAuthOptions } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -60,9 +63,20 @@ export const authOptions: NextAuthOptions = {
         }
       );
 
+      const result: APIResponse = await response.json();
+
       if (!response.ok) {
         console.error("Failed to sync user with the backend.");
         return false; // Reject the sign-in
+      }
+
+      // Assuming your backend responds with accessToken and refreshToken
+      if (result.success) {
+        user.accessToken = result.data.access_token;
+        user.refreshToken = result.data.refresh_token;
+      } else {
+        console.error("Failed to retrieve tokens from the backend.");
+        return false;
       }
 
       return true; // Allow the sign-in
@@ -71,17 +85,27 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
+
+        try {
+          // Decode the accessToken to get user role
+          const decodedToken = jwtDecode<JWT>(user.accessToken);
+          token.role = decodedToken.role || "student"; // Default to 'student' if no role found
+        } catch (error) {
+          console.error("Failed to decode access token:", error);
+          token.role = "student"; // Fallback role
+        }
       }
       return token;
     },
     async session({ session, token }) {
       session.user.accessToken = token.accessToken;
       session.user.refreshToken = token.refreshToken;
+      session.user.roles = token.role;
       return session;
     },
     async redirect({ baseUrl }) {
       // Default to /dashboard
-      return `${baseUrl}/dashboard`;
+      return `${baseUrl}/students`;
     },
   },
   // Default redirect URL

@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { signOut, useSession } from "next-auth/react";
+import { Avatar } from "antd";
+import { UserOutlined } from "@ant-design/icons";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -23,13 +25,17 @@ const DropdownUser = () => {
           </span>
         </span>
 
-        <Image
-          width={112}
-          height={112}
-          src={session?.user?.image || "/images/avatar/avatar-1.jpg"}
-          alt="User"
-          className="h-12 w-12 rounded-full"
-        />
+        {session?.user?.image ? (
+          <Image
+            width={112}
+            height={112}
+            src={session?.user?.image || ""}
+            alt="User"
+            className="h-12 w-12 rounded-full"
+          />
+        ) : (
+          <Avatar size={40} icon={<UserOutlined />} />
+        )}
 
         <svg
           className="hidden fill-current sm:block"
