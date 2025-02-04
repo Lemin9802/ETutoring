@@ -1,4 +1,4 @@
-﻿using ETutoring.DataAccess.Entities;
+﻿using ETutoring.Core.Entities;
 
 namespace ETutoring.Business.Interfaces;
 

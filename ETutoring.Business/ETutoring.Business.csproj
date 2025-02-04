@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ETutoring.Core\ETutoring.Core.csproj" />
-    <ProjectReference Include="..\ETutoring.DataAccess\ETutoring.DataAccess.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />

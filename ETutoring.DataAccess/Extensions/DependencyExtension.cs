@@ -1,5 +1,6 @@
-﻿using ETutoring.DataAccess.Data;
-using ETutoring.DataAccess.Entities;
+﻿using ETutoring.Business.Interfaces;
+using ETutoring.Core.Entities;
+using ETutoring.DataAccess.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,8 @@ public static class DependencyExtension
         {
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
         });
+
+        builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 
         // Add Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

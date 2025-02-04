@@ -1,4 +1,5 @@
-﻿using ETutoring.DataAccess.Entities;
+﻿using ETutoring.Business.Interfaces;
+using ETutoring.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +7,11 @@ using System.Reflection;
 
 namespace ETutoring.DataAccess.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -27,4 +30,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         builder.Entity<IdentityRoleClaim<Guid>>(b => b.ToTable("role_claims"));
         builder.Entity<IdentityUserToken<Guid>>(b => b.ToTable("user_tokens"));
     }
+
 }

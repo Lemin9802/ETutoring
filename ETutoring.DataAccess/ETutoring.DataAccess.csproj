@@ -25,6 +25,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ETutoring.Business\ETutoring.Business.csproj" />
     <ProjectReference Include="..\ETutoring.Core\ETutoring.Core.csproj" />
   </ItemGroup>
 </Project>

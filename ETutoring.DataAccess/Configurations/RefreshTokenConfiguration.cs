@@ -1,4 +1,4 @@
-﻿using ETutoring.DataAccess.Entities;
+﻿using ETutoring.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

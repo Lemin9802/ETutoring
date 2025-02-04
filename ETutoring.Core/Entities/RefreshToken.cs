@@ -1,4 +1,4 @@
-﻿namespace ETutoring.DataAccess.Entities;
+﻿namespace ETutoring.Core.Entities;
 
 public class RefreshToken
 {
