@@ -1,7 +1,6 @@
-
 using ETutoring.Business.Interfaces;
-using ETutoring.Business.Services;
 using ETutoring.DataAccess.Extensions;
+using ETutoring.DataAccess.Services;
 
 namespace ETutoring.API
 {

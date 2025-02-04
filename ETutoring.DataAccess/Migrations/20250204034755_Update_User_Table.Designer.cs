@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250204034755_Update_User_Table")]
+    partial class Update_User_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace ETutoring.DataAccess.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ETutoring.Core.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("ETutoring.DataAccess.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -107,7 +110,7 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
+            modelBuilder.Entity("ETutoring.DataAccess.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -129,12 +132,12 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_refresh_tokens");
+                        .HasName("pk_refresh_token");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("ix_refresh_tokens_user_id");
+                        .HasDatabaseName("ix_refresh_token_user_id");
 
-                    b.ToTable("refresh_tokens", (string)null);
+                    b.ToTable("refresh_token", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -299,14 +302,14 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("user_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
+            modelBuilder.Entity("ETutoring.DataAccess.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
+                    b.HasOne("ETutoring.DataAccess.Entities.ApplicationUser", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_users_user_id");
+                        .HasConstraintName("fk_refresh_token_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -323,7 +326,7 @@ namespace ETutoring.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", null)
+                    b.HasOne("ETutoring.DataAccess.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -333,7 +336,7 @@ namespace ETutoring.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", null)
+                    b.HasOne("ETutoring.DataAccess.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -350,7 +353,7 @@ namespace ETutoring.DataAccess.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_user_roles_roles_role_id");
 
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", null)
+                    b.HasOne("ETutoring.DataAccess.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -360,7 +363,7 @@ namespace ETutoring.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", null)
+                    b.HasOne("ETutoring.DataAccess.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -368,7 +371,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasConstraintName("fk_user_tokens_users_user_id");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("ETutoring.DataAccess.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("RefreshTokens");
                 });

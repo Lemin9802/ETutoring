@@ -1,5 +1,5 @@
 ﻿using ETutoring.Business.Interfaces;
-using ETutoring.DataAccess.Entities;
+using ETutoring.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
-namespace ETutoring.Business.Services;
+namespace ETutoring.DataAccess.Services;
 
 public class TokenService : ITokenService
 {
@@ -35,7 +35,7 @@ public class TokenService : ITokenService
         // Add roles as claims
         var roles = await _userManager.GetRolesAsync(user);
 
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(roles.Select(role => new Claim("role", role)));
 
         // Create the security key
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("No Key Provided")));
