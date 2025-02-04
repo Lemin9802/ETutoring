@@ -1,3 +1,5 @@
+import { StaticImageData } from "next/image";
+
 export type SidebarChild = {
   label: string;
   route: string;
@@ -6,6 +8,6 @@ export type SidebarChild = {
 export type SidebarItemType = {
   label: string;
   route: string;
-  icon?: React.ReactNode; // Optional icon
+  icon?: StaticImageData;
   children?: SidebarChild[]; // Optional nested items
 };
