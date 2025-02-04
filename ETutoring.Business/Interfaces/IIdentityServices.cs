@@ -12,4 +12,6 @@ public interface IIdentityServices
     Task<AuthResult<TokenResponse>> RefreshTokenAsync(string refreshToken);
 
     Task<AuthResult<TokenResponse>> SyncGoogleUserAsync(GoogleUserRequest request);
+
+    Task<AuthResult<string>> AssignRoleAsync(Guid userId, Guid roleId);
 }
