@@ -4,6 +4,7 @@ using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using LoginRequest = ETutoring.Business.Dtos.Auth.LoginRequest;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -80,6 +81,7 @@ public class AuthController : ControllerBase
 
     // POST api/auth/login-google
     [HttpPost("sync-google-user")]
+    [SwaggerOperation(Summary = "Sync user who log with Google to database", Description = "The system will return token since login with Google doesn't provide it")]
     public async Task<ActionResult<ApiResponse<TokenResponse>>> SyncGoogleUser([FromBody] GoogleUserRequest request)
     {
         try

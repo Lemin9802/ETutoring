@@ -1,18 +1,22 @@
 ﻿using ETutoring.Business.Interfaces;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Text.Json;
 
 namespace ETutoring.DataAccess.Extensions;
 
 public static class DependencyExtension
 {
-    public static async void AddDbContextAndIdentity(this IHostApplicationBuilder builder)
+    public static void AddDbContextAndIdentity(this IHostApplicationBuilder builder)
     {
         string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -54,15 +58,99 @@ public static class DependencyExtension
             options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"] ?? throw new InvalidOperationException();
         });
 
+        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Missing JWT Key"));
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    RoleClaimType = "role"
+                };
+
+                // Disable claim type remapping
+                options.MapInboundClaims = false;
+
+                // Hook into events for custom behavior
+                options.Events = new JwtBearerEvents
+                {
+                    // Customize the 401 Unauthorized response
+                    OnChallenge = context =>
+                    {
+                        // Prevent the default behavior (which includes setting WWW-Authenticate header)
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var problemDetails = new
+                        {
+                            status_code = 401,
+                            message = "Authentication Failed",
+                            detail = "Access denied. Please provide a valid Bearer token.",
+                            type = "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1",
+                        };
+
+                        return context.Response.WriteAsJsonAsync(problemDetails);
+                    },
+
+                    // Handle token validation failures
+                    OnAuthenticationFailed = context =>
+                    {
+                        // Handle token validation failures (e.g., expired tokens)
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var problemDetails = new
+                        {
+                            status_code = 401,
+                            message = "Authentication Failed",
+                            detail = context.Exception.Message,
+                            type = "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1",
+                        };
+
+                        return context.Response.WriteAsJsonAsync(problemDetails);
+                    },
+
+                    // Customize the 403 Forbidden response
+                    OnForbidden = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+
+                        var problemDetails = new
+                        {
+                            status_code = 403,
+                            message = "Authorization Failed",
+                            detail = "You do not have permission to access this resource.",
+                            type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3"
+                        };
+
+                        return context.Response.WriteAsJsonAsync(problemDetails);
+                    }
+                };
+
+            });
+
         // Apply migrations during app initialization
         using (var scope = builder.Services.BuildServiceProvider().CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-            await roleManager.SeedRolesAsync();
+            roleManager.SeedRolesAsync().Wait();
 
-            await dbContext.Database.MigrateAsync();
+            dbContext.Database.MigrateAsync();
         }
     }
 }

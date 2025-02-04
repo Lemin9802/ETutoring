@@ -12,14 +12,16 @@ namespace ETutoring.DataAccess.Services;
 public class IdentityServices : IIdentityServices
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly ITokenService _tokenService;
     private readonly IApplicationDbContext _context;
 
-    public IdentityServices(UserManager<ApplicationUser> userManager, ITokenService tokenService, IApplicationDbContext context)
+    public IdentityServices(UserManager<ApplicationUser> userManager, ITokenService tokenService, IApplicationDbContext context, RoleManager<IdentityRole<Guid>> roleManager)
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _context = context;
+        _roleManager = roleManager;
     }
 
     public async Task<AuthResult<TokenResponse>> LoginAsync(LoginRequest model)
@@ -80,6 +82,13 @@ public class IdentityServices : IIdentityServices
         if (!result.Succeeded)
         {
             return AuthResult<Guid>.Failure(result.Errors.Select(e => e.Description).ToArray());
+        }
+
+        // Assign default role (Student)
+        var roleResult = await _userManager.AddToRoleAsync(user, Constants.STUDENT_ROLE);
+        if (!roleResult.Succeeded)
+        {
+            return AuthResult<Guid>.Failure(roleResult.Errors.Select(e => e.Description).ToArray());
         }
 
         return AuthResult<Guid>.Success(user.Id);
@@ -204,6 +213,46 @@ public class IdentityServices : IIdentityServices
         return AuthResult<TokenResponse>.Success(newTokenResponse);
     }
 
+    public async Task<AuthResult<string>> AssignRoleAsync(Guid userId, Guid roleId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            return AuthResult<string>.Failure("User not found.");
+        }
+
+        var role = await _roleManager.FindByIdAsync(roleId.ToString());
+        if (role == null)
+        {
+            return AuthResult<string>.Failure("Role not found.");
+        }
+
+        // Check if the user is already in the role
+        if (await _userManager.IsInRoleAsync(user, role.Name!))
+        {
+            return AuthResult<string>.Failure("User is already assigned to the role.");
+        }
+
+        // Get current roles of the user
+        var currentRoles = await _userManager.GetRolesAsync(user);
+
+        // Remove all existing roles
+        if (currentRoles.Any())
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return AuthResult<string>.Failure(removeResult.Errors.Select(e => e.Description).ToArray());
+            }
+        }
+
+        var result = await _userManager.AddToRoleAsync(user, role.Name!);
+        if (!result.Succeeded)
+        {
+            return AuthResult<string>.Failure(result.Errors.Select(e => e.Description).ToArray());
+        }
+        return AuthResult<string>.Success("Role assigned successfully.");
+    }
 
     private async Task AddOrUpdateRefreshTokenAsync(Guid userId, string token, DateTime expiryTime, CancellationToken cancellationToken)
     {
