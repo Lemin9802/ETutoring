@@ -7,7 +7,7 @@ import SettingsIcon from "public/icons/menu/setting.svg";
 import ChartIcon from "public/icons/menu/chart.svg";
 import UIElementsIcon from "public/icons/menu/ui-element.svg";
 import AuthenticationIcon from "public/icons/menu/authentication.svg";
-
+import BlogIcon from "public/icons/menu/blogs.svg";
 export const menuGroupsStudents = [
   {
     name: "MENU",
@@ -97,14 +97,19 @@ export const menuGroupsAdmin = [
         label: "Users",
         route: "/admin/users",
       },
+      // {
+      //   icon: FormsIcon,
+      //   label: "Forms",
+      //   route: "#",
+      //   children: [
+      //     { label: "Form Elements", route: "/forms/form-elements" },
+      //     { label: "Form Layout", route: "/forms/form-layout" },
+      //   ],
+      // },
       {
-        icon: FormsIcon,
-        label: "Forms",
-        route: "#",
-        children: [
-          { label: "Form Elements", route: "/forms/form-elements" },
-          { label: "Form Layout", route: "/forms/form-layout" },
-        ],
+        icon: BlogIcon,
+        label: "Blogs",
+        route: "/blogs",
       },
       {
         icon: TablesIcon,

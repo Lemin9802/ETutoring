@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <SessionProvider>
-      <div className="flex">
+      <div className="flex min-h-screen">
         {/* Sidebar */}
         {showBar && (
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
