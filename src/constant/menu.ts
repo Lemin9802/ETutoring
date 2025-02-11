@@ -7,6 +7,7 @@ import SettingsIcon from "public/icons/menu/setting.svg";
 import ChartIcon from "public/icons/menu/chart.svg";
 import UIElementsIcon from "public/icons/menu/ui-element.svg";
 import AuthenticationIcon from "public/icons/menu/authentication.svg";
+import MessageIcon from "public/icons/menu/message.svg";
 
 export const menuGroupsStudents = [
   {
@@ -16,6 +17,11 @@ export const menuGroupsStudents = [
         icon: DashboardIcon,
         label: "Dashboard",
         route: "/dashboard",
+      },
+      {
+        icon: MessageIcon,
+        label: "Chatting",
+        route: "/chatting/student",
       },
       {
         icon: CalendarIcon,
