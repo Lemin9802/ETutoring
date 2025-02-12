@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
 
+
     // ✅ Check if the user's role has access to the requested path
     const allowedPaths = allowedRolesWithPaths[role] || [];
     console.log("allow", allowedPaths)
