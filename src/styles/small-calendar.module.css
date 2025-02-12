@@ -10,12 +10,12 @@
 }
 
 .react-calendar__navigation {
-  display: none; /* Ẩn phần điều hướng mặc định */
+  display: none; 
 }
 
 .selected-circle {
-  background-color: #fdf38a !important; /* Màu vàng */
-  color: black !important; /* Chuyển chữ thành đen */
+  background-color: #fdf38a !important; 
+  color: black !important; 
   border-radius: 50%;
 }
 

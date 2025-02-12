@@ -67,11 +67,11 @@ export default function CustomCalendar() {
           navigationLabel={({ date }) => (
             <div className="bg-blue-500 text-white py-2 text-center font-bold w-full">{date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</div>
           )}
-          nextLabel={null}        // Ẩn nút ">"
-          prevLabel={null}        // Ẩn nút "<"
-          next2Label={null}       // Ẩn nút "»"
-          prev2Label={null}       // Ẩn nút "«"
-          formatShortWeekday={(locale, date) => date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase()} // Loại bỏ chấm dưới ngày
+          nextLabel={null}        //  ">"
+          prevLabel={null}        //  "<"
+          next2Label={null}       //  "»"
+          prev2Label={null}       //  "«"
+          formatShortWeekday={(locale, date) => date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase()} 
           tileClassName={({ date, view }) => {
             if (view === 'month' && date.getMonth() !== month) {
               return 'text-gray-400';
