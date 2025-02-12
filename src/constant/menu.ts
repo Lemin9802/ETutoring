@@ -119,3 +119,21 @@ export const menuGroupsAdmin = [
     ],
   },
 ];
+
+export const menuGroupsModerators = [
+  {
+    name: "Moderators Menu",
+    menuItems: [
+      {
+        icon: DashboardIcon,
+        label: "Dashboard",
+        route: "/moderators/dashboard",
+      },
+      {
+        icon: CalendarIcon,
+        label: "Calendar",
+        route: "/moderators/manage_student",
+      },
+    ],
+  },
+];
