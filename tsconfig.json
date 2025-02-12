@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
     "lib": [
       "dom",
       "dom.iterable",
@@ -9,12 +8,6 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
-=======
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
->>>>>>> main
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -24,7 +17,6 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-<<<<<<< HEAD
       "@/*": [
         "./src/*"
       ],
@@ -42,12 +34,4 @@
   "exclude": [
     "node_modules"
   ]
-=======
-      "@/*": ["./src/*"],
-      "public/*": ["./public/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
->>>>>>> main
 }
