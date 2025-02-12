@@ -16,22 +16,22 @@ export const menuGroupsStudents = [
       {
         icon: DashboardIcon,
         label: "Dashboard",
-        route: "/dashboard",
+        route: "/students",
       },
       {
         icon: MessageIcon,
         label: "Chatting",
-        route: "/chatting/student",
+        route: "/students/chat/messages",
       },
       {
         icon: CalendarIcon,
         label: "Calendar",
-        route: "/calendar",
+        route: "/students/calendar",
       },
       {
         icon: ProfileIcon,
         label: "Profile",
-        route: "/profile",
+        route: "/students/profile",
       },
       {
         icon: FormsIcon,
