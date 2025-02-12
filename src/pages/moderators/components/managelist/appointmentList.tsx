@@ -1,5 +1,6 @@
 import React from "react";
 import type { TableProps } from "antd";
+import { Table } from "antd";
 
 interface AppointmentType {
   key: string;
@@ -85,3 +86,9 @@ export const appointmentsData: AppointmentType[] = [
   },
   // Add more appointments as needed...
 ];
+
+const Appointments: React.FC = () => {
+  return <Table columns={columns} dataSource={appointmentsData} />;
+};
+
+export default Appointments;

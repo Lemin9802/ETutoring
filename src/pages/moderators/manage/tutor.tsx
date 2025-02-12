@@ -1,13 +1,10 @@
 import React from "react";
-//import StudentList from "../components/manage/studentsList";
-import { columns,data } from "../components/managelist/tutorList";
-import { Table } from 'antd';
-
+import App from "../components/managelist/tutorList";
 
 const TutorPage: React.FC = () => {
   return (
     <div>
-        <Table columns={columns} dataSource={data} />;
+      <App></App>
     </div>
   );
 };

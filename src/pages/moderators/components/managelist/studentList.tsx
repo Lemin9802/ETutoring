@@ -1,6 +1,6 @@
-import React from 'react';
-import { Space, Tag } from 'antd';
-import type { TableProps } from 'antd';
+import React from "react";
+import { Space, Table, Tag } from "antd";
+import type { TableProps } from "antd";
 
 interface DataType {
   key: string;
@@ -10,33 +10,33 @@ interface DataType {
   tags: string[];
 }
 
-export const columns: TableProps<DataType>['columns'] = [
+export const columns: TableProps<DataType>["columns"] = [
   {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
     render: (text) => <a>{text}</a>,
   },
   {
-    title: 'Age',
-    dataIndex: 'age',
-    key: 'age',
+    title: "Age",
+    dataIndex: "age",
+    key: "age",
   },
   {
-    title: 'Address',
-    dataIndex: 'address',
-    key: 'address',
+    title: "Address",
+    dataIndex: "address",
+    key: "address",
   },
   {
-    title: 'Tags',
-    key: 'tags',
-    dataIndex: 'tags',
+    title: "Tags",
+    key: "tags",
+    dataIndex: "tags",
     render: (_, { tags }) => (
       <>
         {tags.map((tag) => {
-          let color = tag.length > 5 ? 'geekblue' : 'green';
-          if (tag === 'loser') {
-            color = 'volcano';
+          let color = tag.length > 5 ? "geekblue" : "green";
+          if (tag === "loser") {
+            color = "volcano";
           }
           return (
             <Tag color={color} key={tag}>
@@ -48,8 +48,8 @@ export const columns: TableProps<DataType>['columns'] = [
     ),
   },
   {
-    title: 'Action',
-    key: 'action',
+    title: "Action",
+    key: "action",
     render: (_, record) => (
       <Space size="middle">
         <a>Invite {record.name}</a>
@@ -61,25 +61,30 @@ export const columns: TableProps<DataType>['columns'] = [
 
 export const data: DataType[] = [
   {
-    key: '1',
-    name: 'John Brown',
+    key: "1",
+    name: "John Brown",
     age: 32,
-    address: 'New York No. 1 Lake Park',
-    tags: ['nice', 'developer'],
+    address: "New York No. 1 Lake Park",
+    tags: ["nice", "developer"],
   },
   {
-    key: '2',
-    name: 'Jim Green',
+    key: "2",
+    name: "Jim Green",
     age: 42,
-    address: 'London No. 1 Lake Park',
-    tags: ['loser'],
+    address: "London No. 1 Lake Park",
+    tags: ["loser"],
   },
   {
-    key: '3',
-    name: 'Joe Black',
+    key: "3",
+    name: "Joe Black",
     age: 32,
-    address: 'Sydney No. 1 Lake Park',
-    tags: ['cool', 'teacher'],
+    address: "Sydney No. 1 Lake Park",
+    tags: ["cool", "teacher"],
   },
 ];
 
+const StudentList: React.FC = () => {
+  return <Table columns={columns} dataSource={data} />;
+};
+
+export default StudentList;

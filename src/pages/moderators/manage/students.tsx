@@ -1,13 +1,11 @@
 import React from "react";
 //import StudentList from "../components/manage/studentsList";
-import { columns,data } from "../components/managelist/studentList";
-import { Table } from 'antd';
-
+import StudentList from "../components/managelist/studentList";
 
 const ManageStudentPage: React.FC = () => {
   return (
     <div>
-        <Table columns={columns} dataSource={data} />;
+      <StudentList></StudentList>
     </div>
   );
 };
