@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import '@/styles/small-calendar.module.css'; // Custom CSS để tạo style giống hình
+import '@/styles/small-calendar.module.css'; 
 
 export default function CustomCalendar() {
   const currentDate = new Date();
