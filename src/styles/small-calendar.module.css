@@ -1,0 +1,28 @@
+.react-calendar {
+  width: 100%;
+  max-width: 280px;
+  background: white;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  font-family: 'Inter', sans-serif;
+}
+
+.react-calendar__navigation {
+  display: none; /* Ẩn phần điều hướng mặc định */
+}
+
+.selected-circle {
+  background-color: #fdf38a !important; /* Màu vàng */
+  color: black !important; /* Chuyển chữ thành đen */
+  border-radius: 50%;
+}
+
+
+.selected-range {
+  background-color: #dce6ff !important;
+  color: #4a90e2;
+  border-radius: 10px;
+}
+
