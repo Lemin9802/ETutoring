@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Button } from "antd";
+import { Button, Tabs } from "antd";
 import Banner from "@/components/Banner";
 import BlogList from "@/components/Blogs/BlogList";
 import BlogWriteModal from "@/components/Blogs/BlogWriteModal";
-import { APIResponse } from "@/types/APIResponse";
+import { useSession } from "next-auth/react";
 
 const BlogListPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("all"); // Default tab
 
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -14,30 +15,6 @@ const BlogListPage = () => {
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
-  };
-
-  const handleSubmitBlog = async (values: {
-    title: string;
-    content: string;
-  }) => {
-    try {
-      const response = await fetch("/api/blogs/create", {});
-      if (response.ok) {
-        console.log("Blog Created Successfully");
-        return;
-      }
-
-      const result: APIResponse = await response.json();
-      if (result.error) {
-        console.error(result.message);
-        return;
-      }
-
-      // Here you can send the blog data to an API or update state
-      handleCloseModal();
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   return (
@@ -48,22 +25,33 @@ const BlogListPage = () => {
         bgColor="bg-green-600"
       />
 
+      {/* Tabs for filtering blog lists */}
+      <div className="max-w-7xl mx-auto px-6 mt-6">
+        <Tabs
+          defaultActiveKey="all"
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          size="large"
+          className="mb-4"
+        >
+          <Tabs.TabPane tab="📝 All Blogs" key="all" />
+          <Tabs.TabPane tab="✍ My Blogs" key="my-blogs" />
+          <Tabs.TabPane tab="❤️ Liked Blogs" key="liked" />
+        </Tabs>
+      </div>
+
       {/* Create Blog Button */}
-      <div className="flex justify-end max-w-7xl mx-auto px-6 mt-6">
+      <div className="flex justify-end max-w-7xl mx-auto px-6 mb-4">
         <Button type="primary" size="large" onClick={handleOpenModal}>
           + Create New Blog
         </Button>
       </div>
 
       {/* Blog Write Modal */}
-      <BlogWriteModal
-        visible={isModalVisible}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitBlog}
-      />
+      <BlogWriteModal visible={isModalVisible} onClose={handleCloseModal} />
 
-      {/* Blog List */}
-      <BlogList />
+      {/* Blog List with Filter */}
+      <BlogList filter={activeTab} />
     </>
   );
 };

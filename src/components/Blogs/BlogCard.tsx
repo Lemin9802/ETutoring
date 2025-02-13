@@ -93,7 +93,23 @@ const BlogCard: React.FC<BlogCardProps> = ({
   };
 
   const handleDeleteComment = (commentId: string) => {
-    setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+    setComments((prev) =>
+      prev
+        .map((comment) => {
+          // If the comment to delete is a reply, filter it from replies
+          if (comment.replies) {
+            return {
+              ...comment,
+              replies: comment.replies.filter(
+                (reply) => reply.id !== commentId
+              ),
+            };
+          }
+          return comment;
+        })
+        // Filter out the top-level comment if it's the one being deleted
+        .filter((comment) => comment.id !== commentId)
+    );
   };
 
   return (

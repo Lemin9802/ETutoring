@@ -90,6 +90,7 @@ export const authOptions: NextAuthOptions = {
           // Decode the accessToken to get user role
           const decodedToken = jwtDecode<JWT>(user.accessToken);
           token.role = decodedToken.role || "student"; // Default to 'student' if no role found
+          token.id = decodedToken.sub!;
         } catch (error) {
           console.error("Failed to decode access token:", error);
           token.role = "student"; // Fallback role
@@ -101,6 +102,7 @@ export const authOptions: NextAuthOptions = {
       session.user.accessToken = token.accessToken;
       session.user.refreshToken = token.refreshToken;
       session.user.roles = token.role;
+      session.user.id = token.id;
       return session;
     },
     async redirect({ baseUrl }) {

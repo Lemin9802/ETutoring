@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import axios from "axios";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { APIResponse } from "@/types/APIResponse";
@@ -9,51 +10,55 @@ export default async function handler(
 ) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res
+      .status(405)
+      .json({ message: `Method ${req.method} Not Allowed` });
   }
 
   try {
     const session = await getServerSession(req, res, authOptions);
 
     if (!session) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const token = session.user.accessToken;
-
     if (!token) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const { title, content } = req.body;
 
     const bodyData = {
-      userId: session.user.id,
+      user_id: session.user.id,
       title,
       content,
     };
+    // Axios API Request
+    const response = await axios.post<APIResponse>(
+      `${process.env.BACKEND_URL}/api/blogs/create`,
+      bodyData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-    const response = await fetch(`${process.env.BACKEND_URL}/blogs/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(bodyData),
-    });
-
-    if (response.ok) {
-      res.status(200).json({ message: "Blog Created Successfully" });
-      return;
+    // Success response
+    return res.status(200).json(response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return res.status(error.response?.status || 500).json({
+        message:
+          error.response?.data?.message ||
+          "An error occurred while creating the blog",
+      });
     }
 
-    const result: APIResponse = await response.json();
-
-    res.status(response.status).json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ message: "An error occurred while creating the blog" });
   }
 }

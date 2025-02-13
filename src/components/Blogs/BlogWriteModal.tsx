@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button } from "antd";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
+import axios from "axios";
+import { APIResponse } from "@/types/APIResponse";
+import { toast } from "react-toastify";
 
 // Dynamically import React Quill to prevent SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
@@ -9,13 +12,11 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 interface BlogWriteModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (values: { title: string; content: string }) => void;
 }
 
 const BlogWriteModal: React.FC<BlogWriteModalProps> = ({
   visible,
   onClose,
-  onSubmit,
 }) => {
   const [form] = Form.useForm();
   const [content, setContent] = useState(""); // State for React Quill content
@@ -36,11 +37,36 @@ const BlogWriteModal: React.FC<BlogWriteModalProps> = ({
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      onSubmit({ ...values, content }); // Pass content separately
+
+      const bodyData = {
+        title: values.title,
+        content: content,
+      };
+
+      const response = await axios.post<APIResponse>(
+        "/api/blogs/create",
+        bodyData,
+        {
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        }
+      );
+
+      if (response.data.error) {
+        toast.error(response.data.message);
+        return;
+      }
+
+      toast.success("Blog created successfully");
       form.resetFields();
       setContent(""); // Reset Quill editor
+      onClose();
     } catch (error) {
-      console.log("Validation Failed:", error);
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "An error occurred");
+      } else {
+        console.error("Unexpected error:", error);
+      }
     }
   };
 
