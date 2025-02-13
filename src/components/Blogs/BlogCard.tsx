@@ -12,9 +12,11 @@ import {
 import { BlogType, CommentType } from "@/types/Blogs";
 import CommentSection from "./CommentSection";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface BlogCardProps extends BlogType {}
 
 const BlogCard: React.FC<BlogCardProps> = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   id,
   title,
   author,

@@ -7,7 +7,9 @@ import SettingsIcon from "public/icons/menu/setting.svg";
 import ChartIcon from "public/icons/menu/chart.svg";
 import UIElementsIcon from "public/icons/menu/ui-element.svg";
 import AuthenticationIcon from "public/icons/menu/authentication.svg";
+import MessageIcon from "public/icons/menu/message.svg";
 import BlogIcon from "public/icons/menu/blogs.svg";
+
 export const menuGroupsStudents = [
   {
     name: "MENU",
@@ -15,17 +17,22 @@ export const menuGroupsStudents = [
       {
         icon: DashboardIcon,
         label: "Dashboard",
-        route: "/dashboard",
+        route: "/students",
+      },
+      {
+        icon: MessageIcon,
+        label: "Chatting",
+        route: "/students/chat/messages",
       },
       {
         icon: CalendarIcon,
         label: "Calendar",
-        route: "/calendar",
+        route: "/students/calendar",
       },
       {
         icon: ProfileIcon,
         label: "Profile",
-        route: "/profile",
+        route: "/students/profile",
       },
       {
         icon: FormsIcon,
@@ -85,7 +92,7 @@ export const menuGroupsAdmin = [
       {
         icon: DashboardIcon,
         label: "Dashboard",
-        route: "/admin/dashboard",
+        route: "/admin",
       },
       {
         icon: CalendarIcon,
@@ -120,6 +127,24 @@ export const menuGroupsAdmin = [
         icon: SettingsIcon,
         label: "Settings",
         route: "/settings",
+      },
+    ],
+  },
+];
+
+export const menuGroupsModerators = [
+  {
+    name: "Moderators Menu",
+    menuItems: [
+      {
+        icon: DashboardIcon,
+        label: "Dashboard",
+        route: "/moderators/dashboard",
+      },
+      {
+        icon: CalendarIcon,
+        label: "Calendar",
+        route: "/moderators/manage_student",
       },
     ],
   },

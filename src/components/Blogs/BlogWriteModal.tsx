@@ -103,7 +103,7 @@ const BlogWriteModal: React.FC<BlogWriteModalProps> = ({
           required
           rules={[
             {
-              validator: (_, value) =>
+              validator: () =>
                 content
                   ? Promise.resolve()
                   : Promise.reject("Please enter blog content"),
@@ -141,7 +141,7 @@ const BlogWriteModal: React.FC<BlogWriteModalProps> = ({
           required
           rules={[
             {
-              validator: (_, value) =>
+              validator: () =>
                 content
                   ? Promise.resolve()
                   : Promise.reject("Please enter blog content"),

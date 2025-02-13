@@ -24,17 +24,13 @@ const BlogList = ({ filter, userId }: BlogListProps) => {
     setHasMore(true); // Allow more loading
   }, [filter, userId]);
 
-  useEffect(() => {
-    fetchBlogs(page);
-  }, [page, filter, userId]); // Fetch when page or filter updates
-
   const fetchBlogs = async (pageNumber: number) => {
     if (!hasMore || loading) return; // Prevent multiple fetch calls
     setLoading(true);
     setError(false);
 
     try {
-      let url = `/api/blogs`;
+      const url = `/api/blogs`;
       const body = {
         page: pageNumber,
         limit: 10,
@@ -58,6 +54,10 @@ const BlogList = ({ filter, userId }: BlogListProps) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchBlogs(page);
+  }, [page, filter, userId, fetchBlogs]); // Fetch when page or filter updates
 
   // Intersection Observer: Load more when last blog is in view
   useEffect(() => {
