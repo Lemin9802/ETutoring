@@ -3,22 +3,22 @@ import InactiveStudentsPreview from "@/components/Admin/Dashboard/InactiveStuden
 
 import Statistics from "@/components/Admin/Dashboard/Statistics";
 import UnassignedStudentsChart from "@/components/Admin/Dashboard/UnassignedStudentsChart";
-import { Row, Col } from "antd";
 
 const AdminPage = () => {
   return (
-    <>
+    <div className="space-y-6">
       <Statistics />
-      <Row gutter={16}>
-        <Col md={12}>
+      <div className="flex flex-col xl:flex-row gap-4 w-full">
+        <div className="w-full xl:w-1/2">
           <InactiveStudentsPreview />
-        </Col>
-        <Col md={12}>
+        </div>
+        <div className="w-full xl:w-1/2">
           <BlogActivityChart />
-        </Col>
-      </Row>
+        </div>
+      </div>
+
       <UnassignedStudentsChart />
-    </>
+    </div>
   );
 };
 
