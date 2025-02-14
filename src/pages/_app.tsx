@@ -5,6 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,7 +17,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <SessionProvider>
-      <div className="flex">
+      <div className="flex min-h-screen">
         {/* Sidebar */}
         {showBar && (
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -33,6 +35,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </main>
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </SessionProvider>
   );
 }
