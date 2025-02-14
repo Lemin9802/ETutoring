@@ -1,31 +1,30 @@
-import { Card, Col, Image, Row } from "antd";
+import { Card, Col, Row } from "antd";
 import React from "react";
-import ViewMoreIcon from "public/icons/share/viewInfo.svg";
-import Link from "next/link";
 
 interface StatisticalDataCardProps {
   bgColor?: string;
   cardTitle?: string;
+  value: number;
 }
 
 const StatisticalDataCard: React.FC<StatisticalDataCardProps> = ({
   bgColor,
   cardTitle,
+  value
 }) => {
   return (
     <Col span={6}>
       <Card
-        title={<span style={{ color: "white" }}>{cardTitle}</span>}
-        className={`bg-${bgColor} text-white`}
-        extra={
-          <Link href="#" style={{ color: "white" }}>
-            <Image src={ViewMoreIcon} alt={cardTitle} width={20} height={20} />
-          </Link>
-        }
+        className={`${bgColor} text-white`}
         style={{ width: 350 }}
+        title={
+          <div className="w-full flex items-center justify-between">
+            <span className="text-white flex-grow text-center">{cardTitle}</span>
+          </div>
+        }
       >
-        <Row justify={"center"}>
-          <span className="text-4xl font-bold">58</span>
+        <Row justify="center" align="middle">
+          <span className="text-4xl font-bold">{value}</span>
         </Row>
       </Card>
     </Col>
