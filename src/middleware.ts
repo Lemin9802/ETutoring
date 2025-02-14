@@ -6,7 +6,7 @@ const allowedRolesWithPaths = {
   student: ["/students"],
   admin: ["/admin"],
   moderator: ["/moderators"],
-  teacher: ["/teacher"],
+  tutor: ["/teacher"],
 };
 
 export async function middleware(request: NextRequest) {
@@ -31,9 +31,15 @@ export async function middleware(request: NextRequest) {
       decodeToken.role.toLowerCase() as keyof typeof allowedRolesWithPaths;
     const pathname = request.nextUrl.pathname;
 
+
+
     // ✅ Check if the user's role has access to the requested path
     const allowedPaths = allowedRolesWithPaths[role] || [];
-
+    console.log("allow", allowedPaths)
+    
+    if (allowedPaths.length === 0)
+      return NextResponse.redirect(new URL("/auth/signin", request.url));
+    
     const hasAccess = allowedPaths.some((path) => pathname.startsWith(path));
 
     if (!hasAccess) {
