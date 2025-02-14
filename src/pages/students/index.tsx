@@ -1,153 +1,238 @@
-import { Button, Calendar, Card, Col, Image, Progress, Row, Table } from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined, CloudOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Calendar, Card, Col, Image, List, Modal, Progress, Row, Table, Timeline } from "antd";
 import Title from "antd/es/typography/Title";
-import { Metadata } from "next";
-import { CheckCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import React, { useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Next.js Chart | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Chart page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
-};
+const eventsData = [
+  { title: 'Math Exam', date: '2025-02-20', description: 'Prepare your notes for the exam.' },
+  { title: 'Science Presentation', date: '2025-02-25', description: 'Prepare slides and rehearse.' },
+  { title: 'Group Project Submission', date: '2025-03-01', description: 'Finalizing and submitting the project.' },
+  { title: 'Homework Deadline', date: '2025-02-20', description: 'Submit your homework on time.' },
+];
+
+const newsData = [
+  { title: 'Understanding React Hooks', date: '2025-02-12' },
+  { title: '10 Tips for Better UX Design', date: '2025-02-11' },
+  { title: 'JavaScript ES2022 Features', date: '2025-02-10' },
+];
 
 const DashboardPage: React.FC = () => {
-  const [pendingTasks] = useState([
-    { title: 'Submit the assignment for Hindi', subject: 'Hindi', points: 10, status: 'Pending' },
-    { title: 'Complete the project report', subject: 'English', points: 15, status: 'Pending' },
-    { title: 'Make correction in assignment', subject: 'Maths', points: 20, status: 'Pending' },
+  const [pendingTasks, setPendingTasks] = useState([
+    { title: 'Submit your final assignment', status: 'Pending' },
+    { title: 'Prepare for the upcoming exam', status: 'Pending' },
+    { title: 'Attend the group meeting', status: 'Pending' },
   ]);
 
-  const recentSubmissions = [
-    { title: 'Submit the assignment for Hindi', subject: 'Hindi', points: 10, status: 'Checked' },
-    { title: 'Complete the project report', subject: 'English', points: 15, status: 'Checked' },
-    { title: 'Make correction in assignment', subject: 'Maths', points: 20, status: 'Pending' },
-  ];
+  const [recentSubmissions] = useState([
+    { title: 'Submit your final assignment', status: 'Checked' },
+    { title: 'Complete the survey for course feedback', status: 'Checked' },
+    { title: 'Prepare your presentation for class', status: 'Pending' },
+  ]);
+
+  const [selectedDate, setSelectedDate] = useState<any>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+
+  const [weather, setWeather] = useState<{ temperature: number; condition: string }>({ temperature: 25, condition: 'Sunny' });
 
   const columns = [
-    { title: 'Worksheet Title', dataIndex: 'title', key: 'title' },
-    { title: 'Subject', dataIndex: 'subject', key: 'subject' },
-    { title: 'Points', dataIndex: 'points', key: 'points' },
+    { title: 'Task Title', dataIndex: 'title', key: 'title' },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (status === 'Checked' ? <CheckCircleOutlined /> : <ClockCircleOutlined />),
+      render: (status: string) => (status === 'Checked' ? <CheckCircleOutlined style={{ color: 'green' }} /> : <ClockCircleOutlined style={{ color: 'orange' }} />),
     },
     {
       title: 'Action',
       key: 'action',
-      render: () => <Button type="primary">Start</Button>,
+      render: (text: string, record: any) => (
+        <Button
+          type="primary"
+          onClick={() => markTaskCompleted(record.title)}
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          Complete
+        </Button>
+      ),
     },
   ];
 
+  const markTaskCompleted = (title: string) => {
+    const newTasks = pendingTasks.map((task) =>
+      task.title === title ? { ...task, status: 'Checked' } : task
+    );
+    setPendingTasks(newTasks);
+  };
+
+  const handleDateClick = (date: any) => {
+    const filteredEvents = eventsData.filter(
+      (event) => event.date === date.format("YYYY-MM-DD")
+    );
+    setSelectedEvent(filteredEvents.length > 0 ? filteredEvents[0] : null);
+    setSelectedDate(date);
+    setIsModalVisible(true);
+  };
+
+  const dateCellRender = (date: any) => {
+    const dayEvents = eventsData.filter(
+      (event) => event.date === date.format("YYYY-MM-DD")
+    );
+    return (
+      <ul>
+        {dayEvents.length > 0 && (
+          <li className="text-red-500">•</li> // Red dot for events on the day
+        )}
+      </ul>
+    );
+  };
+  const daysStudied = 2;  // Example: 2 days studied
+  const totalDays = 30;   // Example: total 30 days
+  
   return (
-    <Card className="rounded-lg shadow-md p-6">
-      <Row gutter={[16, 16]}>
-        {/* User Info Section */}
-        <Col span={16} className="flex flex-col items-center">
-          {/* User Information */}
-          <Card className="w-full flex shadow-md rounded-lg p-4">
-            <Row gutter={[16, 16]} align="middle">
-              <Col span={8} className="flex flex-col items-center">
-                <Image
-                  width={150}
-                  src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
-                  alt="User"
-                  className="rounded-full"
-                />
-              </Col>
-              <Col span={12}>
-                <div className="flex flex-col justify-center">
-                  <Title level={3}>Welcome, Ananya Sharma</Title>
-                  <p className="text-sm text-gray-500">Thursday, May 6, 2021</p>
-                </div>
-              </Col>
-              <Col span={4} className="flex justify-center items-center">
-                <div className="flex flex-col items-center">
-                  <p className="text-sm text-gray-500">My Total Points</p>
-                  <Title level={2}>291</Title>
-                </div>
-              </Col>
-            </Row>
-          </Card>
+    <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
+      <Card className="mt-4">
+        <Row gutter={[24, 24]}>
+          {/* Left Section: User Info & Weather */}
+          <Col xs={24} sm={16} md={15}>
+            <Card className="shadow-lg rounded-lg p-6 bg-white mb-3">
+              <Row gutter={[16, 16]} className="flex items-center">
+                <Col span={6}>
+                  <Image
+                    width={120}
+                    src="https://img.freepik.com/premium-vector/student-avatar-illustration-user-profile-icon-youth-avatar_118339-4405.jpg"
+                    alt="User Profile"
+                    className="rounded-full"
+                  />
+                </Col>
+                <Col span={18}>
+                  <Title level={4}><UserOutlined /> John Doe</Title>
+                  <p className="text-sm text-gray-600">Web Development | Student</p>
+                  <p className="text-sm text-gray-600">Location: New York</p>
+                </Col>
+              </Row>
+            </Card>
+            <Card className="shadow-lg rounded-lg p-6 bg-blue-50">
+              <Row gutter={[16, 16]} className="flex items-center">
+                {/* Left Section: Weather */}
+                <Col span={11} className="flex flex-col space-y-2">
+                  <Title level={4} className="flex items-center">
+                    <CloudOutlined /> Current Weather
+                  </Title>
+                  <p className="text-gray-600">Location: Ho Chi Minh City</p>
+                  <p className="text-gray-600">Temperature: {weather.temperature}°C</p>
+                  <p className="text-gray-600">Condition: {weather.condition}</p>
+                </Col>
 
-          {/* Course Progress Section */}
-          <Card title="My Course Progress" className="shadow-md rounded-lg w-full mt-6">
-            <Row className="flex items-center justify-center">
-              <Col span={6} className="mt-4">
-                <Progress type="circle" percent={75} />
-              </Col>
-              <Col span={16} className="mt-4">
-                <Title level={4}>Your Progress</Title>
-                <Progress
-                  percent={76}
-                  strokeColor="blue"
-                  format={(percent) => `Hindi ${percent}%`}
-                  className="mb-2"
-                />
-                <Progress
-                  percent={90}
-                  strokeColor="green"
-                  format={(percent) => `English ${percent}%`}
-                  className="mb-2"
-                />
-                <Progress
-                  percent={83}
-                  strokeColor="orange"
-                  format={(percent) => `Maths ${percent}%`}
-                  className="mb-2"
-                />
-                <Progress
-                  percent={70}
-                  strokeColor="purple"
-                  format={(percent) => `Science ${percent}%`}
-                  className="mb-2"
-                />
-                <Progress
-                  percent={46}
-                  strokeColor="red"
-                  format={(percent) => `SST ${percent}%`}
-                />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
+                {/* Vertical Divider */}
+                <Col className="flex justify-center items-center">
+                  <div className="border-l-2 h-24 mx-4"></div> {/* Vertical line with fixed height */}
+                </Col>
 
-        {/* Calendar Section */}
-        <Col span={8} className="mt-6 md:mt-0">
-          <Card title="My Calendar" className="shadow-md rounded-lg">
-            <div className=" overflow-hidden">
-              <Calendar fullscreen={false} />
-            </div>
-          </Card>
-        </Col>
-      </Row>
+                {/* Right Section: Days Studied */}
+                <Col span={11} className="flex flex-col space-y-4">
+                  <Title level={5} className="text-center">Days Studied</Title>
 
-      {/* Pending Worksheets and Recent Submissions */}
-      <Row gutter={[16, 16]} className="mt-6">
-        <Col span={24} md={12}>
-          <Card title="Pending Worksheets" className="shadow-md rounded-lg">
-            <Table
-              dataSource={pendingTasks}
-              columns={columns}
-              rowKey="title"
-              pagination={false}
+                  {/* Progress Bar to show Study and Rest Days */}
+                  <div className="flex flex-col items-center space-y-2">
+                    <Progress
+                      type="circle"
+                      width={80}
+                      percent={(daysStudied / totalDays) * 100}
+                      format={() => `${daysStudied} / ${totalDays}`}
+                      strokeColor="#4caf50"  // Green for study days
+                    />
+                  </div>
+                </Col>
+
+              </Row>
+            </Card>
+
+          </Col>
+
+          <Col xs={16} sm={8} md={9} className="flex justify-center items-center">
+            <Card className="shadow-lg rounded-lg p-6 bg-white w-full max-w-lg">
+              <Title level={4} className="mb-4">My Calendar</Title>
+              <div className="w-full h-80">
+                <Calendar onSelect={handleDateClick} dateCellRender={dateCellRender} fullscreen={false} />
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Tasks and Submissions */}
+      <Card className="mt-4">
+        <Row gutter={[16, 16]}>
+          <Col span={24} md={12}>
+            <Card title="Pending Tasks" className="shadow-md rounded-lg bg-red-50">
+              <Table
+                dataSource={pendingTasks}
+                columns={columns}
+                rowKey="title"
+                pagination={false}
+              />
+            </Card>
+          </Col>
+
+          <Col span={24} md={12}>
+            <Card title="Recent Submissions" className="shadow-md rounded-lg bg-blue-50">
+              <Table
+                dataSource={recentSubmissions}
+                columns={columns}
+                rowKey="title"
+                pagination={false}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Latest News and Community Groups */}
+      <Row gutter={[24, 24]} className="mt-8">
+        <Col span={24}>
+          <Card className="shadow-lg rounded-lg p-6 bg-yellow-50">
+            <Title level={4}>Community Groups</Title>
+            <List
+              dataSource={["Design Community, USA", "UX Hunters", "Frontend Developers"]}
+              renderItem={(item) => <List.Item>{item}</List.Item>}
             />
           </Card>
         </Col>
 
-        <Col span={24} md={12}>
-          <Card title="Recent Worksheets Submissions" className="shadow-md rounded-lg">
-            <Table
-              dataSource={recentSubmissions}
-              columns={columns}
-              rowKey="title"
-              pagination={false}
+        <Col span={24}>
+          <Card className="shadow-lg rounded-lg p-6 bg-gray-100">
+            <Title level={4}>Latest News</Title>
+            <List
+              dataSource={newsData}
+              renderItem={item => (
+                <List.Item>
+                  <Title level={5} className="text-blue-500">{item.title}</Title>
+                  <span className="text-sm text-gray-600 float-right">{item.date}</span>
+                </List.Item>
+              )}
             />
           </Card>
         </Col>
       </Row>
-    </Card>
+
+      {/* Event Details Modal */}
+      <Modal
+        title={selectedEvent ? selectedEvent.title : 'Event Details'}
+        visible={isModalVisible}
+        onOk={() => setIsModalVisible(false)}
+        onCancel={() => setIsModalVisible(false)}
+        className="event-modal"
+        style={{ borderRadius: '8px' }}
+      >
+        <Timeline>
+          <Timeline.Item>
+            <Title level={4}>{selectedEvent?.title}</Title>
+            <p>{selectedEvent?.description}</p>
+          </Timeline.Item>
+        </Timeline>
+      </Modal>
+    </div>
   );
 };
 
