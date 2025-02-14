@@ -1,8 +1,9 @@
 import React from "react";
-import { Space, Table, Tag } from "antd";
+import { Button, Space, Table, Tag } from "antd";
 import type { TableProps } from "antd";
+import { EditOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
-interface DataType {
+export interface StudentType {
   key: string;
   name: string;
   age: number;
@@ -10,7 +11,7 @@ interface DataType {
   tags: string[];
 }
 
-export const columns: TableProps<DataType>["columns"] = [
+export const columns: TableProps<StudentType>["columns"] = [
   {
     title: "Name",
     dataIndex: "name",
@@ -50,40 +51,21 @@ export const columns: TableProps<DataType>["columns"] = [
   {
     title: "Action",
     key: "action",
-    render: (_, record) => (
+    render: () => (
       <Space size="middle">
-        <a>Invite {record.name}</a>
-        <a>Delete</a>
+        <Button icon={<EyeOutlined />}>View Details</Button>
+        <Button type="primary" icon={<EditOutlined />}>Edit</Button>
+        <Button danger icon={<DeleteOutlined />}>Delete</Button>
       </Space>
     ),
   },
 ];
 
-export const data: DataType[] = [
-  {
-    key: "1",
-    name: "John Brown",
-    age: 32,
-    address: "New York No. 1 Lake Park",
-    tags: ["nice", "developer"],
-  },
-  {
-    key: "2",
-    name: "Jim Green",
-    age: 42,
-    address: "London No. 1 Lake Park",
-    tags: ["loser"],
-  },
-  {
-    key: "3",
-    name: "Joe Black",
-    age: 32,
-    address: "Sydney No. 1 Lake Park",
-    tags: ["cool", "teacher"],
-  },
-];
+interface StudentListProps {
+  data: StudentType[];
+}
 
-const StudentList: React.FC = () => {
+const StudentList: React.FC<StudentListProps> = ({ data }) => {
   return <Table columns={columns} dataSource={data} />;
 };
 

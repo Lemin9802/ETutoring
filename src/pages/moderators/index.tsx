@@ -4,10 +4,11 @@ import { Button, Card, Col, Row, Typography, Space } from "antd";
 import React from "react";
 import StatisticalDataCard from "./components/dashboard/statisticalData";
 import StatisticalCalendar from "./components/dashboard/calendarData";
-import { columns, appointmentsData } from "./components/managelist/appointmentList";
+import { columns, AppointmentType } from "./components/managelist/appointmentList";
 import { Table } from "antd";
-import { PlusOutlined, UserOutlined, CalendarOutlined, TeamOutlined } from "@ant-design/icons";
+import { PlusOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 // export const metadata: Metadata = {
 //   title: "Next.js Chart | TailAdmin - Next.js Dashboard Template",
@@ -16,13 +17,52 @@ import Link from "next/link";
 // };
 
 const DashboardPage: React.FC = () => {
+  const { data: session } = useSession();
   // In a real application, these would come from an API
   const stats = {
     totalMeetings: 58,
     totalStaff: 12,
-    studentCount: 156,
+    studentCount: 69,
     tutorCount: 24
   };
+
+  const appointmentsData: AppointmentType[] = [
+    {
+      key: "1",
+      tutorName: "Tutor A",
+      studentName: "Student B",
+      date: "2023-04-05",
+      time: "10:00",
+    },
+    {
+      key: "2",
+      tutorName: "Tutor B",
+      studentName: "Student A",
+      date: "2023-04-10",
+      time: "14:00",
+    },
+    {
+      key: "3",
+      tutorName: "Tutor C",
+      studentName: "Student D",
+      date: "2023-04-15",
+      time: "16:00",
+    },
+    {
+      key: "4",
+      tutorName: "Tutor E",
+      studentName: "Student F",
+      date: "2023-04-20",
+      time: "18:00",
+    },
+    {
+      key: "5",
+      tutorName: "Tutor G",
+      studentName: "Student H",
+      date: "2023-04-25",
+      time: "20:00",
+    }
+  ];
 
   const recentAppointments = appointmentsData.slice(0, 5); // Show only 5 most recent appointments
 
@@ -32,7 +72,7 @@ const DashboardPage: React.FC = () => {
       <Row className="mb-6">
         <Col span={24}>
           <Typography.Title level={2}>
-            Welcome To Moderator Dashboard, Hoang Truong!
+            Welcome To Moderator Dashboard, {session?.user?.email || "User"}! {/*this is the best i got for now*/}
           </Typography.Title>
         </Col>
       </Row>
@@ -47,7 +87,6 @@ const DashboardPage: React.FC = () => {
               </Button>
               <Button icon={<UserOutlined />}>Add Student</Button>
               <Button icon={<TeamOutlined />}>Add Tutor</Button>
-              <Button icon={<CalendarOutlined />}>View Schedule</Button>
             </Space>
           </Card>
         </Col>
