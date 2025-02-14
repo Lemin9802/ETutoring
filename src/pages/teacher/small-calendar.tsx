@@ -1,87 +1,189 @@
-'use client';
+import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 
-import { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import '@/styles/small-calendar.module.css'; 
+import { Calendar, Col, Radio, Row, Select, theme, Typography, Input, Modal, Radio as AntdRadio } from 'antd';
+import { CalendarProps } from 'antd';
+import { Dayjs } from 'dayjs';
+import dayLocaleData from 'dayjs/plugin/localeData';
 
-export default function CustomCalendar() {
-  const currentDate = new Date();
-  const [value, setValue] = useState(currentDate);
-  const [mounted, setMounted] = useState(false);
-  const [year, setYear] = useState(currentDate.getFullYear());
-  const [month, setMonth] = useState(currentDate.getMonth());
-  const [viewMode, setViewMode] = useState('month');
+dayjs.extend(dayLocaleData);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+const App: React.FC = () => {
+  const { token } = theme.useToken();
+  const [notes, setNotes] = useState<{ [key: string]: { note: string; color: string } }>({}); // Save notes and colors
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null); // Selected date
+  const [noteInput, setNoteInput] = useState<string>(''); // Input note content
+  const [noteColor, setNoteColor] = useState<string>('blue'); // Note color
 
-  const handleDateChange = (date) => {
-    setValue(date);
+  const onPanelChange = (value: Dayjs, mode: CalendarProps<Dayjs>['mode']) => {
+    console.log(value.format('YYYY-MM-DD'), mode);
   };
 
-  const handleYearChange = (event) => {
-    setYear(Number(event.target.value));
+  const handleDateClick = (date: Dayjs) => {
+    setSelectedDate(date);
+    setNoteInput(notes[date.format('YYYY-MM-DD')]?.note || ''); // Get existing note if available
+    setNoteColor(notes[date.format('YYYY-MM-DD')]?.color || 'blue'); // Get existing color if available
   };
 
-  const handleMonthChange = (event) => {
-    setMonth(Number(event.target.value));
+  const handleSaveNote = () => {
+    if (selectedDate) {
+      const newNotes = { 
+        ...notes, 
+        [selectedDate.format('YYYY-MM-DD')]: { note: noteInput, color: noteColor }
+      };
+      setNotes(newNotes); // Save note and color to state
+      setSelectedDate(null); // Close modal after saving
+      setNoteInput(''); // Reset input content
+      setNoteColor('blue'); // Reset color
+    }
+  };
+
+  const dateCellRender = (value: Dayjs) => {
+    const formattedDate = value.format('YYYY-MM-DD');
+    return (
+      <div onClick={() => handleDateClick(value)} style={{ cursor: 'pointer', padding: '5px', height: '100%' }}>
+        {notes[formattedDate] && (
+          <div style={{ color: notes[formattedDate].color, fontSize: '12px', lineHeight: 1.2 }}>
+            {notes[formattedDate].note}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderNoteInput = () => {
+    return (
+      <Modal
+        title={`Note for ${selectedDate?.format('YYYY-MM-DD')}`}
+        visible={selectedDate !== null} // Show modal if a date is selected
+        onCancel={() => setSelectedDate(null)} // Close modal when canceled
+        onOk={handleSaveNote} // Save note when OK is clicked
+      >
+        <Input.TextArea
+          value={noteInput}
+          onChange={(e) => setNoteInput(e.target.value)} // Update note content while typing
+          placeholder="Enter note"
+          autoSize={{ minRows: 3, maxRows: 6 }}
+        />
+        <div style={{ marginTop: '10px' }}>
+          <Typography.Text>Note Color:</Typography.Text>
+          <Radio.Group
+            value={noteColor}
+            onChange={(e) => setNoteColor(e.target.value)} // Update note color
+          >
+            <Row gutter={16}>
+              <Col>
+                <AntdRadio value="blue">Blue</AntdRadio>
+              </Col>
+              <Col>
+                <AntdRadio value="green">Green</AntdRadio>
+              </Col>
+              <Col>
+                <AntdRadio value="red">Red</AntdRadio>
+              </Col>
+              <Col>
+                <AntdRadio value="orange">Orange</AntdRadio>
+              </Col>
+            </Row>
+          </Radio.Group>
+        </div>
+      </Modal>
+    );
+  };
+
+  const wrapperStyle: React.CSSProperties = {
+    width: 300,
+    border: `1px solid ${token.colorBorderSecondary}`,
+    borderRadius: token.borderRadiusLG,
   };
 
   return (
-    <div className="absolute right-4 top-20 shadow-lg p-4 rounded-lg w-80 bg-white font-sans text-gray-700">
-      <div className="flex justify-between items-center mb-2 space-x-2">
-        <select value={year} onChange={handleYearChange} className="border p-1 rounded text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {[...Array(10)].map((_, i) => (
-            <option key={i} value={2020 + i}>{2020 + i}</option>
-          ))}
-        </select>
-        <select value={month} onChange={handleMonthChange} className="border p-1 rounded text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
-            <option key={i} value={i}>{m}</option>
-          ))}
-        </select>
-        <div className="flex space-x-1">
-          <button 
-            className={`border px-3 py-1 rounded text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${viewMode === 'month' ? 'border-blue-500 text-blue-600' : ''}`}
-            onClick={() => setViewMode('month')}
-          >
-            Month
-          </button>
-          <button 
-            className={`border px-3 py-1 rounded text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${viewMode === 'year' ? 'border-blue-500 text-blue-600' : ''}`}
-            onClick={() => setViewMode('year')}
-          >
-            Year
-          </button>
-        </div>
-      </div>
-      {mounted && (
-        <Calendar
-          onChange={handleDateChange}
-          value={value}
-          locale="en"
-          activeStartDate={new Date(year, month, 1)}
-          view={viewMode === 'year' ? 'year' : 'month'}
-          navigationLabel={({ date }) => (
-            <div className="bg-blue-500 text-white py-2 text-center font-bold w-full">{date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</div>
-          )}
-          nextLabel={null}        //  ">"
-          prevLabel={null}        //  "<"
-          next2Label={null}       //  "»"
-          prev2Label={null}       //  "«"
-          formatShortWeekday={(locale, date) => date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase()} 
-          tileClassName={({ date, view }) => {
-            if (view === 'month' && date.getMonth() !== month) {
-              return 'text-gray-400';
-            }
-            if (view === 'month' && date.toDateString() === currentDate.toDateString()) {
-              return 'bg-blue-500 text-white rounded-full';
-            }
-          }}
-        />
-      )}
+    <div style={wrapperStyle}>
+      <Calendar
+        fullscreen={false}
+        dateCellRender={dateCellRender} // Display notes in the date cell
+        headerRender={({ value, type, onChange, onTypeChange }) => {
+          const start = 0;
+          const end = 12;
+          const monthOptions = [];
+
+          let current = value.clone();
+          const localeData = value.localeData();
+          const months = [];
+          for (let i = 0; i < 12; i++) {
+            current = current.month(i);
+            months.push(localeData.monthsShort(current));
+          }
+
+          for (let i = start; i < end; i++) {
+            monthOptions.push(
+              <Select.Option key={i} value={i} className="month-item">
+                {months[i]}
+              </Select.Option>,
+            );
+          }
+
+          const year = value.year();
+          const month = value.month();
+          const options = [];
+          for (let i = year - 10; i < year + 10; i += 1) {
+            options.push(
+              <Select.Option key={i} value={i} className="year-item">
+                {i}
+              </Select.Option>,
+            );
+          }
+          return (
+            <div style={{ padding: 8 }}>
+              <Typography.Title level={4}>Calendar</Typography.Title>
+              <Row gutter={8}>
+                <Col>
+                  <Radio.Group
+                    size="small"
+                    onChange={(e) => onTypeChange(e.target.value)}
+                    value={type}
+                  >
+                    <Radio.Button value="month">Month</Radio.Button>
+                    <Radio.Button value="year">Year</Radio.Button>
+                  </Radio.Group>
+                </Col>
+                <Col>
+                  <Select
+                    size="small"
+                    popupMatchSelectWidth={false}
+                    className="my-year-select"
+                    value={year}
+                    onChange={(newYear) => {
+                      const now = value.clone().year(newYear);
+                      onChange(now);
+                    }}
+                  >
+                    {options}
+                  </Select>
+                </Col>
+                <Col>
+                  <Select
+                    size="small"
+                    popupMatchSelectWidth={false}
+                    value={month}
+                    onChange={(newMonth) => {
+                      const now = value.clone().month(newMonth);
+                      onChange(now);
+                    }}
+                  >
+                    {monthOptions}
+                  </Select>
+                </Col>
+              </Row>
+            </div>
+          );
+        }}
+        onPanelChange={onPanelChange}
+      />
+      {renderNoteInput()} {/* Display modal to input note */}
     </div>
   );
-}
+};
+
+export default App;
