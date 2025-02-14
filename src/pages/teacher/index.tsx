@@ -7,7 +7,7 @@ import { Roboto } from "next/font/google";
 
 const funnel = Roboto({
   subsets: ["latin"],
-  weight: ["300", "400", "700"], // Đảm bảo chỉ dùng weight hợp lệ
+  weight: ["300", "400", "700"], 
   display: "swap",
 });
 const DashboardPage: React.FC = () => {
