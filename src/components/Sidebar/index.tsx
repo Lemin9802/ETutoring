@@ -4,7 +4,7 @@ import ClickOutside from "../ClickOutside";
 import useLocalStorage from "@/hook/useLocalStorage";
 import BurgerIcon from "public/icons/burger-menu.svg";
 import Image from "next/image";
-import { menuGroupsAdmin, menuGroupsStudents } from "@/constant/menu";
+import { menuGroupsAdmin, menuGroupsModerators, menuGroupsStudents } from "@/constant/menu";
 import { useSession } from "next-auth/react";
 
 interface SidebarProps {
@@ -17,7 +17,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { data: session } = useSession();
 
   let menuGroups;
+
   switch (session?.user?.roles) {
+    // case "teacher":
+    //   menuGroups = menuGroupsTeachers;
+    //   break;
+    case "Moderator":
+      menuGroups = menuGroupsModerators;
+      break;
     case "Admin":
       menuGroups = menuGroupsAdmin;
       break;
