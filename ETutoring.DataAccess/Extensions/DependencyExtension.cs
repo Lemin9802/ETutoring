@@ -141,16 +141,7 @@ public static class DependencyExtension
                 };
 
             });
+        
 
-        // Apply migrations during app initialization
-        using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-
-            roleManager.SeedRolesAsync().Wait();
-
-            dbContext.Database.MigrateAsync();
-        }
     }
 }
