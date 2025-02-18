@@ -10,7 +10,11 @@ namespace ETutoring.DataAccess.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    public DbSet<Blog> Blogs { get; set; }
+
     public DbSet<ApplicationUser> Users { get; set; }
+
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
