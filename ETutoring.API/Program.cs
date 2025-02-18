@@ -1,4 +1,5 @@
 using ETutoring.Business.Interfaces;
+using ETutoring.Business.Interfaces.Services;
 using ETutoring.DataAccess.Extensions;
 using ETutoring.DataAccess.Services;
 using Microsoft.OpenApi.Models;
@@ -58,6 +59,9 @@ namespace ETutoring.API
 
             builder.Services.AddScoped<IIdentityServices, IdentityServices>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

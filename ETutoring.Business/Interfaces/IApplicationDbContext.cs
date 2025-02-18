@@ -5,6 +5,8 @@ namespace ETutoring.Business.Interfaces;
 
 public interface IApplicationDbContext
 {
+    DbSet<Blog> Blogs { get; set; }
+
     DbSet<RefreshToken> RefreshTokens { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
