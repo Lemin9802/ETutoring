@@ -24,6 +24,12 @@ namespace ETutoring.DataAccess.Services
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         }
 
+        public async Task<ApplicationUser?> GetUserProfileAsync(Guid userId, UserProfileRequest model)
+        {
+            // Implement the method as per your requirements
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
         public async Task<ApplicationUser?> UpdateUserProfileAsync(Guid userId, UpdateProfileRequest model)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -43,4 +49,5 @@ namespace ETutoring.DataAccess.Services
             return user;
         }
     }
+
 }

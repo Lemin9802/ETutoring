@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace ETutoring.API.Controllers
 {
-    [Route("api/user-profile")]
+    [Route("api/users")]
     [ApiController]
     [Authorize]
     public class UserProfileController : ControllerBase
@@ -22,18 +22,18 @@ namespace ETutoring.API.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUserProfile()
+        [HttpPost("profile")]
+        public async Task<IActionResult> GetUserProfile([FromBody] UserProfileRequest model)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
-                return Unauthorized(new { message = "Invalid user token." });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var user = await _userProfileService.GetUserProfileAsync(parsedUserId);
+            var user = await _userProfileService.GetUserProfileAsync(model.Id, model);
+
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
-            var response = new UserProfileResponse
+            return Ok(new UserProfileResponse
             {
                 Id = user.Id,
                 FullName = user.FullName,
@@ -48,12 +48,12 @@ namespace ETutoring.API.Controllers
                 IsPhoneConfirmed = user.IsPhoneConfirmed,
                 IsActive = user.IsActive,
                 LastLoginTime = user.LastLoginTime
-            };
-
-            return Ok(response);
+            });
         }
 
-        [HttpPost("update")]
+
+
+        [HttpPost("update-profile")]
         public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateProfileRequest model)
         {
             if (!ModelState.IsValid)

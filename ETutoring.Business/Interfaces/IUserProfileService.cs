@@ -10,7 +10,7 @@ namespace ETutoring.DataAccess.Services
 {
     public interface IUserProfileService
     {
-        Task<ApplicationUser?> GetUserProfileAsync(Guid userId);
+        Task<ApplicationUser?> GetUserProfileAsync(Guid userId, UserProfileRequest modal);
         Task<ApplicationUser?> UpdateUserProfileAsync(Guid userId, UpdateProfileRequest model);
     }
 }
