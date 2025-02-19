@@ -3,8 +3,14 @@ import { ClockCircleOutlined } from '@ant-design/icons';
 import { Timeline, Typography, Modal, Card } from 'antd';
 import dayjs from 'dayjs';
 
+interface Event {
+  date: string;
+  title: string;
+  details: string;
+}
+
 // Upcoming events for a teacher
-const events = [
+const events: Event[] = [
   { date: '2025-02-17', title: 'Parent-Teacher Meeting', details: 'Discuss student progress and development at 3:00 PM' },
   { date: '2025-02-21', title: 'School Assembly', details: 'Weekly school-wide assembly at 8:00 AM in the main hall' },
   { date: '2025-02-28', title: 'Professional Development Workshop', details: 'Training session on digital learning tools at 2:00 PM' },
@@ -21,7 +27,8 @@ const getEventColor = (eventDate: string) => {
 };
 
 const TimelineComponent: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
   const nextEvent = events[0]; // The nearest upcoming event
 
   return (
