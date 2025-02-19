@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250207114841_Add_Blogs_Schema")]
+    partial class Add_Blogs_Schema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,31 +36,10 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("access_failed_count");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("address");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_by");
-
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_of_birth");
-
-                    b.Property<string>("Department")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("department");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -68,52 +50,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("email_confirmed");
 
-                    b.Property<DateTime?>("EnrollmentDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("enrollment_date");
-
-                    b.Property<int?>("ExperienceYears")
-                        .HasColumnType("integer")
-                        .HasColumnName("experience_years");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("full_name");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("gender");
-
-                    b.Property<decimal?>("HourlyRate")
-                        .HasColumnType("numeric")
-                        .HasColumnName("hourly_rate");
-
-                    b.Property<string>("IdentificationNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("identification_number");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<bool>("IsEmailConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_email_confirmed");
-
-                    b.Property<bool>("IsPhoneConfirmed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_phone_confirmed");
-
-                    b.Property<DateTime?>("LastLoginTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_login_time");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("lockout_enabled");
@@ -121,17 +57,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lockout_end");
-
-                    b.Property<string>("Major")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("major");
-
-                    b.Property<string>("Nationality")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("nationality");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -148,27 +73,16 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasColumnType("text")
                         .HasColumnName("phone_number");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean")
                         .HasColumnName("phone_number_confirmed");
 
-                    b.Property<string>("Position")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("position");
-
                     b.Property<string>("ProfilePicture")
                         .HasColumnType("text")
                         .HasColumnName("profile_picture");
-
-                    b.Property<decimal?>("Salary")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("salary");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
@@ -177,11 +91,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("two_factor_enabled");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("updated_by");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
@@ -201,77 +110,48 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-        modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
-        {
-            b.Property<Guid>("Id")
-                .ValueGeneratedOnAdd()
-                .HasColumnType("uuid")
-                .HasColumnName("id");
+            modelBuilder.Entity("ETutoring.Core.Entities.Blog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
-            b.Property<DateTime>("AssignedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("assigned_at");
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
-            b.Property<Guid>("AssignedBy")
-                .HasColumnType("uuid")
-                .HasColumnName("assigned_by");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
-            b.Property<Guid>("StudentId")
-                .HasColumnType("uuid")
-                .HasColumnName("student_id");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
-            b.Property<Guid>("TutorId")
-                .HasColumnType("uuid")
-                .HasColumnName("tutor_id");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
 
-            b.HasKey("Id")
-                .HasName("pk_manage_student_tutors");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-            b.ToTable("manage_student_tutors", (string)null);
-        });
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
-        modelBuilder.Entity("ETutoring.Core.Entities.Blog", b =>
-        {
-            b.Property<Guid>("Id")
-                .ValueGeneratedOnAdd()
-                .HasColumnType("uuid")
-                .HasColumnName("id");
+                    b.HasKey("Id")
+                        .HasName("pk_blogs");
 
-            b.Property<string>("Content")
-                .IsRequired()
-                .HasColumnType("text")
-                .HasColumnName("content");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_blogs_user_id");
 
-            b.Property<DateTime>("CreatedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("created_at");
-
-            b.Property<DateTime?>("DeletedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("deleted_at");
-
-            b.Property<string>("Title")
-                .IsRequired()
-                .HasMaxLength(100)
-                .HasColumnType("character varying(100)")
-                .HasColumnName("title");
-
-            b.Property<DateTime>("UpdatedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("updated_at");
-
-            b.Property<Guid>("UserId")
-                .HasColumnType("uuid")
-                .HasColumnName("user_id");
-
-            b.HasKey("Id")
-                .HasName("pk_blogs");
-
-            b.HasIndex("UserId")
-                .HasDatabaseName("ix_blogs_user_id");
-
-            b.ToTable("blogs", (string)null);
-        });
+                    b.ToTable("blogs", (string)null);
+                });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
                 {
@@ -484,7 +364,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_application_user_user_id");
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
 
                     b.Navigation("User");
                 });
