@@ -28,6 +28,7 @@ const getEventColor = (eventDate: string) => {
 
 const TimelineComponent: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
   const nextEvent = events[0]; // The nearest upcoming event
 
   return (

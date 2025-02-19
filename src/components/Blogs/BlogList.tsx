@@ -73,6 +73,7 @@ const BlogList = ({ filter, userId }: BlogListProps) => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
+
           setPage((prev) => prev + 1);
         }
       },
@@ -88,25 +89,20 @@ const BlogList = ({ filter, userId }: BlogListProps) => {
       {blogs.length === 0 && !loading && !error && (
         <p className="text-center text-gray-500">No blogs available.</p>
       )}
-
       {error && (
         <p className="text-center text-red-500">
           Error loading blogs. Try again.
         </p>
       )}
-
       {blogs.map((blog) => (
         <BlogCard key={blog.id} {...blog} />
       ))}
-
       {hasMore && !loading && <div ref={observerRef} className="h-10" />}
-
       {loading && (
         <div className="flex justify-center">
           <Spin size="large" />
         </div>
       )}
-
       {!hasMore && blogs.length > 0 && (
         <p className="text-center text-gray-400 mt-4">
           You have reached the end!

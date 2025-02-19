@@ -81,6 +81,7 @@ const DropdownNotification = () => {
     markAsRead(notif.id);
   };
 
+
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <li>
