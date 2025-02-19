@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo "🔨 Running build..."
+npm run build
+
+# Check if the build command was successful
+if [ $? -ne 0 ]; then
+  echo "🚨 Build failed! 😭"
+  echo "❌ Bạn nên gọi ngay cho Hai Nguyen vì build đã thất bại! 📞"
+  echo "📢 'You better call Hai Nguyen since your build failed!'"
+  exit 1 # Prevent the commit
+fi
+
+echo "✅ Build succeeded! Proceeding with the commit..."
