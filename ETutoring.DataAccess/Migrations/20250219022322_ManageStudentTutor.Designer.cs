@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250219022322_ManageStudentTutor")]
+    partial class ManageStudentTutor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -201,77 +204,34 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-        modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
-        {
-            b.Property<Guid>("Id")
-                .ValueGeneratedOnAdd()
-                .HasColumnType("uuid")
-                .HasColumnName("id");
+            modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
-            b.Property<DateTime>("AssignedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("assigned_at");
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_at");
 
-            b.Property<Guid>("AssignedBy")
-                .HasColumnType("uuid")
-                .HasColumnName("assigned_by");
+                    b.Property<Guid>("AssignedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_by");
 
-            b.Property<Guid>("StudentId")
-                .HasColumnType("uuid")
-                .HasColumnName("student_id");
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
 
-            b.Property<Guid>("TutorId")
-                .HasColumnType("uuid")
-                .HasColumnName("tutor_id");
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
 
-            b.HasKey("Id")
-                .HasName("pk_manage_student_tutors");
+                    b.HasKey("Id")
+                        .HasName("pk_manage_student_tutors");
 
-            b.ToTable("manage_student_tutors", (string)null);
-        });
-
-        modelBuilder.Entity("ETutoring.Core.Entities.Blog", b =>
-        {
-            b.Property<Guid>("Id")
-                .ValueGeneratedOnAdd()
-                .HasColumnType("uuid")
-                .HasColumnName("id");
-
-            b.Property<string>("Content")
-                .IsRequired()
-                .HasColumnType("text")
-                .HasColumnName("content");
-
-            b.Property<DateTime>("CreatedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("created_at");
-
-            b.Property<DateTime?>("DeletedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("deleted_at");
-
-            b.Property<string>("Title")
-                .IsRequired()
-                .HasMaxLength(100)
-                .HasColumnType("character varying(100)")
-                .HasColumnName("title");
-
-            b.Property<DateTime>("UpdatedAt")
-                .HasColumnType("timestamp with time zone")
-                .HasColumnName("updated_at");
-
-            b.Property<Guid>("UserId")
-                .HasColumnType("uuid")
-                .HasColumnName("user_id");
-
-            b.HasKey("Id")
-                .HasName("pk_blogs");
-
-            b.HasIndex("UserId")
-                .HasDatabaseName("ix_blogs_user_id");
-
-            b.ToTable("blogs", (string)null);
-        });
+                    b.ToTable("manage_student_tutors", (string)null);
+                });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
                 {
@@ -463,18 +423,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasName("pk_user_tokens");
 
                     b.ToTable("user_tokens", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Blog", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_blogs_users_user_id");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>

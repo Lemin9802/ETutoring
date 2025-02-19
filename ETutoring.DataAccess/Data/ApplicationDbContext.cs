@@ -16,7 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<ApplicationUser> Users { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-
+    public DbSet<ManageStudentTutor> ManageStudentTutors { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
