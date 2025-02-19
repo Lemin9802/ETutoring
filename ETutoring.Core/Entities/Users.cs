@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ETutoring.Core.Common;
-using Microsoft.AspNetCore.Identity;
+﻿using ETutoring.Core.Common;
 
 namespace ETutoring.Core.Entities
 {
