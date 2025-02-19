@@ -57,6 +57,8 @@ namespace ETutoring.API
 
             builder.AddDbContextAndIdentity();
 
+            builder.Services.AddScoped<IStudentService, StudentService>();
+
             builder.Services.AddScoped<IIdentityServices, IdentityServices>();
             builder.Services.AddScoped<ITokenService, TokenService>();
 
