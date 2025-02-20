@@ -24,5 +24,14 @@ namespace ETutoring.Core.Entities
 
         [Required]
         public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? EndDate { get; set; }
+
+        [ForeignKey(nameof(StudentId))]
+        public ApplicationUser Student { get; set; } = null!;
+
+        [ForeignKey(nameof(TutorId))]
+        public ApplicationUser Tutor { get; set; } = null!;
+        
     }
 }

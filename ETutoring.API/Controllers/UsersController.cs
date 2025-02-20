@@ -39,6 +39,20 @@ namespace ETutoring.API.Controllers
             return Ok(ApiResponseHandler.SuccessResponse(students, "Students retrieved successfully."));
         }
 
+        [HttpGet("student/{studentId}/tutor")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<ApplicationUser>>> GetTutorByStudent(Guid studentId)
+        {
+            var tutor = await _studentService.GetTutorByStudentIdAsync(studentId);
+            if (tutor == null)
+            {
+                return NotFound(ApiResponseHandler.FailureResponse<ApplicationUser>(
+                    "No tutor found for this student."));
+            }
+
+            return Ok(ApiResponseHandler.SuccessResponse(tutor, "Tutor retrieved successfully."));
+        }
+
         [HttpPost("assign-role")]
         [Authorize(Roles = Constants.ADMIN_ROLE)]
         public async Task<ActionResult<ApiResponse<string>>> AssignRole([FromBody] AssignRoleRequest request)
@@ -50,7 +64,7 @@ namespace ETutoring.API.Controllers
                 return Ok(ApiResponseHandler.SuccessResponse(result.Data, "Role assigned successfully."));
             }
 
-            return BadRequest(ApiResponseHandler.FailureResponse<string>("Cannot assign role", result.Errors));
+            return BadRequest(ApiResponseHandler.FailureResponse<string>("Failed to assign role.", result.Errors));
         }
     }
 }
