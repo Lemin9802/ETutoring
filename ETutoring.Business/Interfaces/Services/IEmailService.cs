@@ -1,9 +1,8 @@
-﻿using ETutoring.Core.Common;
+﻿using ETutoring.Core.EmailTemplate;
 
 namespace ETutoring.Business.Interfaces.Services;
 
 public interface IEmailService
 {
     Task SendEmailAsync(EmailTemplateRequest emailRequest);
-    Task SendManyEmailsAsync(List<EmailTemplateRequest> emailRequests);
 }

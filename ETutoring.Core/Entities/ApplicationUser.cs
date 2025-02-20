@@ -1,8 +1,7 @@
-﻿using ETutoring.Core.Common;
-using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ETutoring.Core.Entities;
 
@@ -70,4 +69,6 @@ public class ApplicationUser : IdentityUser<Guid>
 
     [StringLength(50)]
     public string? UpdatedBy { get; set; }
+
+    public ICollection<EmailSent> EmailNotifications { get; set; } = new List<EmailSent>();
 }

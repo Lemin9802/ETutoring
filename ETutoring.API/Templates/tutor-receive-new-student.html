@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>New Tutor Assigned</title>
+    <title>New Student Assigned</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -44,21 +44,34 @@
             font-size: 14px;
             color: #888888;
         }
+
+        .student-list {
+            list-style: none;
+            padding: 0;
+        }
+
+            .student-list li {
+                background: #ecf0f1;
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 5px;
+            }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Hello, {{StudentName}}! 👋</h2>
-    <p>Great news! A new tutor has been assigned to you.</p>
+    <div class="container">
+        <h2>Hello, {{TutorName}}! 👋</h2>
+        <p>Great news! You have been assigned {{StudentCount}} new student{{StudentCount > 1 ? 's' : ''}}.</p>
 
-    <p><strong>Tutor Name:</strong> {{TutorName}}</p>
+        <ul class="student-list">
+            {{#each StudentList}}
+            <li><strong>{{this.Name}}</strong> ({{this.Course}})</li>
+            {{/each}}
+        </ul>
 
-    <p>You can check your tutor list by clicking the button below:</p>
-    <a href="{{TutorListLink}}" class="button">View My Tutors</a>
+        <p>If you have any questions, feel free to reach out.</p>
 
-    <p>If you have any questions, feel free to reach out.</p>
-
-    <p class="footer">Best Regards,<br><strong>The Tutoring Team</strong></p>
-</div>
+        <p class="footer">Best Regards,<br><strong>The Tutoring Team</strong></p>
+    </div>
 </body>
 </html>
