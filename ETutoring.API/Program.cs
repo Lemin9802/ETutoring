@@ -1,7 +1,9 @@
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
+using ETutoring.Business.Interfaces.Students;
 using ETutoring.DataAccess.Extensions;
 using ETutoring.DataAccess.Services;
+using ETutoring.DataAccess.Services.Students;
 using Microsoft.OpenApi.Models;
 
 namespace ETutoring.API

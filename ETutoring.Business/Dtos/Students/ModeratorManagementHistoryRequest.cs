@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Students
 {
-    public class StudentTutorStatusRequest
+    public class StudentTutorManagementHistoryRequest
     {
-        public bool? HasTutor { get; set; }
+        [Required]
+        public Guid StudentTutorManagementId { get; set; }
     }
+
 }
