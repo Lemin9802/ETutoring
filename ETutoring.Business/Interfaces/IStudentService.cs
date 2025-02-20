@@ -11,6 +11,7 @@ namespace ETutoring.Business.Interfaces
     public interface IStudentService
     {
         Task<List<ApplicationUser>> GetStudentsByTutorIdAsync(Guid tutorId);
+        Task<ApplicationUser?> GetTutorByStudentIdAsync(Guid studentId);
         Task<List<StudentTutorStatusResponse>> GetAllStudentsWithTutorStatusAsync();
         Task<bool> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy);
     }

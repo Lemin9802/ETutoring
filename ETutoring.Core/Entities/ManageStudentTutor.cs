@@ -23,6 +23,15 @@ namespace ETutoring.Core.Entities
         public Guid AssignedBy { get; set; } // The moderator/admin who assigned the tutor
 
         [Required]
-        public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+        public DateTime AssignedDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+
+        [ForeignKey(nameof(StudentId))]
+        public ApplicationUser Student { get; set; } = null!;
+
+        [ForeignKey(nameof(TutorId))]
+        public ApplicationUser Tutor { get; set; } = null!;
+        
     }
 }
