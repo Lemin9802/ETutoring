@@ -32,6 +32,17 @@ namespace ETutoring.DataAccess.Services
                 .ToListAsync();
         }
 
+        public async Task<ApplicationUser?> GetTutorByStudentIdAsync(Guid studentId)
+        {
+            return await _context.ManageStudentTutors
+                .Where(mst => mst.StudentId == studentId && mst.EndDate == null)
+                .Join(_context.Users,
+                      mst => mst.TutorId,
+                      tutor => tutor.Id,
+                      (mst, tutor) => tutor)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<List<StudentTutorStatusResponse>> GetAllStudentsWithTutorStatusAsync()
         {
             var studentRoleId = await _context.Roles

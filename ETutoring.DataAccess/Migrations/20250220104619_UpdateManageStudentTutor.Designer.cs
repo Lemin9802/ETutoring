@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250220104619_UpdateManageStudentTutor")]
+    partial class UpdateManageStudentTutor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,58 +245,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasDatabaseName("ix_blogs_user_id");
 
                     b.ToTable("blogs", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasColumnType("Text")
-                        .HasColumnName("body");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("EmailType")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email_type");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status")
-                        .HasComment("0 is Sent, 1 is Read");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("subject");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_email_sent");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_email_sent_user_id");
-
-                    b.ToTable("email_sent", (string)null);
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
@@ -560,18 +511,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Navigation("Tutor");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
-                        .WithMany("EmailNotifications")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_email_sent_application_user_user_id");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
                 {
                     b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
@@ -643,8 +582,6 @@ namespace ETutoring.DataAccess.Migrations
 
             modelBuilder.Entity("ETutoring.Core.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("EmailNotifications");
-
                     b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
