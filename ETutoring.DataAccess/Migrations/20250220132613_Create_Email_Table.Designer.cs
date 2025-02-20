@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250220132613_Create_Email_Table")]
+    partial class Create_Email_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -311,10 +314,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_by");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("end_date");
-
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
@@ -325,12 +324,6 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_manage_student_tutors");
-
-                    b.HasIndex("StudentId")
-                        .HasDatabaseName("ix_manage_student_tutors_student_id");
-
-                    b.HasIndex("TutorId")
-                        .HasDatabaseName("ix_manage_student_tutors_tutor_id");
 
                     b.ToTable("manage_student_tutors", (string)null);
                 });
@@ -537,27 +530,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasConstraintName("fk_blogs_application_user_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_manage_student_tutors_application_user_student_id");
-
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
-                        .WithMany()
-                        .HasForeignKey("TutorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_manage_student_tutors_application_user_tutor_id");
-
-                    b.Navigation("Student");
-
-                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>

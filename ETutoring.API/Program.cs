@@ -1,5 +1,6 @@
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
+using ETutoring.Core.Settings;
 using ETutoring.DataAccess.Extensions;
 using ETutoring.DataAccess.Services;
 using Microsoft.OpenApi.Models;
@@ -56,6 +57,8 @@ namespace ETutoring.API
             });
 
             builder.AddDbContextAndIdentity();
+
+            builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
             builder.Services.AddScoped<IStudentService, StudentService>();
 
