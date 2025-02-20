@@ -1,6 +1,7 @@
 import { CheckCircleOutlined, ClockCircleOutlined, CloudOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Calendar, Card, Col, Image, List, Modal, Progress, Row, Table, Timeline } from "antd";
 import Title from "antd/es/typography/Title";
+import { Dayjs } from "dayjs";
 import React, { useState } from "react";
 
 const eventsData = [
@@ -29,11 +30,11 @@ const DashboardPage: React.FC = () => {
     { title: 'Prepare your presentation for class', status: 'Pending' },
   ]);
 
-  const [selectedDate, setSelectedDate] = useState<any>(null);
+  const [, setSelectedDate] = useState<Dayjs | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<{ title: string; date: string; description: string } | null>(null);
 
-  const [weather, setWeather] = useState<{ temperature: number; condition: string }>({ temperature: 25, condition: 'Sunny' });
+  const [weather, ] = useState<{ temperature: number; condition: string }>({ temperature: 25, condition: 'Sunny' });
 
   const columns = [
     { title: 'Task Title', dataIndex: 'title', key: 'title' },
@@ -46,7 +47,7 @@ const DashboardPage: React.FC = () => {
     {
       title: 'Action',
       key: 'action',
-      render: (text: string, record: any) => (
+      render: (text: string, record: { title: string; status: string }) => (
         <Button
           type="primary"
           onClick={() => markTaskCompleted(record.title)}
@@ -65,7 +66,7 @@ const DashboardPage: React.FC = () => {
     setPendingTasks(newTasks);
   };
 
-  const handleDateClick = (date: any) => {
+  const handleDateClick = (date:Dayjs) => {
     const filteredEvents = eventsData.filter(
       (event) => event.date === date.format("YYYY-MM-DD")
     );
@@ -74,7 +75,7 @@ const DashboardPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const dateCellRender = (date: any) => {
+  const dateCellRender = (date: Dayjs) => {
     const dayEvents = eventsData.filter(
       (event) => event.date === date.format("YYYY-MM-DD")
     );
