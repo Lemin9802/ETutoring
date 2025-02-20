@@ -25,7 +25,7 @@ namespace ETutoring.API.Controllers
             _identityServices = identityServices;
         }
 
-        [HttpGet("tutor/{tutorId}/students")]
+        [HttpPost("tutor/{tutorId}/students")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<ApplicationUser>>>> GetStudentsByTutor(Guid tutorId)
         {
