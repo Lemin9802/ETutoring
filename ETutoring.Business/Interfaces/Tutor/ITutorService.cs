@@ -1,14 +1,15 @@
-﻿using ETutoring.Business.Dtos.Students;
+﻿using ETutoring.Business.Dtos.Response.Moderator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ETutoring.Business.Dtos.Response;
 
 namespace ETutoring.Business.Interfaces.Tutor
 {
     public interface ITutorService
     {
-        Task<List<StudentTutorResponse>> GetStudentsForTutorAsync(Guid tutorId);
+        Task<BaseResponse> GetStudentsForTutorAsync(Guid tutorId);
     }
 }

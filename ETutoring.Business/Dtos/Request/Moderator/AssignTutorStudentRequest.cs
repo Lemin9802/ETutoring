@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ETutoring.Business.Dtos.Request;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Students
 {
-    public class AssignTutorStudentRequest
+    public class AssignTutorStudentRequest : BaseRequest
     {
         [Required]
         public Guid StudentId { get; set; }

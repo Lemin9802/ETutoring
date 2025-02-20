@@ -6,6 +6,10 @@ using System.Security.Claims;
 using ETutoring.Business.Interfaces.Moderator;
 using ETutoring.Business.Interfaces.Tutor;
 using ETutoring.DataAccess.Services.Students;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Request;
+using ETutoring.Business.Dtos.Response;
+using System.Diagnostics;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -15,6 +19,7 @@ namespace ETutoring.API.Controllers.Moderator
     public class ModeratorController : Controller
     {
         private readonly IModeratorService _moderatorService;
+
         public ModeratorController(IModeratorService moderatorService)
         {
             _moderatorService = moderatorService;
@@ -23,53 +28,102 @@ namespace ETutoring.API.Controllers.Moderator
         [HttpPost("list")]
         public async Task<IActionResult> GetStudentsWithOrWithoutTutors([FromBody] StudentTutorStatusRequest request)
         {
-            var students = await _moderatorService.GetAllStudentsAsync(request.HasTutor);
-
-            if (!students.Any())
-                return NotFound(new { message = "No students found." });
-
-            return Ok(students);
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetAllStudentsAsync(request);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
         }
 
         [HttpPost("assign")]
         public async Task<IActionResult> AssignTutorToStudent([FromBody] AssignTutorStudentRequest model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new BaseResponse(400, "Invalid data."));
 
             var assignedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var parsedAssignedBy))
-                return Unauthorized(new { message = "Invalid user token." });
+                return Unauthorized(new BaseResponse(401, "Invalid user token."));
 
-            var result = await _moderatorService.AssignTutorToStudentAsync(model.StudentId, model.TutorId, parsedAssignedBy);
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.AssignTutorToStudentAsync(model.StudentId, model.TutorId, parsedAssignedBy);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while assigning tutor.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
 
-            if (!result)
-                return BadRequest(new { message = "Assignment failed. Student may already have this tutor." });
+        [HttpPost("reassign-tutor")]
+        public async Task<IActionResult> ReassignStudentToTutor([FromBody] ReassignStudentToTutorRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new BaseResponse(400, "Invalid data."));
 
-            return Ok(new { message = "Tutor assigned successfully." });
+            var assignedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var assignedById))
+                return Unauthorized(new BaseResponse(401, "Invalid user token."));
+
+            request.AssignedBy = assignedById;
+
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.ReassignTutorToStudentAsync(request);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while reassigning tutor.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
         }
 
         [HttpPost("management-history")]
-        public async Task<IActionResult> GetManagementHistory()
+        public async Task<IActionResult> GetManagementHistory([FromBody] BaseRequest request)
         {
-            var history = await _moderatorService.GetManagementHistoryAsync();
-
-            if (!history.Any())
-                return NotFound(new { message = "No management history found." });
-
-            return Ok(history);
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetManagementHistoryAsync(request);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving management history.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
         }
 
         [HttpPost("management-history/details")]
         public async Task<IActionResult> GetManagementHistoryDetails([FromBody] StudentTutorManagementHistoryRequest model)
         {
-            var history = await _moderatorService.GetManagementHistoryAsync(model.StudentTutorManagementId);
-
-            if (!history.Any())
-                return NotFound(new { message = "No history found for this assignment." });
-
-            return Ok(history);
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetDetailsManagementHistoryAsync(model.StudentTutorManagementId);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving management history details.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
         }
-
     }
 }

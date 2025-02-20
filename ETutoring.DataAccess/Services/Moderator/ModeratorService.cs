@@ -1,13 +1,13 @@
-﻿using ETutoring.Business.Dtos.Students;
-using ETutoring.Core.Entities;
+﻿using ETutoring.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using ETutoring.Business.Interfaces.Moderator;
 using ETutoring.DataAccess.Data;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Request;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Dtos.Response;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -20,15 +20,17 @@ namespace ETutoring.DataAccess.Services.Moderator
             _context = context;
         }
 
-        public async Task<List<StudentTutorStatusResponse>> GetAllStudentsAsync(bool? hasTutor)
+        public async Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var studentRoleId = await _context.Roles
                 .Where(r => r.Name == "Student")
                 .Select(r => r.Id)
-            .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();
 
             var query = from student in _context.Users
-            join userRole in _context.UserRoles on student.Id equals userRole.UserId
+                        join userRole in _context.UserRoles on student.Id equals userRole.UserId
                         join studentTutor in _context.StudentTutorManagements on student.Id equals studentTutor.StudentId into tutorMapping
                         from studentTutor in tutorMapping.DefaultIfEmpty()
                         where userRole.RoleId == studentRoleId
@@ -42,16 +44,18 @@ namespace ETutoring.DataAccess.Services.Moderator
                             HasTutor = studentTutor != null
                         };
 
-            // Filter based on request parameter (true = with tutor, false = without tutor, null = all students)
-            if (hasTutor.HasValue)
+            if (request.HasTutor.HasValue)
             {
-                query = query.Where(s => s.HasTutor == hasTutor.Value);
+                query = query.Where(s => s.HasTutor == request.HasTutor.Value);
             }
 
-            return await query.ToListAsync();
+            var students = await query.Skip((request.Page - 1) * request.Size).Take(request.Size).ToListAsync();
+            stopwatch.Stop();
+
+            return new BaseResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds);
         }
 
-        public async Task<bool> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy)
+        public async Task<BaseResponse> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy)
         {
             var studentRoleId = await _context.Roles
                 .Where(r => r.Name == "Student")
@@ -67,7 +71,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
 
             if (!isStudent || !isTutor)
-                return false;
+                return new BaseResponse(400, "Invalid Student or Tutor.");
 
             var existingManagement = await _context.StudentTutorManagements
                 .FirstOrDefaultAsync(st => st.StudentId == studentId);
@@ -76,7 +80,6 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             if (existingManagement != null)
             {
-                // Ghi vào history trước khi cập nhật tutor mới
                 _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
                 {
                     StudentTutorManagementId = existingManagement.Id,
@@ -87,7 +90,6 @@ namespace ETutoring.DataAccess.Services.Moderator
                     Action = "Reassigned"
                 });
 
-                // Cập nhật tutor mới
                 existingManagement.TutorId = tutorId;
                 _context.StudentTutorManagements.Update(existingManagement);
             }
@@ -105,7 +107,6 @@ namespace ETutoring.DataAccess.Services.Moderator
                 _context.StudentTutorManagements.Add(newManagement);
             }
 
-            // Lưu vào history cho bản ghi mới nhất
             _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
             {
                 StudentTutorManagementId = existingManagement?.Id ?? Guid.NewGuid(),
@@ -118,11 +119,12 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             await _context.SaveChangesAsync();
 
-            return true;
+            return new BaseResponse(200, "Tutor assigned successfully.");
         }
 
-        public async Task<List<StudentTutorManagementHistoryResponse>> GetManagementHistoryAsync()
+        public async Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request)
         {
+            var stopwatch = Stopwatch.StartNew();
             var history = await _context.StudentTutorManagementHistories
                 .OrderByDescending(log => log.AssignedAt)
                 .Select(log => new StudentTutorManagementHistoryResponse
@@ -145,13 +147,35 @@ namespace ETutoring.DataAccess.Services.Moderator
                     AssignedAt = log.AssignedAt,
                     Action = log.Action
                 })
+                .Skip((request.Page - 1) * request.Size)
+                .Take(request.Size)
                 .ToListAsync();
 
-            return history;
+            stopwatch.Stop();
+            return new BaseResponse(200, "Management history retrieved successfully.", history, stopwatch.ElapsedMilliseconds);
         }
 
-        public async Task<List<StudentTutorManagementHistoryResponse>> GetManagementHistoryAsync(Guid studentTutorManagementId)
+        public async Task<BaseResponse> ReassignTutorToStudentAsync(ReassignStudentToTutorRequest request)
         {
+            var existingAssignment = await _context.StudentTutorManagements.FirstOrDefaultAsync(st => st.StudentId == request.StudentId);
+
+            if (existingAssignment == null)
+                return new BaseResponse(400, "Student does not have a tutor assigned.");
+
+            existingAssignment.TutorId = request.TutorId;
+            existingAssignment.AssignedBy = request.AssignedBy;
+            existingAssignment.AssignedAt = DateTime.UtcNow;
+
+            _context.StudentTutorManagements.Update(existingAssignment);
+            await _context.SaveChangesAsync();
+
+            return new BaseResponse(200, "Tutor reassigned successfully.");
+        }
+
+        public async Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
             var history = await _context.StudentTutorManagementHistories
                 .Where(log => log.StudentTutorManagementId == studentTutorManagementId)
                 .OrderByDescending(log => log.AssignedAt)
@@ -178,9 +202,13 @@ namespace ETutoring.DataAccess.Services.Moderator
                 })
                 .ToListAsync();
 
-            return history;
-        }
+            stopwatch.Stop();
 
+            if (!history.Any())
+                return new BaseResponse(404, "No history found for the given assignment.", null, stopwatch.ElapsedMilliseconds);
+
+            return new BaseResponse(200, "Assignment history retrieved successfully.", history, stopwatch.ElapsedMilliseconds);
+        }
 
     }
 }

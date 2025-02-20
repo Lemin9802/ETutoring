@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.Students
+namespace ETutoring.Business.Dtos.Request.Tutor
 {
-    public class GetStudentsForTutorRequest
+    public class GetStudentsForTutorRequest : BaseRequest
     {
         [Required]
         public Guid TutorId { get; set; }

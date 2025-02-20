@@ -1,8 +1,10 @@
-﻿using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Interfaces.Students;
+﻿using ETutoring.Business.Dtos.Request.Tutor;
 using ETutoring.Business.Interfaces.Tutor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using System.Net;
+using ETutoring.Business.Dtos.Response;
 
 namespace ETutoring.API.Controllers.Tutor
 {
@@ -21,13 +23,18 @@ namespace ETutoring.API.Controllers.Tutor
         [HttpPost("get-students")]
         public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest model)
         {
-            var students = await _tutorService.GetStudentsForTutorAsync(model.TutorId);
-
-            if (!students.Any())
-                return NotFound(new { message = "This tutor does not have any students assigned." });
-
-            return Ok(students);
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _tutorService.GetStudentsForTutorAsync(model.TutorId);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(HttpStatusCode.InternalServerError.GetHashCode(), "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
         }
-
     }
 }

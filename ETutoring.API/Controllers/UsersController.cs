@@ -17,12 +17,10 @@ namespace ETutoring.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IStudentService _studentService;
         private readonly IIdentityServices _identityServices;
 
-        public UsersController(IStudentService studentService, IIdentityServices identityServices)
+        public UsersController( IIdentityServices identityServices)
         {
-            _studentService = studentService;
             _identityServices = identityServices;
         }
 
@@ -37,7 +35,7 @@ namespace ETutoring.API.Controllers
                 return Ok(ApiResponseHandler.SuccessResponse(result.Data, "Role assigned successfully."));
             }
 
-            return BadRequest(ApiResponseHandler.FailureResponse<string>("Cannot assign role", result.Errors));
+            return BadRequest(ApiResponseHandler.FailureResponse<string>("Failed to assign role.", result.Errors));
         }
     }
 }

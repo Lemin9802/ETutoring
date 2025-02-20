@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.Students
+namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    public class StudentTutorManagementHistoryResponse
+    public class StudentTutorManagementHistoryResponse : BaseResponse
     {
         public Guid StudentTutorManagementId { get; set; }
         public Guid StudentId { get; set; }

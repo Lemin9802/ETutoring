@@ -8,9 +8,10 @@ using ETutoring.Business.Dtos.Auth;
 
 namespace ETutoring.DataAccess.Services
 {
-    public interface IUserProfileService
-    {
-        Task<ApplicationUser?> GetUserProfileAsync(Guid userId, UserProfileRequest modal);
-        Task<ApplicationUser?> UpdateUserProfileAsync(Guid userId, UpdateProfileRequest model);
-    }
+        public interface IUserProfileService
+        {
+            Task<ApplicationUser?> GetUserProfileAsync(Guid id, UserProfileRequest modal);
+            Task<ApplicationUser?> UpdateUserProfileAsync(Guid id, UpdateProfileRequest model);
+
+        }
 }

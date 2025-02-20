@@ -1,19 +1,17 @@
-﻿using ETutoring.Business.Dtos.Students;
-using ETutoring.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ETutoring.Business.Dtos.Request;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Response;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Students;
 
 namespace ETutoring.Business.Interfaces.Moderator
 {
     public interface IModeratorService
     {
-        Task<List<StudentTutorStatusResponse>> GetAllStudentsAsync(bool? hasTutor);
-        Task<bool> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy);
-        Task<List<StudentTutorManagementHistoryResponse>> GetManagementHistoryAsync();
-        Task<List<StudentTutorManagementHistoryResponse>> GetManagementHistoryAsync(Guid studentTutorManagementId);
-
+        Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request);
+        Task<BaseResponse> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy);
+        Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request);
+        Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
+        Task<BaseResponse> ReassignTutorToStudentAsync(ReassignStudentToTutorRequest request);
     }
 }

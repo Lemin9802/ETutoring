@@ -49,5 +49,4 @@ namespace ETutoring.DataAccess.Services
             return user;
         }
     }
-
 }

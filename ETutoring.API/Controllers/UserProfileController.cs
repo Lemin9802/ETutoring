@@ -1,4 +1,5 @@
 ﻿using ETutoring.Business.Dtos.Auth;
+using ETutoring.Business.Interfaces;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -69,5 +70,6 @@ namespace ETutoring.API.Controllers
 
             return Ok(new { message = "Profile updated successfully" });
         }
+
     }
 }

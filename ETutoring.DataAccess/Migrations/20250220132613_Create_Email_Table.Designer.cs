@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250220132613_Create_Email_Table")]
+    partial class Create_Email_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,6 +299,35 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("email_sent", (string)null);
                 });
 
+            modelBuilder.Entity("ETutoring.Core.Entities.ManageStudentTutor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_at");
+
+                    b.Property<Guid>("AssignedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_by");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_manage_student_tutors");
+
+                    b.ToTable("manage_student_tutors", (string)null);
+                });
+
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -324,86 +356,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasDatabaseName("ix_refresh_tokens_user_id");
 
                     b.ToTable("refresh_tokens", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Action")
-                        .HasColumnType("text")
-                        .HasColumnName("action");
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("assigned_at");
-
-                    b.Property<Guid>("AssignedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assigned_by");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid?>("StudentTutorManagementId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_tutor_management_id");
-
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tutor_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_student_tutor_managements");
-
-                    b.HasIndex("StudentTutorManagementId")
-                        .HasDatabaseName("ix_student_tutor_managements_student_tutor_management_id");
-
-                    b.ToTable("student_tutor_managements", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagementHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Action")
-                        .HasColumnType("text")
-                        .HasColumnName("action");
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("assigned_at");
-
-                    b.Property<Guid>("AssignedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assigned_by");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid>("StudentTutorManagementId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_tutor_management_id");
-
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tutor_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_student_tutor_management_histories");
-
-                    b.HasIndex("StudentTutorManagementId")
-                        .HasDatabaseName("ix_student_tutor_management_histories_student_tutor_management");
-
-                    b.ToTable("student_tutor_management_histories", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -604,25 +556,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.StudentTutorManagementHistory", null)
-                        .WithMany()
-                        .HasForeignKey("StudentTutorManagementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_student_tutor_managements_student_tutor_management_historie");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagementHistory", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.StudentTutorManagement", null)
-                        .WithMany("History")
-                        .HasForeignKey("StudentTutorManagementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_tutor_management_histories_student_tutor_management");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -685,11 +618,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Navigation("EmailNotifications");
 
                     b.Navigation("RefreshTokens");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>
-                {
-                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }
