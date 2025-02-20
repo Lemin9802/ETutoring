@@ -23,7 +23,7 @@ namespace ETutoring.Core.Entities
         public Guid AssignedBy { get; set; } // The moderator/admin who assigned the tutor
 
         [Required]
-        public DateTime AssignedDate { get; set; }
+        public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? EndDate { get; set; }
 

@@ -20,7 +20,7 @@ public class ManageStudentTutorConfiguration : IEntityTypeConfiguration<ManageSt
             .HasForeignKey(x => x.TutorId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(x => x.AssignedDate)
+        builder.Property(x => x.AssignedAt)
             .IsRequired();
     }
 } 
