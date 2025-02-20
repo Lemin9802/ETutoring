@@ -1,4 +1,6 @@
 ﻿using ETutoring.Business.Dtos.Auth;
+using ETutoring.Business.Dtos.User;
+using ETutoring.Business.Interfaces;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -68,6 +70,25 @@ namespace ETutoring.API.Controllers
                 return NotFound(new { message = "User not found" });
 
             return Ok(new { message = "Profile updated successfully" });
+        }
+
+        [HttpPost("reassign-tutor")]
+        public async Task<IActionResult> ReassignStudentToTutor([FromBody] ReassignStudentToTutorRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var assignedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var assignedById))
+                return Unauthorized(new { message = "Invalid user token." });
+
+            request.AssignedBy = assignedById;
+            var result = await _userProfileService.ReassignTutorToStudentAsync(request);
+
+            if (!result)
+                return BadRequest(new { message = "Failed to reassign student to tutor." });
+
+            return Ok(new { message = "Student reassigned successfully." });
         }
     }
 }
