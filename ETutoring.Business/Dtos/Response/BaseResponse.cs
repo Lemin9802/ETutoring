@@ -10,17 +10,18 @@ namespace ETutoring.Business.Dtos.Response
     {
         public int StatusCode { get; set; }
         public string Message { get; set; } = string.Empty;
-        public object? Data { get; set; } // ✅ Chắc chắn Data là object, không phải string
-        public long Took { get; set; } // ✅ Thêm Took để đo thời gian xử lý
-
+        public object? Data { get; set; }
+        public long Took { get; set; }
+        public long Total { get; set; }
         public BaseResponse() { }
 
-        public BaseResponse(int statusCode, string message, object? data = null, long took = 0)
+        public BaseResponse(int statusCode, string message, object? data = null, long took = 0, long total = 0)
         {
             StatusCode = statusCode;
             Message = message;
             Data = data;
             Took = took;
+            Total = total;
         }
     }
 }
