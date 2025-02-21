@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Space, Table, Tag } from "antd";
 import type { TableProps } from "antd";
 import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { MeetingType } from "../../data/API";
+import { MeetingType } from "@/lib/api/moderator";
 
 interface AppointmentListProps {
   data: MeetingType[];
@@ -112,4 +112,4 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
   );
 };
 
-export default AppointmentList;
+export default AppointmentList; 

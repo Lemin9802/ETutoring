@@ -187,4 +187,4 @@ export const getTutors = async () => {
 export const getMeetings = async () => {
   await new Promise(resolve => setTimeout(resolve, 500));
   return initialAppointmentsData;
-};
+}; 

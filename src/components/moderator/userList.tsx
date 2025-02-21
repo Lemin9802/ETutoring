@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Space, Table, Tag, Modal, Form, Input, Select } from "antd";
 import type { TableProps } from "antd";
 import { EditOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getTutors, getStudents, getStudentTutors, getTutorStudents } from "../../data/API";
+import { getTutors, getStudents, getStudentTutors, getTutorStudents } from "@/lib/api/moderator";
 import { UserListType, UserRole } from "@/types/Users";
 
 interface UserListProps {
@@ -304,4 +304,4 @@ const UserList: React.FC<UserListProps> = ({
     );
 };
 
-export default UserList;
+export default UserList; 

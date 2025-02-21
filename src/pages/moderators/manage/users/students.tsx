@@ -1,38 +1,7 @@
-<<<<<<< Updated upstream:src/pages/moderators/manage/students.tsx
-import React from "react";
-//import StudentList from "../components/manage/studentsList";
-import StudentList, { StudentType } from "../components/managelist/studentList";
-
-const studentsData: StudentType[] = [
-  {
-    key: "1",
-    name: "John Brown",
-    age: 32,
-    address: "New York No. 1 Lake Park",
-    tags: ["nice", "developer"],
-  },
-  {
-    key: "2",
-    name: "Jim Green",
-    age: 42,
-    address: "London No. 1 Lake Park",
-    tags: ["loser"],
-  },
-  {
-    key: "3",
-    name: "Joe Black",
-    age: 32,
-    address: "Sydney No. 1 Lake Park",
-    tags: ["cool", "teacher"],
-  }
-];
-
-const ManageStudentPage: React.FC = () => {
-=======
 import React, { useState } from "react";
 import { message } from "antd";
-import { initialStudentsData, associateTutorsWithStudent, getStudents } from "@/pages/moderators/data/API";
-import UserList from "@/pages/moderators/components/managelist/userList";
+import { initialStudentsData, associateTutorsWithStudent } from "@/lib/api/moderator";
+import UserList from "@/components/moderator/userList";
 import { UserListType } from "@/types/Users";
 
 const ManageStudentPage: React.FC = () => {
@@ -59,10 +28,13 @@ const ManageStudentPage: React.FC = () => {
     }
   };
 
->>>>>>> Stashed changes:src/pages/moderators/manage/users/students.tsx
   return (
     <div>
-      <StudentList data={studentsData} />
+      <UserList 
+        data={studentsData} 
+        onAssociateUsers={handleAssociateUsers}
+        role="student"
+      />
     </div>
   );
 };
