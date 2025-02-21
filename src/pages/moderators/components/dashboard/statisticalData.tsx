@@ -13,10 +13,9 @@ const StatisticalDataCard: React.FC<StatisticalDataCardProps> = ({
   value
 }) => {
   return (
-    <Col span={6}>
+    <Col xs={24} sm={12} md={6}>
       <Card
-        className={`${bgColor} text-white`}
-        style={{ width: 350 }}
+        className={`${bgColor} text-white h-full`}
         title={
           <div className="w-full flex items-center justify-between">
             <span className="text-white flex-grow text-center">{cardTitle}</span>
