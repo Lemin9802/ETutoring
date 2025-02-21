@@ -278,13 +278,14 @@ namespace ETutoring.DataAccess.Services.Moderator
                         LastLoginTime = u.User.LastLoginTime
                     });
 
+                var totalRecords = await query.CountAsync(); // Lấy tổng số bản ghi
                 var students = await query
                     .Skip((request.Page - 1) * request.Size)
                     .Take(request.Size)
                     .ToListAsync();
 
                 stopwatch.Stop();
-                return new StudentsResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds);
+                return new BaseResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds, totalRecords);
             }
             catch (Exception ex)
             {
