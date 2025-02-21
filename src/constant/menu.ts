@@ -148,12 +148,17 @@ export const menuGroupsModerators = [
       // },
       {
         icon: CalendarIcon,
-        label: "Manage Tutors",
-        route: "/moderators/manage/tutor",
+        label: "Manage Students",
+        route: "/moderators/manage/users/students",
       },
       {
         icon: CalendarIcon,
-        label: "Manage Students",
+        label: "Manage Tutors",
+        route: "/moderators/manage/users/tutor",
+      },
+      {
+        icon: CalendarIcon,
+        label: "Manage Users",
         route: "/moderators/manage/users",
       },
       {

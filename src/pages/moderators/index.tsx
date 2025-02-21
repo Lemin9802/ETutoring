@@ -1,14 +1,14 @@
 import { Button, Card, Col, Row, Typography, Space } from "antd";
 // import Title from "antd/es/skeleton/Title";
 // import { Metadata } from "next";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StatisticalDataCard from "./components/dashboard/statisticalData";
 import StatisticalCalendar from "./components/dashboard/calendarData";
-import { columns, AppointmentType } from "./components/managelist/appointmentList";
 import { Table } from "antd";
 import { PlusOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { getStudents, getTutors, getMeetings, MeetingType, getUserNameById } from "@/lib/api/moderator";
 
 // export const metadata: Metadata = {
 //   title: "Next.js Chart | TailAdmin - Next.js Dashboard Template",
@@ -18,53 +18,66 @@ import { useSession } from "next-auth/react";
 
 const DashboardPage: React.FC = () => {
   const { data: session } = useSession();
-  // In a real application, these would come from an API
-  const stats = {
-    totalMeetings: 58,
-    totalStaff: 12,
-    studentCount: 69,
-    tutorCount: 24
-  };
+  const [stats, setStats] = useState({
+    totalMeetings: 0,
+    totalStaff: 0,
+    studentCount: 0,
+    tutorCount: 0
+  });
+  const [appointments, setAppointments] = useState<MeetingType[]>([]);
 
-  const appointmentsData: AppointmentType[] = [
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [students, tutors, meetings] = await Promise.all([
+          getStudents(),
+          getTutors(),
+          getMeetings()
+        ]);
+
+        setStats({
+          totalMeetings: meetings.length,
+          totalStaff: students.length + tutors.length,
+          studentCount: students.length,
+          tutorCount: tutors.length
+        });
+
+        setAppointments(meetings);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const columns = [
     {
-      key: "1",
-      tutorName: "Tutor A",
-      studentName: "Student B",
-      date: "2023-04-05",
-      time: "10:00",
+      title: 'Tutor',
+      dataIndex: 'tutor_id',
+      key: 'tutor_id',
+      render: (tutor_id: string) => getUserNameById(tutor_id)
     },
     {
-      key: "2",
-      tutorName: "Tutor B",
-      studentName: "Student A",
-      date: "2023-04-10",
-      time: "14:00",
+      title: 'Student',
+      dataIndex: 'student_id',
+      key: 'student_id',
+      render: (student_id: string) => getUserNameById(student_id)
     },
     {
-      key: "3",
-      tutorName: "Tutor C",
-      studentName: "Student D",
-      date: "2023-04-15",
-      time: "16:00",
+      title: 'Date',
+      dataIndex: 'scheduled_date',
+      key: 'scheduled_date',
+      render: (date: string) => new Date(date).toLocaleDateString()
     },
     {
-      key: "4",
-      tutorName: "Tutor E",
-      studentName: "Student F",
-      date: "2023-04-20",
-      time: "18:00",
-    },
-    {
-      key: "5",
-      tutorName: "Tutor G",
-      studentName: "Student H",
-      date: "2023-04-25",
-      time: "20:00",
+      title: 'Time',
+      dataIndex: 'scheduled_time',
+      key: 'scheduled_time'
     }
   ];
 
-  const recentAppointments = appointmentsData.slice(0, 5); // Show only 5 most recent appointments
+  const recentAppointments = appointments.slice(0, 5);
 
   return (
     <div className="p-6">
@@ -72,7 +85,7 @@ const DashboardPage: React.FC = () => {
       <Row className="mb-6">
         <Col span={24}>
           <Typography.Title level={2}>
-            Welcome To Moderator Dashboard, {session?.user?.email || "User"}! {/*this is the best i got for now*/}
+            Welcome To Moderator Dashboard, {session?.user?.email || "User"}!
           </Typography.Title>
         </Col>
       </Row>
@@ -93,7 +106,7 @@ const DashboardPage: React.FC = () => {
       </Row>
 
       {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
+      <Row gutter={[16, 16]} className="mb-6">
         <StatisticalDataCard 
           bgColor="bg-blue-600" 
           cardTitle="Total Meeting" 
@@ -117,17 +130,18 @@ const DashboardPage: React.FC = () => {
       </Row>
 
       {/* Recent Appointments and Calendar */}
-      <Row gutter={16}>
-        <Col span={16}>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
           <Card title="Recent Appointments" extra={<Link href="/moderators/manage/appointments">View All</Link>}>
             <Table 
               columns={columns} 
               dataSource={recentAppointments}
               pagination={false}
+              rowKey="id"
             />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={24} lg={8}>
           <Card title="Calendar Overview">
             <div className="flex justify-center">
               <StatisticalCalendar
@@ -136,7 +150,6 @@ const DashboardPage: React.FC = () => {
                 customStyle={{ margin: '0 auto' }}
                 borderColor="#1890ff"
                 onDateChange={(value, mode) => {
-                  // Handle date changes here
                   console.log('Selected date:', value.format('YYYY-MM-DD'), 'Mode:', mode);
                 }}
               />
