@@ -22,6 +22,42 @@ namespace ETutoring.DataAccess.Services.Moderator
             _context = context;
         }
 
+        public async Task<BaseResponse> GetAllTutorsAsync(BaseRequest request)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            var tutorRoleId = await _context.Roles
+                .Where(r => r.Name == "Tutor")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            if (tutorRoleId == Guid.Empty)
+                return new BaseResponse(400, "Tutor role not found.");
+
+            var tutors = await _context.Users
+                .Join(_context.UserRoles,
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                .Where(joined => joined.userRole.RoleId == tutorRoleId)
+                .Select(joined => new
+                {
+                    joined.user.Id,
+                    joined.user.FullName,
+                    joined.user.Email,
+                    joined.user.PhoneNumber,
+                    joined.user.Address,
+                    joined.user.IsActive
+                })
+                .Skip((request.Page - 1) * request.Size)
+                .Take(request.Size)
+                .ToListAsync();
+
+            stopwatch.Stop();
+
+            return new BaseResponse(200, "Tutors retrieved successfully.", tutors, stopwatch.ElapsedMilliseconds);
+        }
+
         public async Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request)
         {
             var stopwatch = Stopwatch.StartNew();

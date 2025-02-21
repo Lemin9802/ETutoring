@@ -1,7 +1,6 @@
 ﻿using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Response;
-using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Students;
 
 namespace ETutoring.Business.Interfaces.Moderator
@@ -9,6 +8,7 @@ namespace ETutoring.Business.Interfaces.Moderator
     public interface IModeratorService
     {
         Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request);
+        Task<BaseResponse> GetAllTutorsAsync(BaseRequest request);
         Task<BaseResponse> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy);
         Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request);
         Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
