@@ -13,5 +13,6 @@ namespace ETutoring.Business.Interfaces.Moderator
         Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request);
         Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
         Task<BaseResponse> ReassignTutorToStudentAsync(ReassignStudentToTutorRequest request);
+        Task<BaseResponse> GetAllStudentsAsync(BaseRequest request);
     }
 }

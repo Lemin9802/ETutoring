@@ -26,6 +26,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("list")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetStudentsWithOrWithoutTutors([FromBody] StudentTutorStatusRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -43,6 +46,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("assign")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AssignTutorToStudent([FromBody] AssignTutorStudentRequest model)
         {
             if (!ModelState.IsValid)
@@ -67,6 +73,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("reassign-tutor")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ReassignStudentToTutor([FromBody] ReassignStudentToTutorRequest request)
         {
             if (!ModelState.IsValid)
@@ -93,6 +102,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("management-history")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetManagementHistory([FromBody] BaseRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -110,6 +122,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("management-history/details")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetManagementHistoryDetails([FromBody] StudentTutorManagementHistoryRequest model)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -123,6 +138,27 @@ namespace ETutoring.API.Controllers.Moderator
             {
                 stopwatch.Stop();
                 return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving management history details.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
+
+        [HttpPost("students")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllStudents([FromBody] BaseRequest request)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetAllStudentsAsync(request);
+                stopwatch.Stop();
+                response.Took = stopwatch.ElapsedMilliseconds;
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds));
             }
         }
     }
