@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.API", "ETutoring.API\ETutoring.API.csproj", "{0FB700C6-AF9B-472B-A469-0F66D74C9708}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.Business", "ETutoring.Business\ETutoring.Business.csproj", "{1FF4AACD-6602-49D8-9A2F-AB86C301AE58}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.Core", "ETutoring.Core\ETutoring.Core.csproj", "{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.API.Tests", "ETutoring.API.Tests\ETutoring.API.Tests.csproj", "{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
