@@ -8,6 +8,8 @@ using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Dtos.Students;
 using ETutoring.Business.Dtos.Response;
+using ETutoring.Business.Dtos.Response.Students;
+using StudentTutorStatusResponse = ETutoring.Business.Dtos.Response.Moderator.StudentTutorStatusResponse;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -210,5 +212,49 @@ namespace ETutoring.DataAccess.Services.Moderator
             return new BaseResponse(200, "Assignment history retrieved successfully.", history, stopwatch.ElapsedMilliseconds);
         }
 
+        public async Task<BaseResponse> GetAllStudentsAsync(BaseRequest request)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var studentRoleId = await _context.Roles
+                    .Where(r => r.Name == "Student")
+                    .Select(r => r.Id)
+                    .FirstOrDefaultAsync();
+
+                var query = _context.Users
+                    .Join(_context.UserRoles,
+                        user => user.Id,
+                        userRole => userRole.UserId,
+                        (user, userRole) => new { User = user, UserRole = userRole })
+                    .Where(u => u.UserRole.RoleId == studentRoleId)
+                    .Select(u => new StudentDto
+                    {
+                        Id = u.User.Id,
+                        FullName = u.User.FullName,
+                        Email = u.User.Email,
+                        Gender = u.User.Gender,
+                        PhoneNumber = u.User.PhoneNumber,
+                        Address = u.User.Address,
+                        Nationality = u.User.Nationality,
+                        IdentificationNumber = u.User.IdentificationNumber,
+                        IsActive = u.User.IsActive,
+                        LastLoginTime = u.User.LastLoginTime
+                    });
+
+                var students = await query
+                    .Skip((request.Page - 1) * request.Size)
+                    .Take(request.Size)
+                    .ToListAsync();
+
+                stopwatch.Stop();
+                return new StudentsResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return new BaseResponse(500, "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds);
+            }
+        }
     }
 }
