@@ -5,13 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.Students
+namespace ETutoring.Business.Dtos.Request.Tutor
 {
-    public class AssignTutorStudentRequest
+    public class GetStudentsForTutorRequest : BaseRequest
     {
-        [Required]
-        public Guid StudentId { get; set; }
-
         [Required]
         public Guid TutorId { get; set; }
     }

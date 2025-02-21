@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ETutoring.Business.Dtos.Auth;
-using ETutoring.Business.Dtos.User;
 
 namespace ETutoring.DataAccess.Services
 {
-    public interface IUserProfileService
-    {
-        Task<ApplicationUser?> GetUserProfileAsync(Guid userId, UserProfileRequest modal);
-        Task<ApplicationUser?> UpdateUserProfileAsync(Guid userId, UpdateProfileRequest model);
-        Task<bool> ReassignTutorToStudentAsync(ReassignStudentToTutorRequest request);
-    }
+        public interface IUserProfileService
+        {
+            Task<ApplicationUser?> GetUserProfileAsync(Guid id, UserProfileRequest modal);
+            Task<ApplicationUser?> UpdateUserProfileAsync(Guid id, UpdateProfileRequest model);
+
+        }
 }

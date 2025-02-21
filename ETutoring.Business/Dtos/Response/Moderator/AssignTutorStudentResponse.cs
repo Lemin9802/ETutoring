@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.Students
+namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    public class AssignTutorStudentResponse
+    public class AssignTutorStudentResponse : BaseResponse
     {
         public Guid StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;

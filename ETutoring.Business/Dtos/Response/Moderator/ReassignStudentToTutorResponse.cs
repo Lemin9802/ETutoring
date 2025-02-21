@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.User
+namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    internal class ReassignStudentToTutorResponse
+    internal class ReassignStudentToTutorResponse : BaseResponse
     {
         public ReassignStudentToTutorResponse() { }
         public Guid StudentId { get; set; }

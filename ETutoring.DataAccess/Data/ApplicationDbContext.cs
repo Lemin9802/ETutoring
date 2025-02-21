@@ -18,7 +18,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<EmailSent> EmailSent { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<ManageStudentTutor> ManageStudentTutors { get; set; }
+    public DbSet<StudentTutorManagement> StudentTutorManagements { get; set; }
+
+    public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

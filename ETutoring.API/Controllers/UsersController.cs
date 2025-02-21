@@ -1,6 +1,7 @@
 ﻿using ETutoring.Business.Dtos.Auth;
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
+using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
 using ETutoring.Core.Helpers;
@@ -16,41 +17,11 @@ namespace ETutoring.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IStudentService _studentService;
         private readonly IIdentityServices _identityServices;
 
-        public UsersController(IStudentService studentService, IIdentityServices identityServices)
+        public UsersController( IIdentityServices identityServices)
         {
-            _studentService = studentService;
             _identityServices = identityServices;
-        }
-
-        [HttpPost("tutor/{tutorId}/students")]
-        [Authorize]
-        public async Task<ActionResult<ApiResponse<List<ApplicationUser>>>> GetStudentsByTutor(Guid tutorId)
-        {
-            var students = await _studentService.GetStudentsByTutorIdAsync(tutorId);
-            if (students == null || students.Count == 0)
-            {
-                return NotFound(ApiResponseHandler.FailureResponse<List<ApplicationUser>>(
-                    "No students found for this tutor."));
-            }
-
-            return Ok(ApiResponseHandler.SuccessResponse(students, "Students retrieved successfully."));
-        }
-
-        [HttpGet("student/{studentId}/tutor")]
-        [Authorize]
-        public async Task<ActionResult<ApiResponse<ApplicationUser>>> GetTutorByStudent(Guid studentId)
-        {
-            var tutor = await _studentService.GetTutorByStudentIdAsync(studentId);
-            if (tutor == null)
-            {
-                return NotFound(ApiResponseHandler.FailureResponse<ApplicationUser>(
-                    "No tutor found for this student."));
-            }
-
-            return Ok(ApiResponseHandler.SuccessResponse(tutor, "Tutor retrieved successfully."));
         }
 
         [HttpPost("assign-role")]
