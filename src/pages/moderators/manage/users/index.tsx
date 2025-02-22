@@ -242,4 +242,4 @@ const AdminUserListPage = () => {
   );
 };
 
-export default ModeratorUserListPage; 
+export default AdminUserListPage; 
