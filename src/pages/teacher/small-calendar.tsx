@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import type { CalendarProps } from 'antd';
-import { Badge, Calendar, Modal, Input, Button } from 'antd';
-import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import { Calendar, Modal, Tooltip } from 'antd';
+import { Dayjs } from 'dayjs';
 
+// Upcoming events for a teacher
 const events = [
   { date: '2025-02-17', title: 'Parent-Teacher Meeting', details: 'Discuss student progress and development at 3:00 PM' },
   { date: '2025-02-21', title: 'School Assembly', details: 'Weekly school-wide assembly at 8:00 AM in the main hall' },
@@ -12,103 +12,57 @@ const events = [
 ];
 
 const getEventColor = (eventDate: string) => {
-  const today = dayjs().startOf('day');
-  const eventDay = dayjs(eventDate).startOf('day');
-  const diffDays = eventDay.diff(today, 'day');
+  const today = dayjs();
+  const diffDays = dayjs(eventDate).diff(today, 'day');
 
-  if (diffDays <= 3) return '#FF8C00'; 
-  if (diffDays <= 7) return '#FFD700'; 
-  if (diffDays <= 14) return '#5DADE2'; 
-  return '#58D68D'; 
-};
-
-const getListData = (value: Dayjs) => {
-  return events
-    .filter(event => event.date === value.format('YYYY-MM-DD'))
-    .map(event => ({ ...event, color: getEventColor(event.date) }));
+  if (diffDays <= 1) return '#A569BD'; // 🟣 Purple (today or tomorrow)
+  if (diffDays <= 7) return '#5DADE2'; // 🔵 Blue (within 7 days)
+  return '#58D68D'; // 🟢 Green (more than 7 days away)
 };
 
 const SmallCalendar: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [notes, setNotes] = useState<{ [key: string]: string }>({});
-  const [tempNote, setTempNote] = useState<string>(''); 
-
-  const handleSaveNote = () => {
-    if (selectedDate) {
-      const dateKey = selectedDate.format('YYYY-MM-DD');
-      if (tempNote.trim() === '') {
-        const updatedNotes = { ...notes };
-        delete updatedNotes[dateKey]; 
-        setNotes(updatedNotes);
-      } else {
-        setNotes(prev => ({ ...prev, [dateKey]: tempNote }));
-      }
-      setSelectedDate(null);
-    }
-  };
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
   const dateCellRender = (value: Dayjs) => {
-    const listData = getListData(value);
-    const hasNote = !!notes[value.format('YYYY-MM-DD')];
+    const formattedDate = value.format('YYYY-MM-DD');
+    const event = events.find((e) => e.date === formattedDate);
 
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-
-        {hasNote && <Badge color="#FF69B4" style={{ width: '6px', height: '6px', borderRadius: '50%' }} />}
-
-        {listData.map((event, index) => (
-          <Badge
-            key={index}
-            color={event.color}
-            style={{ width: '6px', height: '6px', borderRadius: '50%' }}
-          />
-        ))}
-      </div>
-    );
+    return event ? (
+      <Tooltip title={event.title}>
+        <div
+          onClick={() => setSelectedEvent(event)}
+          style={{
+            cursor: 'pointer',
+            width: '100%',
+            height: '100%',
+            backgroundColor: getEventColor(event.date),
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold',
+            color: 'white',
+          }}
+        >
+          {value.date()}
+        </div>
+      </Tooltip>
+    ) : null;
   };
 
   return (
-    <div style={{ maxWidth: '700px', margin: '0 auto', padding: '20px' }}>
-
-      <Calendar
-        fullscreen={false}
-        style={{ fontSize: '14px' }}
-        dateCellRender={dateCellRender}
-        onSelect={(value) => {
-          setSelectedDate(value);
-          setTempNote(notes[value.format('YYYY-MM-DD')] || ''); 
-        }}
-      />
-
+    <div>
+      <Calendar fullscreen={false} dateCellRender={dateCellRender} />
+      
+      {/* Event Detail Modal */}
       <Modal
-        title={`📅 Notes for ${selectedDate?.format('YYYY-MM-DD')}`}
-        open={!!selectedDate}
-        onCancel={() => setSelectedDate(null)}
-        footer={[
-          <Button key="cancel" onClick={() => setSelectedDate(null)}>Cancel</Button>,
-          <Button key="save" type="primary" onClick={handleSaveNote}>Save</Button>,
-        ]}
+        title={selectedEvent?.title}
+        open={!!selectedEvent}
+        onCancel={() => setSelectedEvent(null)}
+        footer={null}
       >
-
-        {selectedDate && getListData(selectedDate).length > 0 && (
-          <div style={{ marginBottom: '10px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
-            <strong>📌 Events:</strong>
-            <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
-              {getListData(selectedDate).map((event, index) => (
-                <li key={index} style={{ color: event.color }}>
-                  <strong>{event.title}</strong> - {event.details}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <Input.TextArea
-          rows={4}
-          placeholder="Write your notes here..."
-          value={tempNote}
-          onChange={(e) => setTempNote(e.target.value)}
-        />
+        <p><strong>Date:</strong> {selectedEvent?.date}</p>
+        <p>{selectedEvent?.details}</p>
       </Modal>
     </div>
   );
