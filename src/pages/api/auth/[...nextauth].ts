@@ -47,36 +47,38 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // Send user info to your .NET backend to sync the user
-      const response = await fetch(
-        `${process.env.BACKEND_URL}/api/auth/sync-google-user`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            provider: "google",
-          }),
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        // Send user info to your .NET backend to sync the user
+        const response = await fetch(
+          `${process.env.BACKEND_URL}/api/auth/sync-google-user`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              provider: "google",
+            }),
+          }
+        );
+
+        const result: APIResponse = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to sync user with the backend.");
+          return false; // Reject the sign-in
         }
-      );
 
-      const result: APIResponse = await response.json();
-
-      if (!response.ok) {
-        console.error("Failed to sync user with the backend.");
-        return false; // Reject the sign-in
-      }
-
-      // Assuming your backend responds with accessToken and refreshToken
-      if (result.success) {
-        user.accessToken = result.data.access_token;
-        user.refreshToken = result.data.refresh_token;
-      } else {
-        console.error("Failed to retrieve tokens from the backend.");
-        return false;
+        // Assuming your backend responds with accessToken and refreshToken
+        if (result.success) {
+          user.accessToken = result.data.access_token;
+          user.refreshToken = result.data.refresh_token;
+        } else {
+          console.error("Failed to retrieve tokens from the backend.");
+          return false;
+        }
       }
 
       return true; // Allow the sign-in
