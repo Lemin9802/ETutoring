@@ -21,7 +21,19 @@ import {
   BarChartOutlined,
   CloudDownloadOutlined,
 } from "@ant-design/icons";
-import { Column, Pie, Line } from "@ant-design/charts";
+import { Line, Bar, Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import dayjs from "dayjs";
 import {
   getMeetings,
@@ -29,6 +41,19 @@ import {
   getTutors,
   MeetingType,
 } from "@/lib/api/moderator";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  ChartTitle,
+  Tooltip,
+  Legend
+);
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -262,16 +287,28 @@ const StatisticsPage: React.FC = () => {
             <Col xs={24} lg={12}>
               <Card title="Daily Session Trends">
                 <Line
-                  data={analyticsData.trends.dailyMeetings}
-                  xField="date"
-                  yField="count"
-                  point={{
-                    size: 5,
-                    style: {
-                      fill: "#5B8FF9",
-                      stroke: "#5B8FF9",
-                      lineWidth: 2,
+                  data={{
+                    labels: analyticsData.trends.dailyMeetings.map(item => item.date),
+                    datasets: [{
+                      label: 'Daily Sessions',
+                      data: analyticsData.trends.dailyMeetings.map(item => item.count),
+                      borderColor: '#5B8FF9',
+                      backgroundColor: 'rgba(91, 143, 249, 0.1)',
+                      tension: 0.4,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        display: true
+                      }
                     },
+                    scales: {
+                      y: {
+                        beginAtZero: true
+                      }
+                    }
                   }}
                 />
               </Card>
@@ -279,13 +316,31 @@ const StatisticsPage: React.FC = () => {
             <Col xs={24} lg={12}>
               <Card title="Session Mode Distribution">
                 <Pie
-                  data={analyticsData.trends.modeDistribution.map((item) => ({
-                    type: item.mode,
-                    value: item.count,
-                  }))}
-                  angleField="value"
-                  colorField="type"
-                  radius={0.8}
+                  data={{
+                    labels: analyticsData.trends.modeDistribution.map(item => item.mode),
+                    datasets: [{
+                      data: analyticsData.trends.modeDistribution.map(item => item.count),
+                      backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                      ],
+                      borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                      ],
+                      borderWidth: 1,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'bottom' as const,
+                      }
+                    }
+                  }}
                 />
               </Card>
             </Col>
@@ -294,21 +349,59 @@ const StatisticsPage: React.FC = () => {
           <Row gutter={[16, 16]} className="mt-6">
             <Col xs={24} lg={12}>
               <Card title="Session Duration Distribution">
-                <Column
-                  data={analyticsData.trends.durationDistribution}
-                  xField="duration"
-                  yField="count"
-                  label={{ style: { fill: "#aaa" } }}
+                <Bar
+                  data={{
+                    labels: analyticsData.trends.durationDistribution.map(item => item.duration),
+                    datasets: [{
+                      label: 'Sessions',
+                      data: analyticsData.trends.durationDistribution.map(item => item.count),
+                      backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                      borderColor: 'rgba(75, 192, 192, 1)',
+                      borderWidth: 1,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        display: true
+                      }
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true
+                      }
+                    }
+                  }}
                 />
               </Card>
             </Col>
             <Col xs={24} lg={12}>
               <Card title="Top Subjects">
-                <Column
-                  data={analyticsData.trends.topSubjects}
-                  xField="subject"
-                  yField="count"
-                  label={{ style: { fill: "#aaa" } }}
+                <Bar
+                  data={{
+                    labels: analyticsData.trends.topSubjects.map(item => item.subject),
+                    datasets: [{
+                      label: 'Sessions',
+                      data: analyticsData.trends.topSubjects.map(item => item.count),
+                      backgroundColor: 'rgba(153, 102, 255, 0.8)',
+                      borderColor: 'rgba(153, 102, 255, 1)',
+                      borderWidth: 1,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        display: true
+                      }
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true
+                      }
+                    }
+                  }}
                 />
               </Card>
             </Col>
