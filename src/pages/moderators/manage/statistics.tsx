@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Row,
@@ -21,7 +21,7 @@ import {
   BarChartOutlined,
   CloudDownloadOutlined,
 } from "@ant-design/icons";
-import { Column, Pie, Line } from "@ant-design/plots";
+import { Column, Pie, Line } from "@ant-design/charts";
 import dayjs from "dayjs";
 import {
   getMeetings,
@@ -65,11 +65,7 @@ const StatisticsPage: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [dateRange]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       const [meetings, students, tutors] = await Promise.all([
@@ -144,7 +140,11 @@ const StatisticsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   const processDailyMeetings = (meetings: MeetingType[]) => {
     const dailyCounts = meetings.reduce((acc, meeting) => {

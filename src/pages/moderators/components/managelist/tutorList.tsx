@@ -51,7 +51,7 @@ const TutorPage: React.FC = () => {
       email: `${tutor.name.toLowerCase().replace(/\s/g, "")}@example.com`, 
       address: tutor.address,  
     }));
-  }, [tutorsData]);
+  }, []);
   
 
   const filteredTutors = useMemo(() => {
