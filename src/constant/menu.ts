@@ -171,6 +171,11 @@ export const menuGroupsModerators = [
         label: "Statistics",
         route: "/moderators/manage/statistics",
       },
+      {
+        icon: MessageIcon,
+        label: "Chat Management",
+        route: "/moderators/manage/chat",
+      },
     ],
   },
 ];
