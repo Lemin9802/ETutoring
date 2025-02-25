@@ -15,7 +15,7 @@ namespace ETutoring.Business.Dtos.Request
         [Range(1, 100, ErrorMessage = "Size must be between 1 and 100.")]
         public int Size { get; set; } = 10;
 
-        public string? Sort { get; set; } = string.Empty; // Mặc định sắp xếp theo ngày tạo
+        public string? Sort { get; set; } = string.Empty;
     }
 
 }

@@ -42,6 +42,23 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
+        [HttpPost("get-tutors-users")]
+        public async Task<IActionResult> GetAllTutorsTeachers([FromBody] BaseRequest request)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetAllTutorsStudentsAsync(request);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving tutors.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
+
         [HttpPost("list")]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]

@@ -9,6 +9,7 @@ namespace ETutoring.Business.Interfaces.Moderator
     {
         Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request);
         Task<BaseResponse> GetAllTutorsAsync(BaseRequest request);
+        Task<BaseResponse> GetAllTutorsStudentsAsync(BaseRequest request);
         Task<BaseResponse> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy);
         Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request);
         Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
