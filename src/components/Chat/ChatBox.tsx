@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Avatar, Spin, Badge } from 'antd';
+import { Input, Button, Avatar, Spin, Badge, Tag } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { useSession } from 'next-auth/react';
 import { Message, ChatParticipant } from '@/types/Chat';
@@ -127,7 +127,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   return (
     <div className={`flex flex-col bg-white ${containerClasses}`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
         <div className="flex items-center space-x-3">
           <Badge status={recipient.isOnline ? "success" : "default"} offset={[-6, 32]}>
             <Avatar src={recipientAvatar} size={40}>
@@ -135,12 +135,23 @@ const ChatBox: React.FC<ChatBoxProps> = ({
             </Avatar>
           </Badge>
           <div>
-            <h3 className="font-semibold">{recipientName}</h3>
-            <span className="text-xs text-green-500">{recipient.isOnline ? 'Online' : 'Offline'}</span>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-semibold">{recipientName}</h3>
+              <Tag color={recipient.role === 'tutor' ? 'blue' : 'green'}>
+                {recipient.role.charAt(0).toUpperCase() + recipient.role.slice(1)}
+              </Tag>
+            </div>
+            <span className="text-xs text-gray-500">
+              {recipient.isOnline ? (
+                <span className="text-green-500">Online</span>
+              ) : (
+                'Last seen 2 hours ago'
+              )}
+            </span>
           </div>
         </div>
         {!isFullPage && onClose && (
-          <Button type="text" onClick={onClose} className="hover:bg-gray-100">
+          <Button type="text" onClick={onClose} className="hover:bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center">
             ×
           </Button>
         )}
@@ -201,4 +212,4 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   );
 };
 
-export default ChatBox; 
+export default ChatBox;
