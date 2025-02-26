@@ -1,5 +1,7 @@
 ﻿using ETutoring.Business.Dtos.Auth;
 using ETutoring.Core.Utilities;
+using ETutoring.Core.Common;
+using ETutoring.Core.Entities;
 
 namespace ETutoring.Business.Interfaces;
 
@@ -14,4 +16,6 @@ public interface IIdentityServices
     Task<AuthResult<TokenResponse>> SyncGoogleUserAsync(GoogleUserRequest request);
 
     Task<AuthResult<string>> AssignRoleAsync(Guid userId, Guid roleId);
+
+    Task<AuthResult<ApplicationUser>> GetUserByIdAsync(Guid userId);
 }
