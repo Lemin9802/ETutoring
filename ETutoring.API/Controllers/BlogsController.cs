@@ -17,15 +17,12 @@ namespace ETutoring.API.Controllers
         {
             _blogService = blogService;
         }
-
-
         [HttpPost("create")]
         public async Task<ActionResult<ApiResponse<Blog>>> CreateBlogAsync([FromBody] CreateBlogRequest request, CancellationToken cancellationToken = default)
         {
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
         }
-
         [HttpPost("get-all")]
         public async Task<ActionResult<ApiResponse<List<Blog>>>> GetAllBlogsAsync(CancellationToken cancellationToken)
         {
@@ -36,7 +33,6 @@ namespace ETutoring.API.Controllers
         {
             public Guid BlogId { get; set; }
         }
-
         [HttpPost("get-by-id")]
         public async Task<ActionResult<ApiResponse<Blog?>>> GetBlogByIdAsync([FromBody] GetBlogByIdRequest request, CancellationToken cancellationToken)
         {
@@ -50,20 +46,26 @@ namespace ETutoring.API.Controllers
         [HttpPost("update")]
         public async Task<ActionResult<ApiResponse<Blog?>>> UpdateBlogAsync([FromBody] UpdateBlogRequest request, CancellationToken cancellationToken)
         {
-            var updatedBlog = await _blogService.UpdateBlogAsync(request, cancellationToken);
+            var userId = User.GetUserId();  
+            var isAdmin = User.IsAdmin();   
+
+            var updatedBlog = await _blogService.UpdateBlogAsync(request, userId, isAdmin, cancellationToken);
 
             if (updatedBlog == null)
-                return NotFound(ApiResponseHandler.FailureResponse<Blog?>("Blog not found"));
+                return Forbid("You do not have permission to edit this blog");
 
             return Ok(ApiResponseHandler.SuccessResponse(updatedBlog, "Blog updated successfully"));
         }
         [HttpPost("delete")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteBlogAsync([FromBody] DeleteBlogRequest request, CancellationToken cancellationToken)
         {
-            var isDeleted = await _blogService.DeleteBlogAsync(request, cancellationToken);
+            var userId = User.GetUserId();  
+            var isAdmin = User.IsAdmin();   
+
+            var isDeleted = await _blogService.DeleteBlogAsync(request, userId, isAdmin, cancellationToken);
 
             if (!isDeleted)
-                return NotFound(ApiResponseHandler.FailureResponse<bool>("Blog not found"));
+                return Forbid("You do not have permission to delete this blog");
 
             return Ok(ApiResponseHandler.SuccessResponse(true, "Blog deleted successfully"));
         }

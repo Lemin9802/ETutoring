@@ -38,11 +38,14 @@ public class BlogService : IBlogService
     {
         return await _context.Blogs.FirstOrDefaultAsync(b => b.Id == blogId, cancellationToken);
     }
-    public async Task<Blog?> UpdateBlogAsync(UpdateBlogRequest request, CancellationToken cancellationToken)
+    public async Task<Blog?> UpdateBlogAsync(UpdateBlogRequest request, Guid userId, bool isAdmin, CancellationToken cancellationToken)
     {
         var blog = await _context.Blogs.FirstOrDefaultAsync(b => b.Id == request.BlogId, cancellationToken);
 
         if (blog == null)
+            return null;
+
+        if (!isAdmin && blog.UserId != userId)
             return null;
 
         blog.Title = request.Title;
@@ -52,11 +55,14 @@ public class BlogService : IBlogService
 
         return blog;
     }
-    public async Task<bool> DeleteBlogAsync(DeleteBlogRequest request, CancellationToken cancellationToken)
+    public async Task<bool> DeleteBlogAsync(DeleteBlogRequest request, Guid userId, bool isAdmin, CancellationToken cancellationToken)
     {
         var blog = await _context.Blogs.FirstOrDefaultAsync(b => b.Id == request.BlogId, cancellationToken);
 
         if (blog == null)
+            return false;
+
+        if (!isAdmin && blog.UserId != userId)
             return false;
 
         _context.Blogs.Remove(blog);
