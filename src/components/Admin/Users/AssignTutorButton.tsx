@@ -1,6 +1,6 @@
 import { UserListType } from "@/types/Users";
 import { Button, Modal, Select, message } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaUserPlus } from "react-icons/fa";
 
 interface AssignTutorButtonProps {
@@ -14,6 +14,34 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedTutor, setSelectedTutor] = useState<string | null>(null);
+  const [tutors, setTutors] = useState<{ id: string; email: string }[]>([]);
+  const [total, setTotal] = useState<number>(0);
+
+  const fetchTutors = async (page: number, size: number) => {
+    try {
+      const response = await fetch("/api/moderators/users/get-all-tutors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page, size }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setTutors(result.data);
+        setTotal(result.total);
+      } else {
+        console.error("Error fetching tutors:", result.error);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTutors(1, 10);
+  }, []);
 
   const handleAssign = () => {
     if (!selectedTutor || selectedUsers.length === 0) {
@@ -21,10 +49,12 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
       return;
     }
     message.success(
-      `Assigned ${selectedTutor} to ${selectedUsers.length} students.`
+      `Assigned "${selectedTutor}" to ${selectedUsers.length} students.`
     );
     setIsModalVisible(false);
   };
+
+  console.log("Total: ", total)
 
   return (
     <>
@@ -47,13 +77,11 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
           placeholder="Select a Tutor"
           onChange={setSelectedTutor}
         >
-          {selectedUsers
-            .filter((user) => user.role === "tutor")
-            .map((tutor) => (
-              <Option key={tutor.id} value={tutor.name}>
-                {tutor.name}
-              </Option>
-            ))}
+          {tutors.map((tutor) => (
+            <Option key={tutor.id} value={tutor.email}>
+              {tutor.email} {/* Hiển thị email vì full_name rỗng */}
+            </Option>
+          ))}
         </Select>
       </Modal>
     </>

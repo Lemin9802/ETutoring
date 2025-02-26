@@ -20,7 +20,7 @@ export interface UserListType {
   identification_number: string;
   is_email_confirmed: boolean;
   is_phone_confirmed: boolean;
- role: UserRole;
+  role: UserRole;
   is_active: boolean;
   last_login_time: string | null;
   
@@ -38,7 +38,7 @@ const AdminUserListPage = () => {
   const fetchUsers = async (page: number, size: number) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/moderators/users/get-all-students", {
+      const response = await fetch("/api/moderators/users/get-all-students-tutors", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ const AdminUserListPage = () => {
 
   useEffect(() => {
     if (!session) return;
-    fetchUsers(1, 2); 
+    fetchUsers(1, 10); 
   }, [session]);
 
   const selectedUsers = useMemo(() => {
@@ -94,6 +94,10 @@ const AdminUserListPage = () => {
     {
       title: "Email",
       dataIndex: "email",
+    },
+    {
+      title: "Role",
+      dataIndex: "role_name",
     },
     {
       title: "Last Login",
