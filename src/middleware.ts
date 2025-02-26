@@ -6,7 +6,7 @@ const allowedRolesWithPaths = {
   student: ["/students"],
   admin: ["/admin"],
   moderator: ["/moderators"],
-  tutor: ["/teacher"],
+  tutor: ["/tutors"],
 };
 
 export async function middleware(request: NextRequest) {
