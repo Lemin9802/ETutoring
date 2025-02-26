@@ -7,16 +7,21 @@ import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GlobalChatButton from "@/components/Chat/GlobalChatButton";
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
   const noLayoutRoutes = ["/auth/signin", "/auth/signup", "/_error"];
-
+  const noChatRoutes = [...noLayoutRoutes, "/messages", "/moderators/manage/chat"];
   const showBar = !noLayoutRoutes.includes(router.pathname);
+  const showChat = !noChatRoutes.includes(router.pathname);
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <div className="flex min-h-screen">
         {/* Sidebar */}
         {showBar && (
@@ -32,6 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
           {/* Page Content */}
           <main className="px-4">
             <Component {...pageProps} />
+            {showChat && <GlobalChatButton />}
           </main>
         </div>
       </div>
