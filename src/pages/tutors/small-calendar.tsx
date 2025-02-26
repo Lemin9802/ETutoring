@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { CalendarProps } from 'antd';
 import { Badge, Calendar, Modal, Input, Button, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';

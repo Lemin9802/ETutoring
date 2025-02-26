@@ -3,7 +3,13 @@ import { useState } from 'react';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-const events = [
+interface Event {
+  date: string;
+  title: string;
+  details: string;
+}
+
+const events: Event[] = [
   { date: '2025-02-26', title: 'Parent-Teacher Meeting', details: 'Discuss student progress and development at 3:00 PM' },
   { date: '2025-02-28', title: 'Midterm Exams Start', details: 'Midterm exams begin for all subjects' },
   { date: '2025-03-03', title: 'School Assembly', details: 'Weekly school-wide assembly at 8:00 AM in the main hall' },
@@ -23,7 +29,7 @@ const getEventColor = (eventDate: string) => {
 };
 
 const TimelineComponent: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const nextEvent = events[0];
 
   return (
@@ -37,7 +43,7 @@ const TimelineComponent: React.FC = () => {
           padding: '15px',
           backgroundColor: '#ffffff',
           borderRadius: '8px',
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
         }}
       >
         <Typography.Text strong style={{ color: getEventColor(nextEvent.date), fontSize: '16px' }}>
