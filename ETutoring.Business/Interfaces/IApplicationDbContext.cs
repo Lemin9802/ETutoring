@@ -10,5 +10,7 @@ public interface IApplicationDbContext
     DbSet<BlogComment> BlogsComments { get; set; }
     DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    DbSet<Document> Documents { get; set; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
