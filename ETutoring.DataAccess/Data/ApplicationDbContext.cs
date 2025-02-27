@@ -19,6 +19,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Document> Documents { get; set; }
+    public DbSet<DocumentComment> DocumentComments { get; set; }
     public DbSet<StudentTutorManagement> StudentTutorManagements { get; set; }
 
     public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }

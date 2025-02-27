@@ -11,5 +11,7 @@ public interface IApplicationDbContext
 
     DbSet<Document> Documents { get; set; }
 
+    DbSet<DocumentComment> DocumentComments { get; set; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
