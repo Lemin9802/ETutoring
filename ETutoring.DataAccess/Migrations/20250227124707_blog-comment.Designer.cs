@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250227124707_blog-comment")]
+    partial class blogcomment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,62 +245,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasDatabaseName("ix_blogs_user_id");
 
                     b.ToTable("blogs", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.BlogComment", b =>
-                {
-                    b.Property<Guid>("BlogId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("blog_id");
-
-                    b.Property<Guid>("CommentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("comment_id");
-
-                    b.HasKey("BlogId", "CommentId")
-                        .HasName("pk_blogs_comments");
-
-                    b.HasIndex("CommentId")
-                        .HasDatabaseName("ix_blogs_comments_comment_id");
-
-                    b.ToTable("blogs_comments", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_comments");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_comments_user_id");
-
-                    b.ToTable("comments", (string)null);
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
@@ -636,39 +583,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.BlogComment", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.Blog", "Blog")
-                        .WithMany()
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_blogs_comments_blogs_blog_id");
-
-                    b.HasOne("ETutoring.Core.Entities.Comment", "Comment")
-                        .WithMany("BlogComments")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_blogs_comments_comments_comment_id");
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_comments_application_user_user_id");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
                 {
                     b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
@@ -774,11 +688,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.Navigation("EmailNotifications");
 
                     b.Navigation("RefreshTokens");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.Navigation("BlogComments");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>
