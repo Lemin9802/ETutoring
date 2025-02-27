@@ -19,4 +19,5 @@ public class Document : BaseEntity
     // Navigation properties
     public ApplicationUser Uploader { get; set; }
     public ApplicationUser Tutor { get; set; }
+    public ICollection<DocumentComment> Comments { get; set; } = new List<DocumentComment>();
 }
