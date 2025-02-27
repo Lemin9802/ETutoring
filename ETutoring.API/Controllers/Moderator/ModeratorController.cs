@@ -42,6 +42,23 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
+        [HttpPost("get-tutors-users")]
+        public async Task<IActionResult> GetAllTutorsTeachers([FromBody] BaseRequest request)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.GetAllTutorsStudentsAsync(request);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving tutors.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
+
         [HttpPost("list")]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
@@ -86,6 +103,33 @@ namespace ETutoring.API.Controllers.Moderator
             {
                 stopwatch.Stop();
                 return StatusCode(500, new BaseResponse(500, "An error occurred while assigning tutor.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
+
+        [HttpPost("assign-multiple")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AssignTutorToMultipleStudents([FromBody] AssignTutorMultipleStudentsRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new BaseResponse(400, "Invalid data."));
+
+            var assignedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var parsedAssignedBy))
+                    return Unauthorized(new BaseResponse(401, "Invalid user token."));
+
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.AssignTutorToMultipleStudentsAsync(request.StudentIds, request.TutorId, parsedAssignedBy);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while assigning tutor to multiple students.", ex.Message, stopwatch.ElapsedMilliseconds));
             }
         }
 
