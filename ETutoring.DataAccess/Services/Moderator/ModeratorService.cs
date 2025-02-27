@@ -101,7 +101,6 @@ namespace ETutoring.DataAccess.Services.Moderator
             return new BaseResponse(200, "Tutors and Students retrieved successfully.", users, stopwatch.ElapsedMilliseconds);
         }
 
-
         public async Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -202,6 +201,88 @@ namespace ETutoring.DataAccess.Services.Moderator
             await _context.SaveChangesAsync();
 
             return new BaseResponse(200, "Tutor assigned successfully.");
+        }
+
+        public async Task<BaseResponse> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
+        {
+            var studentRoleId = await _context.Roles
+                .Where(r => r.Name == "Student")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var tutorRoleId = await _context.Roles
+                .Where(r => r.Name == "Tutor")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
+            if (!isTutor)
+                return new BaseResponse(400, "Invalid Tutor.");
+
+            var validStudents = await _context.Users
+                .Join(_context.UserRoles,
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                .Where(joined => studentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
+                .Select(joined => joined.user.Id)
+                .ToListAsync();
+
+            if (!validStudents.Any())
+                return new BaseResponse(400, "No valid students found.");
+
+            var existingAssignments = await _context.StudentTutorManagements
+                .Where(stm => validStudents.Contains(stm.StudentId))
+                .ToListAsync();
+
+            foreach (var studentId in validStudents)
+            {
+                var existingManagement = existingAssignments.FirstOrDefault(stm => stm.StudentId == studentId);
+                string action = existingManagement != null ? "Reassigned" : "Assigned";
+
+                if (existingManagement != null)
+                {
+                    _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
+                    {
+                        StudentTutorManagementId = existingManagement.Id,
+                        StudentId = studentId,
+                        TutorId = existingManagement.TutorId,
+                        AssignedBy = assignedBy,
+                        AssignedAt = DateTime.UtcNow,
+                        Action = "Reassigned"
+                    });
+
+                    existingManagement.TutorId = tutorId;
+                    _context.StudentTutorManagements.Update(existingManagement);
+                }
+                else
+                {
+                    var newManagement = new StudentTutorManagement
+                    {
+                        StudentId = studentId,
+                        TutorId = tutorId,
+                        AssignedBy = assignedBy,
+                        AssignedAt = DateTime.UtcNow,
+                        Action = "Assigned"
+                    };
+
+                    _context.StudentTutorManagements.Add(newManagement);
+                }
+
+                _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
+                {
+                    StudentTutorManagementId = existingManagement?.Id ?? Guid.NewGuid(),
+                    StudentId = studentId,
+                    TutorId = tutorId,
+                    AssignedBy = assignedBy,
+                    AssignedAt = DateTime.UtcNow,
+                    Action = action
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new BaseResponse(200, "Tutor assigned to multiple students successfully.");
         }
 
         public async Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request)
