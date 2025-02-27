@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace ETutoring.DataAccess.Data;
 
@@ -12,6 +13,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     public DbSet<Blog> Blogs { get; set; }
+
+    public DbSet<Comment> Comments { get; set; }
+
+    public DbSet<BlogComment> BlogsComments { get; set; }
 
     public DbSet<ApplicationUser> Users { get; set; }
 
@@ -24,6 +29,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        base.OnModelCreating(builder);
+        builder.Entity<BlogComment>()
+        .HasKey(bc => new { bc.BlogId, bc.CommentId });
+
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

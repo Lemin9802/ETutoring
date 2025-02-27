@@ -58,6 +58,50 @@ namespace ETutoring.DataAccess.Services.Moderator
             return new BaseResponse(200, "Tutors retrieved successfully.", tutors, stopwatch.ElapsedMilliseconds);
         }
 
+        public async Task<BaseResponse> GetAllTutorsStudentsAsync(BaseRequest request)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            var roleIds = await _context.Roles
+                .Where(r => r.Name == "Tutor" || r.Name == "Student")
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            if (!roleIds.Any())
+                return new BaseResponse(400, "Tutor or Student role not found.");
+
+            var users = await _context.Users
+                .Join(_context.UserRoles,
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                .Join(_context.Roles,
+                    joined => joined.userRole.RoleId,
+                    role => role.Id,
+                    (joined, role) => new { joined.user, joined.userRole, role })
+                .Where(joined => roleIds.Contains(joined.userRole.RoleId))
+                .Select(joined => new
+                {
+                    joined.user.Id,
+                    joined.user.FullName,
+                    joined.user.Email,
+                    joined.user.PhoneNumber,
+                    joined.user.Address,
+                    joined.user.IsActive,
+                    RoleId = joined.userRole.RoleId,
+                    RoleName = joined.role.Name
+                })
+                .Skip((request.Page - 1) * request.Size)
+                .Take(request.Size)
+                .ToListAsync();
+
+
+            stopwatch.Stop();
+
+            return new BaseResponse(200, "Tutors and Students retrieved successfully.", users, stopwatch.ElapsedMilliseconds);
+        }
+
+
         public async Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request)
         {
             var stopwatch = Stopwatch.StartNew();
