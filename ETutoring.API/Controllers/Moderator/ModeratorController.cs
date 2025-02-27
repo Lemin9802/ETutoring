@@ -106,6 +106,33 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
+        [HttpPost("assign-multiple")]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AssignTutorToMultipleStudents([FromBody] AssignTutorMultipleStudentsRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new BaseResponse(400, "Invalid data."));
+
+            var assignedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var parsedAssignedBy))
+                    return Unauthorized(new BaseResponse(401, "Invalid user token."));
+
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                var response = await _moderatorService.AssignTutorToMultipleStudentsAsync(request.StudentIds, request.TutorId, parsedAssignedBy);
+                stopwatch.Stop();
+                return StatusCode(response.StatusCode, response);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return StatusCode(500, new BaseResponse(500, "An error occurred while assigning tutor to multiple students.", ex.Message, stopwatch.ElapsedMilliseconds));
+            }
+        }
+
         [HttpPost("reassign-tutor")]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status400BadRequest)]
