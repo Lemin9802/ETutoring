@@ -30,9 +30,16 @@ public class BlogService : IBlogService
 
         return newBlog;
     }
-    public async Task<List<Blog>> GetAllBlogsAsync(CancellationToken cancellationToken)
+    public async Task<List<Blog>> GetAllBlogsAsync(Guid userId, bool isAdmin, CancellationToken cancellationToken)
     {
-        return await _context.Blogs.ToListAsync(cancellationToken);
+        if (isAdmin)
+        {
+            return await _context.Blogs.ToListAsync(cancellationToken);
+        }
+        else
+        {
+            return await _context.Blogs.Where(b => b.UserId == userId).ToListAsync(cancellationToken);
+        }
     }
     public async Task<Blog?> GetBlogByIdAsync(Guid blogId, CancellationToken cancellationToken)
     {

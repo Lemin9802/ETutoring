@@ -26,8 +26,12 @@ namespace ETutoring.API.Controllers
         [HttpPost("get-all")]
         public async Task<ActionResult<ApiResponse<List<Blog>>>> GetAllBlogsAsync(CancellationToken cancellationToken)
         {
-            var blogs = await _blogService.GetAllBlogsAsync(cancellationToken);
-            return Ok(ApiResponseHandler.SuccessResponse(blogs, "Retrieved all blogs successfully"));
+            var userId = User.GetUserId();  
+            var isAdmin = User.IsAdmin();   
+
+            var blogs = await _blogService.GetAllBlogsAsync(userId, isAdmin, cancellationToken);
+
+            return Ok(ApiResponseHandler.SuccessResponse(blogs, "Retrieved blogs successfully"));
         }
         public class GetBlogByIdRequest
         {
