@@ -19,7 +19,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<StudentTutorManagement> StudentTutorManagements { get; set; }
-
+    public DbSet<Message> Messages{ get; set; }
+    public DbSet<ChattingRoom> ChattingRooms { get; set; }
     public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {

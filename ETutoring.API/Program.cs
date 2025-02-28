@@ -1,4 +1,6 @@
+using ETutoring.API.Hubs;
 using ETutoring.Business.Interfaces;
+using ETutoring.Business.Interfaces.Message;
 using ETutoring.Business.Interfaces.Moderator;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Interfaces.Students;
@@ -21,8 +23,15 @@ namespace ETutoring.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true);
+                });
+            });
             builder.Services.AddControllers();
+            builder.Services.AddSignalR();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -73,7 +82,8 @@ namespace ETutoring.API
             builder.Services.AddScoped<IModeratorService, ModeratorService>();
             builder.Services.AddScoped<ITutorService, TutorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
-
+            builder.Services.AddScoped<IMessageService, MessageService>();
+            builder.Services.AddScoped<IMessageHubService, MessageHubService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -84,12 +94,12 @@ namespace ETutoring.API
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowAll");
             app.UseAuthentication();
 
             app.UseAuthorization();
-
             app.MapControllers();
+            app.MapHub<MessageHub>("/messageHub");
 
             app.Run();
         }

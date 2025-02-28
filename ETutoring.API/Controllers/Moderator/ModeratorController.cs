@@ -10,6 +10,8 @@ using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Dtos.Response;
 using System.Diagnostics;
+using ETutoring.Business.Dtos.Request.Message;
+using ETutoring.Business.Interfaces.Message;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -19,10 +21,12 @@ namespace ETutoring.API.Controllers.Moderator
     public class ModeratorController : Controller
     {
         private readonly IModeratorService _moderatorService;
+        private readonly IMessageService _messageService;
 
-        public ModeratorController(IModeratorService moderatorService)
+        public ModeratorController(IModeratorService moderatorService, IMessageService messageService)
         {
             _moderatorService = moderatorService;
+            _messageService = messageService;
         }
 
         [HttpPost("list-tutors")]
@@ -177,6 +181,22 @@ namespace ETutoring.API.Controllers.Moderator
                 stopwatch.Stop();
                 return StatusCode(500, new BaseResponse(500, "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds));
             }
+        }
+
+        [HttpPost("assign-chatroom")]
+        [Authorize(Roles = "Moderator")]
+        public async Task<IActionResult> AssignChatroom([FromBody] AssignChatroomRequest request)
+        {
+            var response = await _messageService.AssignChatroomAsync(request);
+            return StatusCode(200, response);
+        }
+
+        [HttpPost("assigned-chatrooms")]
+        [Authorize(Roles = "Student,Tutor,Moderator")]
+        public async Task<IActionResult> GetAssignedChatrooms([FromBody] GetAssignedChatroomsRequest request)
+        {
+            var response = await _messageService.GetAssignedChatroomsAsync(request);
+            return Ok(new BaseResponse(200, "Assigned chatrooms retrieved", response));
         }
     }
 }
