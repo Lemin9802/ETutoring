@@ -5,13 +5,17 @@ import ClickOutside from "@/components/ClickOutside";
 import { signOut, useSession } from "next-auth/react";
 import { Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
-
+export type UserRole = "student" | "tutor" | "moderator";
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const { data: session } = useSession();
 
+  const userRole = session?.user?.roles as UserRole | undefined;
+  const profileLink = userRole ? `/${userRole.toLowerCase()}s/profile` : "/profile";   
+  
   return (
+    
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -61,8 +65,8 @@ const DropdownUser = () => {
         >
           <ul className="flex flex-col gap-5 border-b border-stroke px-5 py-4">
             <li>
-              <Link
-                href="/profile"
+            <Link
+                href={profileLink}
                 className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
               >
                 <svg

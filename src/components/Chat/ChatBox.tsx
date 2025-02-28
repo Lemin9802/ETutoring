@@ -1,8 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Avatar, Spin, Badge, Tag } from 'antd';
+import { Message } from '@/types/Chat';
 import { SendOutlined } from '@ant-design/icons';
+import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { Avatar, Badge, Button, Input, Spin, Tag } from 'antd';
+import axios from 'axios';
 import { useSession } from 'next-auth/react';
-import { Message, ChatParticipant } from '@/types/Chat';
+import React, { useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChatBoxProps {
   chatId?: string;
@@ -25,100 +28,118 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [recipient] = useState<ChatParticipant>({
-    id: recipientId,
-    name: recipientName,
-    avatar: recipientAvatar,
-    role: 'student',
-    isOnline: true,
-  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [connection, setConnection] = useState<HubConnection | null>(null);
 
-  // Effect to fetch messages when chat changes
+  useEffect(() => {
+    const connectToSignalR = async () => {
+      if (!session?.user?.id) return;
+
+      const newConnection = new HubConnectionBuilder()
+        .withUrl(`http://localhost:5142/messageHub?userId=${session.user.id}`) // Truyền userId vào query
+        .withAutomaticReconnect()
+        .build();
+
+      try {
+        await newConnection.start();
+        console.log("SignalR connection established");
+        setConnection(newConnection);
+
+        newConnection.on("ReceiveMessage", (receiverId: string, senderId: string, message: string) => {
+          console.log("📡 SignalR Received Message:", { senderId, receiverId, message });
+
+          if (senderId === session.user.id) {
+            console.log("Ignoring message because it's sent by current user");
+            return;
+          }
+
+          if (receiverId === session.user.id || senderId === session.user.id) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                id: uuidv4(),
+                sender_id: senderId,
+                receiver_id: receiverId,
+                content: message,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        });
+
+
+      } catch (err) {
+        console.error("SignalR connection failed", err);
+      }
+    };
+
+    connectToSignalR();
+
+    return () => {
+      if (connection) {
+        connection.stop();
+      }
+    };
+  }, [session?.user?.id]);
+
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!chatId || !recipientId) return;
-      
+      if (!chatId || !session?.user?.id) return;
+
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`/api/messages/${chatId}`);
-        // const data = await response.json();
-        // setMessages(data.messages);
-        
-        // Mock data for testing
-        setMessages([
-          {
-            id: '1',
-            senderId: recipientId,
-            senderName: recipientName,
-            content: 'Hello, how are you?',
-            timestamp: new Date(Date.now() - 3600000),
-            isRead: true,
-            isDeleted: false,
-            isReported: false,
-          },
-          {
-            id: '2',
-            senderId: session?.user?.id || 'current-user',
-            senderName: session?.user?.email || 'You',
-            content: 'I\'m doing great, thanks!',
-            timestamp: new Date(Date.now() - 1800000),
-            isRead: true,
-            isDeleted: false,
-            isReported: false,
-          },
-        ]);
+        const { data } = await axios.post("/api/messages/get-message", {
+          user_id: session.user.id,
+          participant_id: recipientId,
+        });
+
+        setMessages(data?.messages || []);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error("Error fetching messages:", error);
+        setMessages([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMessages();
-  }, [chatId, recipientId, recipientName, session?.user?.id, session?.user?.email]);
+  }, [recipientId, session?.user?.id, chatId]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !session?.user?.id) return;
+
+    const tempMessage: Message = {
+      id: uuidv4(),
+      sender_id: session.user.id,
+      receiver_id: recipientId,
+      content: newMessage,
+      timestamp: new Date(),
+    };
+
+    setMessages((prevMessages) => [...prevMessages, tempMessage]);
+    setNewMessage("");
+
+    try {
+      await axios.post("/api/messages/send-message", {
+        sender_id: session.user.id,
+        receiver_id: recipientId,
+        content: newMessage,
+      });
+
+      if (connection && connection.state === "Connected") {
+        await connection.invoke("SendMessage", recipientId, session.user.id, newMessage);
+      } else {
+        console.warn("SignalR connection is not established");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages((prevMessages) => prevMessages.filter((msg) => msg !== tempMessage));
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !chatId) return;
-
-    const newMsg: Message = {
-      id: Date.now().toString(),
-      senderId: session?.user?.id || 'current-user',
-      senderName: session?.user?.email || 'You',
-      content: newMessage,
-      timestamp: new Date(),
-      isRead: false,
-      isDeleted: false,
-      isReported: false,
-    };
-
-    try {
-      // TODO: Replace with actual API call
-      // await fetch('/api/messages/send', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     chatId,
-      //     recipientId,
-      //     content: newMessage,
-      //   }),
-      // });
-
-      setMessages([...messages, newMsg]);
-      setNewMessage('');
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  };
 
   const containerClasses = isFullPage
     ? 'h-[calc(100vh-200px)] w-full'
@@ -129,24 +150,18 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gray-50">
         <div className="flex items-center space-x-3">
-          <Badge status={recipient.isOnline ? "success" : "default"} offset={[-6, 32]}>
+          <Badge status="success" offset={[-6, 32]}>
             <Avatar src={recipientAvatar} size={40}>
-              {recipientName[0]}
+              {recipientName ? recipientName[0] : "?"}
             </Avatar>
           </Badge>
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="font-semibold">{recipientName}</h3>
-              <Tag color={recipient.role === 'tutor' ? 'blue' : 'green'}>
-                {recipient.role.charAt(0).toUpperCase() + recipient.role.slice(1)}
-              </Tag>
+              <Tag color="green">Student</Tag>
             </div>
             <span className="text-xs text-gray-500">
-              {recipient.isOnline ? (
-                <span className="text-green-500">Online</span>
-              ) : (
-                'Last seen 2 hours ago'
-              )}
+              <span className="text-green-500">Online</span>
             </span>
           </div>
         </div>
@@ -167,18 +182,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${
-                message.senderId === (session?.user?.id || 'current-user')
-                  ? 'justify-end'
-                  : 'justify-start'
-              }`}
+              className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
+                }`}
             >
               <div
-                className={`max-w-[70%] break-words rounded-lg p-3 ${
-                  message.senderId === (session?.user?.id || 'current-user')
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100'
-                }`}
+                className={`max-w-[70%] break-words rounded-lg p-3 ${message.sender_id === session?.user?.id
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100'
+                  }`}
               >
                 <p className="text-sm">{message.content}</p>
                 <span className="text-xs opacity-75">
@@ -201,11 +212,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
             placeholder="Type a message..."
             className="flex-1"
           />
-          <Button
-            type="primary"
-            icon={<SendOutlined />}
-            onClick={handleSendMessage}
-          />
+          <Button type="primary" icon={<SendOutlined />} onClick={handleSendMessage} />
         </div>
       </div>
     </div>
