@@ -71,4 +71,8 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? UpdatedBy { get; set; }
 
     public ICollection<EmailSent> EmailNotifications { get; set; } = new List<EmailSent>();
+    
+    // Add these new navigation properties
+    public ICollection<Document> UploadedDocuments { get; set; } = new List<Document>();
+    public ICollection<Document> ReceivedDocuments { get; set; } = new List<Document>();
 }

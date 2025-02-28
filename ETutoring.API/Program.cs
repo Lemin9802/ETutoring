@@ -1,10 +1,12 @@
 using ETutoring.API.Hubs;
+using Amazon.S3;
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Message;
 using ETutoring.Business.Interfaces.Moderator;
 using ETutoring.Business.Interfaces.Services;
-using ETutoring.Business.Interfaces.Students;
 using ETutoring.Business.Interfaces.Tutor;
+using ETutoring.Business.Services;
+using ETutoring.Business.Settings;
 using ETutoring.Core.Settings;
 using ETutoring.DataAccess.Extensions;
 using ETutoring.DataAccess.Services;
@@ -22,6 +24,7 @@ namespace ETutoring.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
             // Add services to the container.
             builder.Services.AddCors(options =>
             {
@@ -30,6 +33,9 @@ namespace ETutoring.API
                     policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true);
                 });
             });
+            builder.Services.Configure<AWSSettings>(builder.Configuration.GetSection("AWS"));
+
+            // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddSignalR();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -82,8 +88,13 @@ namespace ETutoring.API
             builder.Services.AddScoped<IModeratorService, ModeratorService>();
             builder.Services.AddScoped<ITutorService, TutorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IMessageHubService, MessageHubService>();
+            // Add AWS S3 configuration
+            builder.Services.AddAWSService<IAmazonS3>();
+            builder.Services.AddScoped<IStorageService, AWSS3Service>();
+            builder.Services.AddScoped<IDocumentService, DocumentService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

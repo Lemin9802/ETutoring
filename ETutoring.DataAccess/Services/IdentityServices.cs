@@ -268,4 +268,12 @@ public class IdentityServices : IIdentityServices
         // Save changes with cancellation support
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<AuthResult<ApplicationUser>> GetUserByIdAsync(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        return user == null ? AuthResult<ApplicationUser>.Failure("User not found.")
+            : AuthResult<ApplicationUser>.Success(user);
+    }
 }
