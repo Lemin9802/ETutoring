@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Avatar, Spin, Badge, Tag } from 'antd';
+import { Input, Button, Spin } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { useSession } from 'next-auth/react';
-import { Message, ChatParticipant } from '@/types/Chat';
+import { Message } from '@/types/Chat';
 
 interface ChatBoxProps {
   chatId?: string;
@@ -17,21 +17,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   chatId,
   recipientId,
   recipientName,
-  recipientAvatar,
-  onClose,
   isFullPage = false,
 }) => {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [recipient] = useState<ChatParticipant>({
-    id: recipientId,
-    name: recipientName,
-    avatar: recipientAvatar,
-    role: 'student',
-    isOnline: true,
-  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Effect to fetch messages when chat changes
@@ -80,7 +71,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   }, [chatId, recipientId, recipientName, session?.user?.id, session?.user?.email]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Use scrollIntoView with block: 'nearest' to prevent page jumping
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   useEffect(() => {
@@ -122,43 +114,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   const containerClasses = isFullPage
     ? 'h-[calc(100vh-200px)] w-full'
-    : 'h-[400px] w-[350px] shadow-lg rounded-lg';
+    : 'h-full w-full shadow-lg rounded-lg';
 
   return (
     <div className={`flex flex-col bg-white ${containerClasses}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-        <div className="flex items-center space-x-3">
-          <Badge status={recipient.isOnline ? "success" : "default"} offset={[-6, 32]}>
-            <Avatar src={recipientAvatar} size={40}>
-              {recipientName[0]}
-            </Avatar>
-          </Badge>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h3 className="font-semibold">{recipientName}</h3>
-              <Tag color={recipient.role === 'tutor' ? 'blue' : 'green'}>
-                {recipient.role.charAt(0).toUpperCase() + recipient.role.slice(1)}
-              </Tag>
-            </div>
-            <span className="text-xs text-gray-500">
-              {recipient.isOnline ? (
-                <span className="text-green-500">Online</span>
-              ) : (
-                'Last seen 2 hours ago'
-              )}
-            </span>
-          </div>
-        </div>
-        {!isFullPage && onClose && (
-          <Button type="text" onClick={onClose} className="hover:bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center">
-            ×
-          </Button>
-        )}
-      </div>
-
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" style={{ maxHeight: 'calc(100% - 80px)', paddingTop: '1rem' }}>
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <Spin />
@@ -167,18 +128,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${
-                message.senderId === (session?.user?.id || 'current-user')
-                  ? 'justify-end'
-                  : 'justify-start'
-              }`}
+              className={`flex ${message.senderId === (session?.user?.id || 'current-user')
+                ? 'justify-end'
+                : 'justify-start'}`}
             >
               <div
-                className={`max-w-[70%] break-words rounded-lg p-3 ${
-                  message.senderId === (session?.user?.id || 'current-user')
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100'
-                }`}
+                className={`max-w-[70%] break-words rounded-lg p-3 ${message.senderId === (session?.user?.id || 'current-user')
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100'}`}
               >
                 <p className="text-sm">{message.content}</p>
                 <span className="text-xs opacity-75">

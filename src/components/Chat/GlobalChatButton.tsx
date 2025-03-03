@@ -91,18 +91,18 @@ const GlobalChatButton: React.FC<GlobalChatButtonProps> = ({
         </div>
       </Popover>
 
-      <div className="fixed bottom-0 right-20 flex items-end space-x-4 z-50">
+      <div className="fixed bottom-0 right-20 flex items-end space-x-4 z-50 max-h-[calc(100vh-100px)] overflow-y-auto">
         {activeChats.map((chat) => (
           <div
             key={chat.chatId}
             className={`transition-all duration-300 ease-in-out ${
               chat.isMinimized ? "h-[48px]" : "h-[450px]"
-            }`}
+            } w-[350px] max-h-[calc(100vh-120px)]`}
             style={{ width: "350px" }}
           >
-            <div className="bg-white rounded-t-lg shadow-lg overflow-hidden">
+            <div className="bg-white rounded-t-lg shadow-lg overflow-hidden h-full flex flex-col">
               <div
-                className="flex items-center justify-between p-3 bg-primary text-white cursor-pointer"
+                className="flex items-center justify-between p-3 bg-white text-black cursor-pointer sticky top-0 z-10 border-b"
                 onClick={() => handleMinimize(chat.chatId)}
               >
                 <span className="font-semibold">{chat.recipientName}</span>
@@ -110,32 +110,42 @@ const GlobalChatButton: React.FC<GlobalChatButtonProps> = ({
                   <Button
                     type="text"
                     size="middle"
-                    icon={<MinusOutlined style={{ fontSize: "16px" }} />}
+                    icon={
+                      <MinusOutlined
+                        style={{ fontSize: "16px", color: "black" }}
+                      />
+                    }
                     onClick={(e) => {
                       e.stopPropagation();
                       handleMinimize(chat.chatId);
                     }}
-                    className="text-black hover:bg-white/20 rounded-full h-8 w-8 flex items-center justify-center p-0 bg-white/10"
+                    className="hover:bg-gray-100 rounded-full h-8 w-8 flex items-center justify-center p-0"
                   />
                   <Button
                     type="text"
                     size="middle"
-                    icon={<CloseOutlined style={{ fontSize: "16px" }} />}
+                    icon={
+                      <CloseOutlined
+                        style={{ fontSize: "16px", color: "black" }}
+                      />
+                    }
                     onClick={(e) => {
                       e.stopPropagation();
                       handleClose(chat.chatId);
                     }}
-                    className="text-red hover:bg-white/20 rounded-full h-8 w-8 flex items-center justify-center p-0 bg-white/10"
+                    className="hover:bg-gray-100 rounded-full h-8 w-8 flex items-center justify-center p-0"
                   />
                 </div>
               </div>
               {!chat.isMinimized && (
-                <ChatBox
-                  chatId={chat.chatId}
-                  recipientId={chat.recipientId}
-                  recipientName={chat.recipientName}
-                  recipientAvatar={chat.recipientAvatar}
-                />
+                <div className="flex-1 overflow-hidden">
+                  <ChatBox
+                    chatId={chat.chatId}
+                    recipientId={chat.recipientId}
+                    recipientName={chat.recipientName}
+                    recipientAvatar={chat.recipientAvatar}
+                  />
+                </div>
               )}
             </div>
           </div>
