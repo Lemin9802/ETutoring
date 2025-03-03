@@ -11,12 +11,17 @@ const MessagesPage = () => {
     recipientAvatar?: string;
   } | null>(null);
 
-  const handleSelectChat = (
-    chatId: string,
-    recipientId: string,
-    recipientName: string,
-    recipientAvatar?: string
-  ) => {
+  const handleSelectChat = ({
+    chatId,
+    recipientId,
+    recipientName,
+    recipientAvatar,
+  }: {
+    chatId: string;
+    recipientId: string;
+    recipientName: string;
+    recipientAvatar?: string;
+  }) => {
     setSelectedChat({ chatId, recipientId, recipientName, recipientAvatar });
   };
 

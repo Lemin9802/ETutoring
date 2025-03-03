@@ -26,12 +26,17 @@ const GlobalChatButton: React.FC<GlobalChatButtonProps> = ({
     }>
   >([]);
 
-  const handleSelectChat = (
-    chatId: string,
-    recipientId: string,
-    recipientName: string,
-    recipientAvatar?: string
-  ) => {
+  const handleSelectChat = ({
+    chatId,
+    recipientId,
+    recipientName,
+    recipientAvatar,
+  }: {
+    chatId: string;
+    recipientId: string;
+    recipientName: string;
+    recipientAvatar?: string;
+  }) => {
     if (!activeChats.find((chat) => chat.chatId === chatId)) {
       setActiveChats([
         ...activeChats,

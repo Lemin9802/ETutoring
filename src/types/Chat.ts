@@ -1,16 +1,16 @@
 import { UserRole } from "@/pages/moderators/manage/users";
 
-export interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar?: string;
-  content: string;
-  timestamp: Date;
-  isRead: boolean;
-  isDeleted: boolean;
-  isReported: boolean;
-}
+// export interface Message {
+//   // id: string;
+//   senderId: string;
+//   senderName: string;
+//   senderAvatar?: string;
+//   content: string;
+//   timestamp: Date;
+//   isRead: boolean;
+//   isDeleted: boolean;
+//   isReported: boolean;
+// }
 
 export interface ChatRoom {
   id: string;
@@ -86,3 +86,39 @@ export interface GetChatRoomsResponse {
   page: number;
   pageSize: number;
 } 
+
+export interface ConversationResponse {
+  conversation_id: string;
+  participant_id: string;
+  full_name: string;
+  profile_picture?: string;
+  last_message: string;
+  last_message_time: string;
+}
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  timestamp: Date;
+}
+
+export interface ChatParticipant {
+  id: string;
+  name: string;
+  avatar?: string;
+  role: "student" | "tutor" | "moderator";
+  isOnline: boolean;
+}
+
+export interface ChatPreview {
+  id: string;
+  recipientId: string;
+  recipientName: string;
+  recipientRole: "student" | "tutor" | "moderator";
+  lastMessage: string;
+  timestamp: Date;
+  unreadCount: number;
+  status: ChatRoomStatus;
+}
