@@ -2,10 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Input, Button, Avatar, Spin, Badge, Tag } from "antd";
 import { SendOutlined } from "@ant-design/icons";
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { Avatar, Badge, Button, Input, Spin, Tag } from "antd";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "@/types/Chat";
 
