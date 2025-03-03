@@ -23,13 +23,22 @@ namespace ETutoring.API.Controllers
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
         }
-        [HttpPost("get-all")]
-        public async Task<ActionResult<ApiResponse<List<Blog>>>> GetAllBlogsAsync(CancellationToken cancellationToken)
+        public class GetAllBlogsRequest
         {
-            var userId = User.GetUserId();  
-            var isAdmin = User.IsAdmin();   
+            public Guid UserId { get; set; }
+            public bool IsAdmin { get; set; }
+        }
 
-            var blogs = await _blogService.GetAllBlogsAsync(userId, isAdmin, cancellationToken);
+        [HttpPost("get-all")]
+        public async Task<ActionResult<ApiResponse<List<Blog>>>> GetAllBlogsAsync(
+            [FromBody] GetAllBlogsRequest request,
+            CancellationToken cancellationToken)
+        {
+            Console.WriteLine($"📌 Received Request - UserID: {request.UserId}, IsAdmin: {request.IsAdmin}");
+
+            var blogs = await _blogService.GetAllBlogsAsync(request.UserId, request.IsAdmin, cancellationToken);
+
+            Console.WriteLine($"📌 Total Blogs Found: {blogs.Count}");
 
             return Ok(ApiResponseHandler.SuccessResponse(blogs, "Retrieved blogs successfully"));
         }
