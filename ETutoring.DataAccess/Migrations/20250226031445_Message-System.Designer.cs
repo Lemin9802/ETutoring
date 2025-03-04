@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250226031445_Message-System")]
+    partial class MessageSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,7 +247,7 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("blogs", (string)null);
                 });
 
-modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
+            modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -255,196 +258,20 @@ modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("student_id");
 
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
+                    b.Property<string>("TutorId")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("tutor_id");
 
                     b.HasKey("Id")
                         .HasName("pk_chatting_rooms");
 
                     b.ToTable("chatting_rooms", (string)null);
-                });
-            modelBuilder.Entity("ETutoring.Core.Entities.BlogComment", b =>
-                {
-                    b.Property<Guid>("BlogId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("blog_id");
-
-                    b.Property<Guid>("CommentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("comment_id");
-
-                    b.HasKey("BlogId", "CommentId")
-                        .HasName("pk_blogs_comments");
-
-                    b.HasIndex("CommentId")
-                        .HasDatabaseName("ix_blogs_comments_comment_id");
-
-                    b.ToTable("blogs_comments", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_comments");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_comments_user_id");
-
-                    b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Document", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("description");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("file_name");
-
-                    b.Property<string>("FileUrl")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("file_url");
-
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tutor_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_chatting_rooms");
-
-                    b.ToTable("chatting_rooms", (string)null);
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("uploaded_at");
-
-                    b.Property<Guid>("UploaderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("uploader_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_documents");
-
-                    b.HasIndex("FileName")
-                        .HasDatabaseName("ix_documents_file_name");
-
-                    b.HasIndex("FileUrl")
-                        .IsUnique()
-                        .HasDatabaseName("ix_documents_file_url");
-
-                    b.HasIndex("TutorId")
-                        .HasDatabaseName("ix_documents_tutor_id");
-
-                    b.HasIndex("UploaderId", "TutorId", "FileName")
-                        .HasDatabaseName("ix_documents_uploader_id_tutor_id_file_name");
-
-                    b.ToTable("documents", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.DocumentComment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("CommenterId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("commenter_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<Guid>("DocumentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("document_id");
-
-                    b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("parent_comment_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_document_comments");
-
-                    b.HasIndex("CommenterId")
-                        .HasDatabaseName("ix_document_comments_commenter_id");
-
-                    b.HasIndex("DocumentId")
-                        .HasDatabaseName("ix_document_comments_document_id");
-
-                    b.HasIndex("ParentCommentId")
-                        .HasDatabaseName("ix_document_comments_parent_comment_id");
-
-                    b.ToTable("document_comments", (string)null);
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
@@ -819,89 +646,6 @@ modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.BlogComment", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.Blog", "Blog")
-                        .WithMany()
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_blogs_comments_blogs_blog_id");
-
-                    b.HasOne("ETutoring.Core.Entities.Comment", "Comment")
-                        .WithMany("BlogComments")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_blogs_comments_comments_comment_id");
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_comments_application_user_user_id");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Document", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
-                        .WithMany("ReceivedDocuments")
-                        .HasForeignKey("TutorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_documents_asp_net_users_tutor_id");
-
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Uploader")
-                        .WithMany("UploadedDocuments")
-                        .HasForeignKey("UploaderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_documents_asp_net_users_uploader_id");
-
-                    b.Navigation("Tutor");
-
-                    b.Navigation("Uploader");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.DocumentComment", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Commenter")
-                        .WithMany()
-                        .HasForeignKey("CommenterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_document_comments_application_user_commenter_id");
-
-                    b.HasOne("ETutoring.Core.Entities.Document", "Document")
-                        .WithMany("Comments")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_document_comments_documents_document_id");
-
-                    b.HasOne("ETutoring.Core.Entities.DocumentComment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentCommentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_document_comments_document_comments_parent_comment_id");
-
-                    b.Navigation("Commenter");
-
-                    b.Navigation("Document");
-
-                    b.Navigation("ParentComment");
-                });
-
             modelBuilder.Entity("ETutoring.Core.Entities.EmailSent", b =>
                 {
                     b.HasOne("ETutoring.Core.Entities.ApplicationUser", "User")
@@ -1006,26 +750,7 @@ modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
                 {
                     b.Navigation("EmailNotifications");
 
-                    b.Navigation("ReceivedDocuments");
-
                     b.Navigation("RefreshTokens");
-
-                    b.Navigation("UploadedDocuments");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Document", b =>
-                {
-                    b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.DocumentComment", b =>
-                {
-                    b.Navigation("Replies");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
-                {
-                    b.Navigation("BlogComments");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>

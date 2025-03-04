@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.Business", "ETuto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.Core", "ETutoring.Core\ETutoring.Core.csproj", "{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ETutoring.API.Tests", "ETutoring.API.Tests\ETutoring.API.Tests.csproj", "{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,10 +33,6 @@ Global
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ABF31D7-9A0B-4C62-8697-BECB1CAF53E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F68CFD2-67FA-4AE0-A1A1-493C66AE282B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
