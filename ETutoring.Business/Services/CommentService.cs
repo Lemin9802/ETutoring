@@ -97,15 +97,15 @@ namespace ETutoring.Business.Services
                 throw new Exception("Comment not found");
             }
 
-            // Lấy role của Admin
-            var adminRoleId = await _context.Roles
-                .Where(r => r.Name == "Admin")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
+            //// Lấy role của Admin
+            //var adminRoleId = await _context.Roles
+            //    .Where(r => r.Name == "Admin")
+            //    .Select(r => r.Id)
+            //    .FirstOrDefaultAsync();
 
-            // Kiểm tra xem user có phải Admin không
-            var isAdmin = await _context.UserRoles
-                .AnyAsync(ur => ur.UserId == userId && ur.RoleId == adminRoleId);
+            //// Kiểm tra xem user có phải Admin không
+            //var isAdmin = await _context.UserRoles
+            //    .AnyAsync(ur => ur.UserId == userId && ur.RoleId == adminRoleId);
 
             if (comment.UserId != userId)
             {
