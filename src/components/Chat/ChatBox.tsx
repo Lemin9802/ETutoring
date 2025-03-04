@@ -1,11 +1,11 @@
-import { Message } from '@/types/Chat';
-import { SendOutlined } from '@ant-design/icons';
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-import { Avatar, Badge, Button, Input, Spin, Tag } from 'antd';
-import axios from 'axios';
-import { useSession } from 'next-auth/react';
-import React, { useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useRef, useEffect } from "react";
+import { Input, Button, Avatar, Spin, Badge, Tag } from "antd";
+import { SendOutlined } from "@ant-design/icons";
+import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import { v4 as uuidv4 } from "uuid";
+import { Message } from "@/types/Chat";
 
 interface ChatBoxProps {
   chatId?: string;
@@ -26,7 +26,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 }) => {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [connection, setConnection] = useState<HubConnection | null>(null);
@@ -45,29 +45,37 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         console.log("SignalR connection established");
         setConnection(newConnection);
 
-        newConnection.on("ReceiveMessage", (receiverId: string, senderId: string, message: string) => {
-          console.log("📡 SignalR Received Message:", { senderId, receiverId, message });
+        newConnection.on(
+          "ReceiveMessage",
+          (receiverId: string, senderId: string, message: string) => {
+            console.log("📡 SignalR Received Message:", {
+              senderId,
+              receiverId,
+              message,
+            });
 
-          if (senderId === session.user.id) {
-            console.log("Ignoring message because it's sent by current user");
-            return;
+            if (senderId === session.user.id) {
+              console.log("Ignoring message because it's sent by current user");
+              return;
+            }
+
+            if (
+              receiverId === session.user.id ||
+              senderId === session.user.id
+            ) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                  id: uuidv4(),
+                  sender_id: senderId,
+                  receiver_id: receiverId,
+                  content: message,
+                  timestamp: new Date(),
+                },
+              ]);
+            }
           }
-
-          if (receiverId === session.user.id || senderId === session.user.id) {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
-                id: uuidv4(),
-                sender_id: senderId,
-                receiver_id: receiverId,
-                content: message,
-                timestamp: new Date(),
-              },
-            ]);
-          }
-        });
-
-
+        );
       } catch (err) {
         console.error("SignalR connection failed", err);
       }
@@ -80,7 +88,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         connection.stop();
       }
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, connection]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -127,13 +135,20 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       });
 
       if (connection && connection.state === "Connected") {
-        await connection.invoke("SendMessage", recipientId, session.user.id, newMessage);
+        await connection.invoke(
+          "SendMessage",
+          recipientId,
+          session.user.id,
+          newMessage
+        );
       } else {
         console.warn("SignalR connection is not established");
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages((prevMessages) => prevMessages.filter((msg) => msg !== tempMessage));
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg !== tempMessage)
+      );
     }
   };
 
@@ -142,8 +157,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   }, [messages]);
 
   const containerClasses = isFullPage
-    ? 'h-[calc(100vh-200px)] w-full'
-    : 'h-[400px] w-[350px] shadow-lg rounded-lg';
+    ? "h-[calc(100vh-200px)] w-full"
+    : "h-full w-full shadow-lg rounded-lg";
 
   return (
     <div className={`flex flex-col bg-white ${containerClasses}`}>
@@ -166,14 +181,21 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           </div>
         </div>
         {!isFullPage && onClose && (
-          <Button type="text" onClick={onClose} className="hover:bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center">
+          <Button
+            type="text"
+            onClick={onClose}
+            className="hover:bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center"
+          >
             ×
           </Button>
         )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+        style={{ maxHeight: "calc(100% - 80px)", paddingTop: "1rem" }}
+      >
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <Spin />
@@ -182,14 +204,18 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
-                }`}
+              className={`flex ${
+                message.sender_id === session?.user?.id
+                  ? "justify-end"
+                  : "justify-start"
+              }`}
             >
               <div
-                className={`max-w-[70%] break-words rounded-lg p-3 ${message.sender_id === session?.user?.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100'
-                  }`}
+                className={`max-w-[70%] break-words rounded-lg p-3 ${
+                  message.sender_id === session?.user?.id
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100"
+                }`}
               >
                 <p className="text-sm">{message.content}</p>
                 <span className="text-xs opacity-75">
@@ -212,7 +238,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({
             placeholder="Type a message..."
             className="flex-1"
           />
-          <Button type="primary" icon={<SendOutlined />} onClick={handleSendMessage} />
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={handleSendMessage}
+          />
         </div>
       </div>
     </div>
