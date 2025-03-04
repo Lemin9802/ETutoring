@@ -2,13 +2,14 @@
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Core.Entities;
+using Google;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 
 namespace ETutoring.Business.Services
 {
-    internal class CommentService : ICommentService
+    public class CommentService : ICommentService
     {
         private readonly IApplicationDbContext _context;
 
@@ -64,6 +65,7 @@ namespace ETutoring.Business.Services
         public async Task<Comment> UpdateCommentAsync(Guid commentId, Guid userId, string newContent, CancellationToken cancellationToken)
         {
             var comment = await _context.Comments.FindAsync(commentId);
+            Console.WriteLine("This is commentId: ", commentId);
             if (comment == null)
             {
                 throw new Exception("Comment not found");
@@ -84,7 +86,7 @@ namespace ETutoring.Business.Services
 
         // Service Delete comments for owner
         // Service Delete comments for owner (Admin can remove any comments)
-        public async Task<bool> DeleteCommentAsync(Guid commentId, Guid userId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> DeleteCommentAsync(Guid commentId, Guid userId, CancellationToken cancellationToken)
         {
             var comment = await _context.Comments
                 .Include(c => c.BlogComments)
@@ -95,7 +97,17 @@ namespace ETutoring.Business.Services
                 throw new Exception("Comment not found");
             }
 
-            if (!isAdmin && comment.UserId != userId)
+            // Lấy role của Admin
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            // Kiểm tra xem user có phải Admin không
+            var isAdmin = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && ur.RoleId == adminRoleId);
+
+            if (comment.UserId != userId)
             {
                 throw new UnauthorizedAccessException("You are not allowed to delete this comment.");
             }
