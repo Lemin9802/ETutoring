@@ -4,7 +4,6 @@ using ETutoring.Business.Dtos.Response.Message;
 using ETutoring.Business.Interfaces.Message;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public class MessageService : IMessageService
@@ -119,8 +118,6 @@ public class MessageService : IMessageService
 
             await _context.Messages.AddAsync(message);
             await _context.SaveChangesAsync();
-
-            Console.WriteLine($ "New Message: {message.Content} from {message.SenderId} to {message.ReceiverId}");
 
             // Thêm Log gửi tin nhắn qua SignalR
             Console.WriteLine("Sending message via SignalR...");

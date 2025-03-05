@@ -1,10 +1,9 @@
-﻿using ETutoring.DataAccess.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
-using ETutoring.Business.Dtos.Response;
-using System.Diagnostics;
-using System.Net;
-using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Core.Common;
+using ETutoring.DataAccess.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.DataAccess.Services.Students
 {
@@ -17,45 +16,25 @@ namespace ETutoring.DataAccess.Services.Students
             _context = context;
         }
 
-        public async Task<BaseResponse> GetTutorsForStudentAsync(Guid studentId)
+        public async Task<ApiResponse<IEnumerable<StudentTutorResponse>>> GetTutorsForStudentAsync(Guid studentId)
         {
-            var stopwatch = Stopwatch.StartNew();
-            try
-            {
-                var tutors = await (
-                    from management in _context.StudentTutorManagements
-                    join tutor in _context.Users on management.TutorId equals tutor.Id
-                    where management.StudentId == studentId
-                    select new StudentTutorResponse
-                    {
-                        TutorId = tutor.Id,
-                        TutorName = tutor.FullName,
-                        AssignedAt = management.AssignedAt,
-                        AssignedBy = management.AssignedBy
-                    }
-                ).ToListAsync();
+            var tutors = await (
+                from management in _context.StudentTutorManagements
+                join tutor in _context.Users on management.TutorId equals tutor.Id
+                where management.StudentId == studentId
+                select new StudentTutorResponse
+                {
+                    TutorId = tutor.Id,
+                    TutorName = tutor.FullName,
+                    AssignedAt = management.AssignedAt,
+                    AssignedBy = management.AssignedBy
+                }
+            ).ToListAsync();
 
-                stopwatch.Stop();
+            if (!tutors.Any())
+                throw new EntityNotHaveDataException("Student", studentId);
 
-                if (!tutors.Any())
-                    return new BaseResponse(HttpStatusCode.NotFound.GetHashCode(),
-                        "This student does not have any tutors assigned.",
-                        null,
-                        stopwatch.ElapsedMilliseconds);
-
-                return new BaseResponse(HttpStatusCode.OK.GetHashCode(),
-                    "Tutors retrieved successfully.",
-                    tutors,
-                    stopwatch.ElapsedMilliseconds);
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                return new BaseResponse(HttpStatusCode.InternalServerError.GetHashCode(),
-                    "An error occurred while retrieving tutors.",
-                    ex.Message,
-                    stopwatch.ElapsedMilliseconds);
-            }
+            return ApiResponse<IEnumerable<StudentTutorResponse>>.SuccessResponse(tutors);
         }
     }
 }

@@ -1,17 +1,15 @@
-﻿using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Interfaces.Students;
+﻿using ETutoring.Business.Dtos.Request;
+using ETutoring.Business.Dtos.Request.Message;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Response;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Interfaces.Message;
+using ETutoring.Business.Interfaces.Moderator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using ETutoring.Business.Interfaces.Moderator;
-using ETutoring.Business.Interfaces.Tutor;
-using ETutoring.DataAccess.Services.Students;
-using ETutoring.Business.Dtos.Request.Moderator;
-using ETutoring.Business.Dtos.Request;
-using ETutoring.Business.Dtos.Response;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
-using ETutoring.Business.Dtos.Request.Message;
-using ETutoring.Business.Interfaces.Message;
+using System.Security.Claims;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -92,7 +90,7 @@ namespace ETutoring.API.Controllers.Moderator
             if (!ModelState.IsValid)
                 return BadRequest(new BaseResponse(400, "Invalid data."));
 
-            var assignedBy = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var assignedBy = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var parsedAssignedBy))
                 return Unauthorized(new BaseResponse(401, "Invalid user token."));
 
@@ -121,7 +119,7 @@ namespace ETutoring.API.Controllers.Moderator
 
             var assignedBy = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
             if (string.IsNullOrEmpty(assignedBy) || !Guid.TryParse(assignedBy, out var parsedAssignedBy))
-                    return Unauthorized(new BaseResponse(401, "Invalid user token."));
+                return Unauthorized(new BaseResponse(401, "Invalid user token."));
 
             var stopwatch = Stopwatch.StartNew();
             try

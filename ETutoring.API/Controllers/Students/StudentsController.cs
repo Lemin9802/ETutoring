@@ -1,10 +1,9 @@
 ﻿using ETutoring.Business.Dtos.Request.Students;
+using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Interfaces.Students;
+using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using ETutoring.Business.Dtos.Response;
-using System.Net;
 
 namespace ETutoring.API.Controllers.Students
 {
@@ -21,24 +20,10 @@ namespace ETutoring.API.Controllers.Students
         }
 
         [HttpPost("get-tutors")]
-        public async Task<IActionResult> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
+        public async Task<ActionResult<ApiResponse<IEnumerable<StudentTutorResponse>>>> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
-            var stopwatch = Stopwatch.StartNew();
-            try
-            {
-                var response = await _studentService.GetTutorsForStudentAsync(model.StudentId);
-                stopwatch.Stop();
-                return StatusCode((int)response.StatusCode, response);
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                return StatusCode((int)HttpStatusCode.InternalServerError,
-                    new BaseResponse(HttpStatusCode.InternalServerError.GetHashCode(),
-                        "An error occurred while retrieving tutors.",
-                        ex.Message,
-                        stopwatch.ElapsedMilliseconds));
-            }
+            var response = await _studentService.GetTutorsForStudentAsync(model.StudentId);
+            return response;
         }
     }
 }
