@@ -29,6 +29,7 @@ public static class DependencyExtension
 
         builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
         builder.Services.AddScoped<IBlogService, BlogService>();
+        builder.Services.AddScoped<ICommentService, CommentService>();
 
         // Add Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
