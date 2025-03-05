@@ -1,5 +1,6 @@
-using ETutoring.API.Hubs;
 using Amazon.S3;
+using ETutoring.API.Hubs;
+using ETutoring.API.Middleware;
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Message;
 using ETutoring.Business.Interfaces.Moderator;
@@ -24,7 +25,6 @@ namespace ETutoring.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             // Add services to the container.
             builder.Services.AddCors(options =>
             {
@@ -33,6 +33,7 @@ namespace ETutoring.API
                     policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true);
                 });
             });
+
             builder.Services.Configure<AWSSettings>(builder.Configuration.GetSection("AWS"));
 
             // Add services to the container.
@@ -96,6 +97,8 @@ namespace ETutoring.API
             builder.Services.AddScoped<IStorageService, AWSS3Service>();
             builder.Services.AddScoped<IDocumentService, DocumentService>();
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

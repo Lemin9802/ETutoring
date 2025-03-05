@@ -1,4 +1,5 @@
 using ETutoring.Core.Common;
+using ETutoring.Core.Enums;
 
 namespace ETutoring.Core.Entities;
 
@@ -14,7 +15,7 @@ public class Document : BaseEntity
 
     public string? Description { get; set; }
 
-    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+    public DocumentStatus Status { get; set; } = DocumentStatus.PendingReview;
 
     // Navigation properties
     public ApplicationUser Uploader { get; set; }
