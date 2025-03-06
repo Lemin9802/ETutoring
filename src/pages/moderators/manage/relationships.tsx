@@ -13,16 +13,17 @@ import {
 } from "antd";
 
 const { Title } = Typography;
+import { useSession } from "next-auth/react";
 
 // API-related code and data section
 // Types
 interface Tutor {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Student {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -30,59 +31,119 @@ interface Assignment {
   id: number;
   tutor: string;
   student: string;
-  tutorId?: number;
-  studentId?: number;
+  tutorId?: string;
+  studentId?: string;
 }
 
 // API service functions
 const api = {
   // Fetch all tutors
-  getTutors: async (): Promise<Tutor[]> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch('/api/tutors').then(res => res.json());
-    return [
-      { id: 1, name: "John Doe" },
-      { id: 2, name: "Alice Johnson" },
-      { id: 3, name: "Robert Smith" },
-    ];
+  // TODO: Replace with actual API call
+  getTutors: async (page: number, size: number): Promise<Tutor[]> => {
+    try {
+      const response = await fetch("/api/moderators/users/get-all-tutors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page, size }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        const users = result.data;
+        const data = users.map((user: { full_name: string, id: string, email: string }) => ({
+          id: user.id,
+          name: user.full_name || user.email,
+        }));
+        return data;
+      } else {
+        console.error("Error fetching tutors:", result.error);
+        return [];
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      return [];
+    }
   },
 
   // Fetch all students
-  getStudents: async (): Promise<Student[]> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch('/api/students').then(res => res.json());
-    return [
-      { id: 1, name: "Jane Smith" },
-      { id: 2, name: "Michael Brown" },
-      { id: 3, name: "Emily Davis" },
-    ];
+  getStudents: async (page: number, size: number): Promise<Student[]> => {
+    try {
+      const response = await fetch("/api/moderators/users/get-all-students", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page, size }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        const users = result.data;
+        const data = users.map((user: { full_name: string, id: string, email: string }) => ({
+          id: user.id,
+          name: user.full_name || user.email,
+        }));
+        return data;
+      } else {
+        console.error("Error fetching tutors:", result.error);
+        return [];
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      return [];
+    }
   },
 
   // Fetch all assignments
-  getAssignments: async (): Promise<Assignment[]> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch('/api/assignments').then(res => res.json());
-    return [
-      {
-        id: 1,
-        tutor: "John Doe",
-        student: "Jane Smith",
-        tutorId: 1,
-        studentId: 1,
-      },
-    ];
+  getAssignments: async (userId: string): Promise<Assignment[]> => {
+    try {
+      const response = await fetch("/api/moderators/users/assigned-chatrooms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id: userId }), // Sending user_id as required
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Error fetching assignments:", result.message);
+        return [];
+      }
+
+      return result.data.map((assignment: { id: number, tutor_id: string, student_id: string, tutor_name: string, student_name: string }) => ({
+        id: assignment.id,
+        tutorId: assignment.tutor_id,
+        studentId: assignment.student_id,
+        tutor: assignment.tutor_name, // Assuming API returns tutor name
+        student: assignment.student_name, // Assuming API returns student name
+      }));
+    } catch (error) {
+      console.error("Network error:", error);
+      return [];
+    }
   },
 
   // Create a new assignment
-  createAssignment: async (
-    assignment: Omit<Assignment, "id">
-  ): Promise<Assignment> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch('/api/assignments', { method: 'POST', body: JSON.stringify(assignment) }).then(res => res.json());
-    return {
-      id: Math.floor(Math.random() * 1000), // Simulating server-generated ID
-      ...assignment,
-    };
+  createAssignment: async (assignment: { tutor_id: string; student_id: string }): Promise<Assignment | null> => {
+    try {
+      const response = await fetch("/api/moderators/users/assign-room", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(assignment),
+      });
+
+      const result = await response.json();
+      return response.ok ? { id: result.id, ...assignment, tutor: "", student: "" } : null;
+    } catch (error) {
+      console.error("Network error:", error);
+      return null;
+    }
   },
 
   // Update an existing assignment
@@ -107,6 +168,7 @@ const RelationshipManagement: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
   const [form] = Form.useForm();
+  const { data: session } = useSession();
 
   // State for data and loading
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -137,13 +199,14 @@ const RelationshipManagement: React.FC = () => {
 
   // Fetch data on component mount
   useEffect(() => {
+    if (!session?.user?.id) return;
     const fetchData = async () => {
       setLoading(true);
       try {
         const [tutorsData, studentsData, assignmentsData] = await Promise.all([
-          api.getTutors(),
-          api.getStudents(),
-          api.getAssignments(),
+          api.getTutors(1, 100),
+          api.getStudents(1, 100),
+          api.getAssignments(session.user.id),
         ]);
 
         setTutors(tutorsData);
@@ -224,43 +287,34 @@ const RelationshipManagement: React.FC = () => {
   };
 
   // Handle submit for new assignment
-  const handleSubmit = () => {
-    form.validateFields().then(async (values) => {
-      // Get names instead of IDs for display
-      const tutorName = tutors.find((t) => t.id === values.tutor)?.name;
-      const studentName = students.find((s) => s.id === values.student)?.name;
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const tutor = tutors.find((t) => t.id === values.tutor);
+      const student = students.find((s) => s.id === values.student);
 
-      // Validate that all required fields are present
-      if (!tutorName || !studentName) {
-        message.error(
-          "Failed to create assignment: Missing required information"
-        );
+      if (!tutor || !student) {
+        message.error("Please select a valid tutor and student.");
         return;
       }
 
-      try {
-        // Create new assignment payload
-        const assignmentPayload = {
-          tutor: tutorName,
-          student: studentName,
-          tutorId: values.tutor,
-          studentId: values.student,
-        };
+      const newAssignment = await api.createAssignment({
+        tutor_id: tutor.id,
+        student_id: student.id,
+      });
 
-        // Call API to create assignment
-        const newAssignment = await api.createAssignment(assignmentPayload);
-
-        // Add to assignments list
-        setAssignments([...assignments, newAssignment]);
-
-        // Close modal and show success message
+      if (newAssignment) {
+        setAssignments([...assignments, { ...newAssignment, tutor: tutor.name, student: student.name }]);
+        message.success("Assignment created successfully!");
         setIsModalVisible(false);
-        message.success("New assignment created successfully!");
-      } catch (error) {
-        console.error("Error creating assignment:", error);
-        message.error("Failed to create assignment. Please try again.");
+        form.resetFields();
+      } else {
+        message.error("Failed to create assignment.");
       }
-    });
+    } catch (error) {
+      console.error("Error submitting assignment:", error);
+      message.error("An error occurred. Please try again.");
+    }
   };
 
   // Subject/Course Assignment Management Section
