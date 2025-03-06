@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Request.Students
 {
-    public class GetTutorsForStudentRequest : BaseRequest
+    public class GetTutorsForStudentRequest
     {
         [Required]
         public Guid StudentId { get; set; }

@@ -41,8 +41,6 @@ namespace ETutoring.DataAccess.Services
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
             user.ProfilePicture = model.ProfilePicture ?? user.ProfilePicture;
             user.Gender = model.Gender ?? user.Gender;
-            user.Nationality = model.Nationality ?? user.Nationality;
-            user.UpdatedBy = model.UpdatedBy;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();

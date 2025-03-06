@@ -16,9 +16,10 @@ namespace ETutoring.Core.Entities
 
         [Required]
         public string Content { get; set; }
-
+        public Guid? ChatroomId { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
         public bool IsDeleted { get; set; } = false;
+        public ChattingRoom Chatroom { get; set; }
     }
 }

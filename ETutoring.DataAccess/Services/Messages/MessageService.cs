@@ -2,24 +2,29 @@
 using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Response.Message;
 using ETutoring.Business.Interfaces.Message;
+using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-public class MessageService : IMessageService
+namespace ETutoring.DataAccess.Services.Messages
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IMessageHubService _messageHubService;
-    public MessageService(ApplicationDbContext context, IMessageHubService messageHubService)
+    public class MessageService : IMessageService
     {
-        _context = context;
-        _messageHubService = messageHubService;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly IMessageHubService _messageHubService;
 
-    public async Task<List<ConversationResponse>> GetUserConversationsAsync(GetConversationsRequest request)
-    {
-        try
+        public MessageService(ApplicationDbContext context, IMessageHubService messageHubService)
+        {
+            _context = context;
+            _messageHubService = messageHubService;
+        }
+
+        public async Task<ApiResponse<List<ConversationResponse>>> GetUserConversationsAsync(GetConversationsRequest request)
         {
             var conversations = await _context.Messages
                 .Where(m => m.SenderId == request.UserId || m.ReceiverId == request.UserId)
@@ -55,28 +60,27 @@ public class MessageService : IMessageService
                 ReceiverId = Guid.Parse(c.ReceiverId)
             }).ToList();
 
-            return conversationResponses;
+            return ApiResponse<List<ConversationResponse>>.SuccessResponse(conversationResponses);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in GetUserConversationsAsync: {ex.Message}");
-            return new List<ConversationResponse>();
-        }
-    }
 
-    public async Task<MessageListResponse> GetUserMessagesAsync(GetMessagesRequest request)
-    {
-        try
+        public async Task<ApiResponse<MessageListResponse>> GetUserMessagesAsync(GetMessagesRequest request)
         {
             if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.ParticipantId))
             {
-                throw new ArgumentException("UserId and ParticipantId are required.");
+                return ApiResponse<MessageListResponse>.FailureResponse("UserId and ParticipantId are required.");
             }
 
-            var messages = await _context.Messages
+            var query = _context.Messages
                 .Where(m =>
                     (m.SenderId == request.UserId && m.ReceiverId == request.ParticipantId) ||
-                    (m.ReceiverId == request.UserId && m.SenderId == request.ParticipantId))
+                    (m.ReceiverId == request.UserId && m.SenderId == request.ParticipantId));
+
+            if (request.ChatroomId.HasValue)
+            {
+                query = query.Where(m => m.ChatroomId == request.ChatroomId);
+            }
+
+            var messages = await query
                 .OrderBy(m => m.Timestamp)
                 .Select(m => new MessageResponse
                 {
@@ -88,26 +92,14 @@ public class MessageService : IMessageService
                 })
                 .ToListAsync();
 
-            return new MessageListResponse
+            return ApiResponse<MessageListResponse>.SuccessResponse(new MessageListResponse
             {
                 TotalMessages = messages.Count,
                 Messages = messages
-            };
+            });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in GetUserMessagesAsync: {ex.Message}");
-            return new MessageListResponse
-            {
-                TotalMessages = 0,
-                Messages = new List<MessageResponse>()
-            };
-        }
-    }
 
-    public async Task<SendMessageResponse> SendMessageAsync(SendMessageRequest request)
-    {
-        try
+        public async Task<ApiResponse<SendMessageResponse>> SendMessageAsync(SendMessageRequest request)
         {
             var message = new Message
             {
@@ -120,52 +112,36 @@ public class MessageService : IMessageService
             await _context.Messages.AddAsync(message);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine($ "New Message: {message.Content} from {message.SenderId} to {message.ReceiverId}");
+            await _messageHubService.SendMessage(Guid.Parse(request.SenderId), Guid.Parse(request.ReceiverId),
+                request.Content);
 
-            // Thêm Log gửi tin nhắn qua SignalR
-            Console.WriteLine("Sending message via SignalR...");
-            await _messageHubService.SendMessage(Guid.Parse(request.SenderId), Guid.Parse(request.ReceiverId), request.Content);
-            Console.WriteLine("SignalR message sent!");
-
-            return new SendMessageResponse
+            return ApiResponse<SendMessageResponse>.SuccessResponse(new SendMessageResponse
             {
                 MessageId = message.Id,
                 Success = true,
                 Message = "Message sent successfully"
-            };
+            });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in SendMessageAsync: {ex.Message}");
-            return new SendMessageResponse { Success = false, Message = $"Error: {ex.Message}" };
-        }
-    }
 
-    public async Task<DeleteMessageResponse> DeleteMessageAsync(DeleteMessageRequest request)
-    {
-        try
+        public async Task<ApiResponse<DeleteMessageResponse>> DeleteMessageAsync(DeleteMessageRequest request)
         {
             var message = await _context.Messages.FindAsync(request.MessageId);
             if (message == null)
             {
-                return new DeleteMessageResponse { Success = false, Message = "Message not found" };
+                return ApiResponse<DeleteMessageResponse>.FailureResponse("Message not found");
             }
 
             message.IsDeleted = true;
             await _context.SaveChangesAsync();
 
-            return new DeleteMessageResponse { Success = true, Message = "Message deleted successfully" };
+            return ApiResponse<DeleteMessageResponse>.SuccessResponse(new DeleteMessageResponse
+            {
+                Success = true,
+                Message = "Message deleted successfully"
+            });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in DeleteMessageAsync: {ex.Message}");
-            return new DeleteMessageResponse { Success = false, Message = $"Error: {ex.Message}" };
-        }
-    }
 
-    public async Task<AssignChatroomResponse> AssignChatroomAsync(AssignChatroomRequest request)
-    {
-        try
+        public async Task<ApiResponse<AssignChatroomResponse>> AssignChatroomAsync(AssignChatroomRequest request)
         {
             var chatroom = new ChattingRoom
             {
@@ -177,43 +153,63 @@ public class MessageService : IMessageService
             await _context.ChattingRooms.AddAsync(chatroom);
             await _context.SaveChangesAsync();
 
+            var initialMessage = new Message
+            {
+                SenderId = request.StudentId.ToString(),
+                ReceiverId = request.TutorId.ToString(),
+                Content = "Chatroom created. No messages yet.",
+                Timestamp = DateTime.UtcNow,
+                ChatroomId = chatroom.Id
+            };
+
+            await _context.Messages.AddAsync(initialMessage);
+            await _context.SaveChangesAsync();
+
             await _messageHubService.AssignChatroom(request.StudentId, request.TutorId);
 
-            return new AssignChatroomResponse { RoomId = chatroom.Id, Success = true, Message = "Chatroom assigned successfully" };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in AssignChatroomAsync: {ex.Message}");
-            return new AssignChatroomResponse { Success = false, Message = $"Error: {ex.Message}" };
-        }
-    }
-
-    public async Task<List<ChatRoomResponse>> GetAssignedChatroomsAsync(GetAssignedChatroomsRequest request)
-    {
-        try
-        {
-            if (!Guid.TryParse(request.UserId, out var userId))
+            return ApiResponse<AssignChatroomResponse>.SuccessResponse(new AssignChatroomResponse
             {
-                throw new ArgumentException("Invalid UserId format");
-            }
-
-            var chatrooms = await _context.ChattingRooms
-                .Where(cr => cr.StudentId == userId || cr.TutorId == userId)
-                .Select(cr => new ChatRoomResponse
-                {
-                    RoomId = cr.Id,
-                    StudentId = cr.StudentId.ToString(),
-                    TutorId = cr.TutorId.ToString(),
-                    CreatedAt = cr.CreatedAt
-                })
-                .ToListAsync();
-
-            return chatrooms;
+                RoomId = chatroom.Id,
+                Success = true,
+                Message = "Chatroom assigned and initial message created"
+            });
         }
-        catch (Exception ex)
+
+        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync(GetAssignedChatroomsRequest request)
         {
-            Console.WriteLine($"Error in GetAssignedChatroomsAsync: {ex.Message}");
-            return new List<ChatRoomResponse>();
+            try
+            {
+                if (!Guid.TryParse(request.UserId, out var userId))
+                {
+                    return ApiResponse<List<ChatRoomResponse>>.FailureResponse("Invalid UserId format");
+                }
+
+                var chatrooms = await _context.ChattingRooms
+                    .Where(cr => cr.StudentId == userId || cr.TutorId == userId)
+                    .Select(cr => new ChatRoomResponse
+                    {
+                        RoomId = cr.Id,
+                        StudentId = cr.StudentId.ToString(),
+                        TutorId = cr.TutorId.ToString(),
+                        CreatedAt = cr.CreatedAt
+                    })
+                    .ToListAsync();
+
+                if (chatrooms == null || !chatrooms.Any())
+                {
+                    return ApiResponse<List<ChatRoomResponse>>.FailureResponse("No chatrooms found for the given user.");
+                }
+
+                return ApiResponse<List<ChatRoomResponse>>.SuccessResponse(chatrooms);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetAssignedChatroomsAsync: {ex.Message}");
+
+                return ApiResponse<List<ChatRoomResponse>>.FailureResponse("An error occurred while retrieving chatrooms.");
+            }
         }
+
+
     }
 }

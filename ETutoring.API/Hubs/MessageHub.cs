@@ -64,8 +64,6 @@ namespace ETutoring.API.Hubs
             await Task.WhenAll(tasks);
         }
 
-
-
         public async Task AssignChatroom(string studentId, string tutorId)
         {
             string roomName = $"{studentId}-{tutorId}";

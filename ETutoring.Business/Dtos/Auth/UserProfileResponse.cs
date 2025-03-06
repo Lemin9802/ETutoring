@@ -17,6 +17,7 @@ namespace ETutoring.Business.Dtos.Auth
         public string? ProfilePicture { get; set; }
         public string Nationality { get; set; } = string.Empty;
         public string IdentificationNumber { get; set; } = string.Empty;
+        public string? Email { get; set; } = string.Empty;
         public bool IsEmailConfirmed { get; set; }
         public bool IsPhoneConfirmed { get; set; }
         public string Role { get; set; } = string.Empty;

@@ -5,6 +5,8 @@ using ETutoring.Business.Dtos.Response;
 using System.Diagnostics;
 using System.Net;
 using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.Tutor;
+using ETutoring.Core.Common;
 
 namespace ETutoring.DataAccess.Services.Tutor
 {
@@ -17,44 +19,34 @@ namespace ETutoring.DataAccess.Services.Tutor
             _context = context;
         }
 
-        public async Task<BaseResponse> GetStudentsForTutorAsync(Guid tutorId)
+        public async Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, int page, int size)
         {
-            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var students = await (
-                    from management in _context.StudentTutorManagements
-                    join student in _context.Users on management.StudentId equals student.Id
-                    where management.TutorId == tutorId
-                    select new StudentTutorResponse
-                    {
-                        StudentId = student.Id,
-                        StudentName = student.FullName,
-                        AssignedAt = management.AssignedAt,
-                        AssignedBy = management.AssignedBy
-                    }
-                ).ToListAsync();
-
-                stopwatch.Stop();
+                        from management in _context.StudentTutorManagements
+                        join student in _context.Users on management.StudentId equals student.Id
+                        where management.TutorId == tutorId
+                        select new GetStudentsForTutorResponse
+                        {
+                            StudentId = student.Id,
+                            FullName = student.FullName,
+                            Address = student.Address,
+                            PhoneNumber = student.PhoneNumber,
+                            Email = student.Email
+                        }
+                    ).Skip((page - 1) * size)
+                    .Take(size)
+                    .ToListAsync();
 
                 if (!students.Any())
-                    return new BaseResponse(HttpStatusCode.NotFound.GetHashCode(),
-                        "This tutor does not have any students assigned.",
-                        null,
-                        stopwatch.ElapsedMilliseconds);
+                    return ApiResponse<List<GetStudentsForTutorResponse>>.FailureResponse("This tutor does not have any students assigned.");
 
-                return new BaseResponse(HttpStatusCode.OK.GetHashCode(),
-                    "Students retrieved successfully.",
-                    students,
-                    stopwatch.ElapsedMilliseconds);
+                return ApiResponse<List<GetStudentsForTutorResponse>>.SuccessResponse(students, "Students retrieved successfully.");
             }
             catch (Exception ex)
             {
-                stopwatch.Stop();
-                return new BaseResponse(HttpStatusCode.InternalServerError.GetHashCode(),
-                    "An error occurred while retrieving students.",
-                    ex.Message,
-                    stopwatch.ElapsedMilliseconds);
+                return ApiResponse<List<GetStudentsForTutorResponse>>.FailureResponse($"An error occurred while retrieving students: {ex.Message}");
             }
         }
     }

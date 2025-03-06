@@ -14,5 +14,7 @@ namespace ETutoring.Business.Dtos.Request.Message
 
         [Required]
         public string ParticipantId { get; set; }
+
+        public Guid? ChatroomId { get; set; }
     }
 }

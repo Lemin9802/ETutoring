@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    public class AssignTutorStudentResponse : BaseResponse
+    public class AssignTutorStudentResponse
     {
         public Guid StudentId { get; set; }
         public string StudentName { get; set; } = string.Empty;

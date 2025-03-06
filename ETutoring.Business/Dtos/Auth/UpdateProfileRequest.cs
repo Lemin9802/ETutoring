@@ -23,11 +23,5 @@ namespace ETutoring.Business.Dtos.Auth
 
         [StringLength(10)]
         public string? Gender { get; set; }
-
-        [StringLength(50)]
-        public string? Nationality { get; set; }
-
-        [Required]
-        public string UpdatedBy { get; set; } = string.Empty;
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Response.Message
 {
-    public class ChatRoomResponse : BaseResponse
+    public class ChatRoomResponse
     {
         public Guid RoomId { get; set; }
         public string StudentId { get; set; }

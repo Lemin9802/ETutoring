@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Students
 {
-    public class StudentTutorStatusRequest : BaseRequest
+    public class StudentTutorStatusRequest
     {
         public bool? HasTutor { get; set; }
     }
