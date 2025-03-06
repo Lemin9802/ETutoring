@@ -98,7 +98,7 @@ const DashboardPage: React.FC = () => {
           <Col xs={24} sm={16} md={15}>
             <Card className="shadow-lg rounded-lg p-6 bg-white mb-3">
               <Row gutter={[16, 16]} className="flex items-center">
-                <Col span={6}>
+                <Col xs={8} sm={6}>
                   <Image
                     width={120}
                     src="https://img.freepik.com/premium-vector/student-avatar-illustration-user-profile-icon-youth-avatar_118339-4405.jpg"
@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
                     className="rounded-full"
                   />
                 </Col>
-                <Col span={18}>
+                <Col xs={16} sm={18}>
                   <Title level={4}><UserOutlined /> John Doe</Title>
                   <p className="text-sm text-gray-600">Web Development | Student</p>
                   <p className="text-sm text-gray-600">Location: New York</p>
@@ -116,7 +116,7 @@ const DashboardPage: React.FC = () => {
             <Card className="shadow-lg rounded-lg p-6 bg-blue-50">
               <Row gutter={[16, 16]} className="flex items-center">
                 {/* Left Section: Weather */}
-                <Col span={11} className="flex flex-col space-y-2">
+                <Col xs={24} sm={12} className="flex flex-col space-y-2">
                   <Title level={4} className="flex items-center">
                     <CloudOutlined /> Current Weather
                   </Title>
@@ -124,16 +124,16 @@ const DashboardPage: React.FC = () => {
                   <p className="text-gray-600">Temperature: {weather.temperature}°C</p>
                   <p className="text-gray-600">Condition: {weather.condition}</p>
                 </Col>
-
+  
                 {/* Vertical Divider */}
-                <Col className="flex justify-center items-center">
-                  <div className="border-l-2 h-24 mx-4"></div> {/* Vertical line with fixed height */}
+                <Col className="flex justify-center items-center" xs={24} sm={1}>
+                  <div className="border-l-2 h-24 mx-4"></div>
                 </Col>
-
+  
                 {/* Right Section: Days Studied */}
-                <Col span={11} className="flex flex-col space-y-4">
+                <Col xs={24} sm={11} className="flex flex-col space-y-4">
                   <Title level={5} className="text-center">Days Studied</Title>
-
+  
                   {/* Progress Bar to show Study and Rest Days */}
                   <div className="flex flex-col items-center space-y-2">
                     <Progress
@@ -145,13 +145,12 @@ const DashboardPage: React.FC = () => {
                     />
                   </div>
                 </Col>
-
+  
               </Row>
             </Card>
-
           </Col>
-
-          <Col xs={16} sm={8} md={9} className="flex justify-center items-center">
+  
+          <Col xs={24} sm={8} md={9} className="flex justify-center items-center">
             <Card className="shadow-lg rounded-lg p-6 bg-white w-full max-w-lg">
               <Title level={4} className="mb-4">My Calendar</Title>
               <div className="w-full h-80">
@@ -161,11 +160,11 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
       </Card>
-
+  
       {/* Tasks and Submissions */}
       <Card className="mt-4">
         <Row gutter={[16, 16]}>
-          <Col span={24} md={12}>
+          <Col xs={24} md={12}>
             <Card title="Pending Tasks" className="shadow-md rounded-lg bg-red-50">
               <Table
                 dataSource={pendingTasks}
@@ -175,8 +174,8 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-
-          <Col span={24} md={12}>
+  
+          <Col xs={24} md={12}>
             <Card title="Recent Submissions" className="shadow-md rounded-lg bg-blue-50">
               <Table
                 dataSource={recentSubmissions}
@@ -188,7 +187,7 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
       </Card>
-
+  
       {/* Latest News and Community Groups */}
       <Row gutter={[24, 24]} className="mt-8">
         <Col span={24}>
@@ -200,7 +199,7 @@ const DashboardPage: React.FC = () => {
             />
           </Card>
         </Col>
-
+  
         <Col span={24}>
           <Card className="shadow-lg rounded-lg p-6 bg-gray-100">
             <Title level={4}>Latest News</Title>
@@ -216,7 +215,7 @@ const DashboardPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
-
+  
       {/* Event Details Modal */}
       <Modal
         title={selectedEvent ? selectedEvent.title : 'Event Details'}
@@ -234,7 +233,7 @@ const DashboardPage: React.FC = () => {
         </Timeline>
       </Modal>
     </div>
-  );
+  );  
 };
 
 export default DashboardPage;

@@ -26,7 +26,7 @@ const ChatList: React.FC<ChatListProps> = ({ onSelectChat, selectedChatId }) => 
           user_id: session.user.id,
         });
 
-        // ✅ Fix: Ensure response data is an array
+        // Fix: Ensure response data is an array
         const conversations = Array.isArray(data) ? data : data.data || [];
         setChats(conversations);
       } catch (error) {
@@ -50,7 +50,7 @@ const ChatList: React.FC<ChatListProps> = ({ onSelectChat, selectedChatId }) => 
         />
       </div>
 
-      {/* ✅ Show Empty State if No Chats */}
+      {/* Show Empty State if No Chats */}
       {chats.length === 0 && !loading ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No conversations found" />
       ) : (
@@ -75,7 +75,7 @@ const ChatList: React.FC<ChatListProps> = ({ onSelectChat, selectedChatId }) => 
                 }
               >
                 <List.Item.Meta
-                  avatar={<Avatar src={profilePicture}>{fullName[0]}</Avatar>} // ✅ Fix missing avatars
+                  avatar={<Avatar src={profilePicture}>{fullName[0]}</Avatar>}
                   title={<span>{fullName}</span>}
                   description={<span>{chat.last_message || "No messages yet"}</span>}
                 />

@@ -29,21 +29,21 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [connection, setConnection] = useState<HubConnection | null>(null);
+  const connectionRef = useRef<HubConnection | null>(null);
 
   useEffect(() => {
     const connectToSignalR = async () => {
-      if (!session?.user?.id) return;
+      if (!session?.user?.id || connectionRef.current) return; 
 
       const newConnection = new HubConnectionBuilder()
-        .withUrl(`http://localhost:5142/messageHub?userId=${session.user.id}`) // Truyền userId vào query
+        .withUrl(`http://localhost:5142/messageHub?userId=${session.user.id}`)
         .withAutomaticReconnect()
         .build();
 
       try {
         await newConnection.start();
         console.log("SignalR connection established");
-        setConnection(newConnection);
+        connectionRef.current = newConnection;
 
         newConnection.on(
           "ReceiveMessage",
@@ -54,10 +54,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               message,
             });
 
-            if (senderId === session.user.id) {
-              console.log("Ignoring message because it's sent by current user");
-              return;
-            }
+            if (senderId === session.user.id) return;
 
             if (
               receiverId === session.user.id ||
@@ -84,11 +81,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     connectToSignalR();
 
     return () => {
-      if (connection) {
-        connection.stop();
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
       }
     };
-  }, [session?.user?.id, connection]);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -134,8 +132,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({
         content: newMessage,
       });
 
-      if (connection && connection.state === "Connected") {
-        await connection.invoke(
+      if (connectionRef.current && connectionRef.current.state === "Connected") {
+        await connectionRef.current.invoke(
           "SendMessage",
           recipientId,
           session.user.id,
