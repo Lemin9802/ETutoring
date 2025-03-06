@@ -1,4 +1,5 @@
 using ETutoring.Core.Entities;
+using ETutoring.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -32,7 +33,9 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.Description)
             .HasMaxLength(255);
 
-        builder.Property(d => d.UploadedAt)
+        builder.Property(d => d.Status)
+            .HasDefaultValue(DocumentStatus.PendingReview)
+            .HasConversion<int>()
             .IsRequired();
 
         builder.HasIndex(d => d.FileName);

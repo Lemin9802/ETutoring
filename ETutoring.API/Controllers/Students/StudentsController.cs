@@ -1,5 +1,7 @@
 ﻿using ETutoring.Business.Dtos.Request.Students;
+using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Interfaces.Students;
+using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace ETutoring.API.Controllers.Students
         }
 
         [HttpPost("get-tutors")]
-        public async Task<IActionResult> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
+        public async Task<ActionResult<ApiResponse<IEnumerable<StudentTutorResponse>>>> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
             try
             {

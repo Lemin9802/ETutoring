@@ -1,8 +1,9 @@
+using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Documents;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
-using ETutoring.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.Business.Services;
@@ -20,12 +21,12 @@ public class DocumentService : IDocumentService
         _identityServices = identityServices;
     }
 
-    public async Task<ApiResponse<DocumentResponse>> UploadDocumentAsync(UploadDocumentRequest request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<Unit>> UploadDocumentAsync(UploadDocumentRequest request, CancellationToken cancellationToken)
     {
         // Validate if tutor exists
         var tutor = await _identityServices.GetUserByIdAsync(request.TutorId);
-        if (tutor == null)
-            throw new NotFoundException("Tutor not found");
+        if (tutor.Data == null)
+            throw new EntityNotFoundException("Tutor", request.TutorId);
 
         // Upload file to storage
         var fileUrl = await _storageService.UploadFileAsync(request.File, "documents");
@@ -36,70 +37,61 @@ public class DocumentService : IDocumentService
             UploaderId = request.UploaderId,
             TutorId = request.TutorId,
             FileUrl = fileUrl,
-            FileName = request.File.FileName,
+            FileName = request.Title,
             Description = request.Description
         };
 
         _context.Documents.Add(document);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ApiResponse<DocumentResponse>.SuccessResponse(new DocumentResponse
-        {
-            Id = document.Id,
-            UploaderId = document.UploaderId,
-            TutorId = document.TutorId,
-            FileUrl = document.FileUrl,
-            FileName = document.FileName,
-            Description = document.Description,
-            UploadedAt = document.UploadedAt
-        });
+        return ApiResponse<Unit>.SuccessResponse(Unit.Value);
     }
 
-    public async Task<ApiResponse<List<DocumentResponse>>> GetDocumentsByTutorIdAsync(Guid tutorId, CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<DocumentResponse>>> GetDocumentsByUserIdAsync(
+        Guid userId,
+        MetaResponse meta,
+        CancellationToken cancellationToken)
     {
+        // Get the total count of documents for pagination
+        var totalItems = await _context.Documents
+            .Where(d => d.UploaderId == userId)
+            .CountAsync(cancellationToken);
+
+        // Calculate total pages
+        int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+        // Retrieve paginated documents
         var documents = await _context.Documents
-            .Where(d => d.TutorId == tutorId)
+            .Where(d => d.UploaderId == userId)
+            .OrderBy(d => d.CreatedAt)
+            .Skip((meta.PageNumber - 1) * meta.PageSize)
+            .Take(meta.PageSize)
+            .Include(d => d.Tutor)
             .Select(d => new DocumentResponse
             {
                 Id = d.Id,
                 UploaderId = d.UploaderId,
-                TutorId = d.TutorId,
+                RecipientName = d.Tutor.FullName,
                 FileUrl = d.FileUrl,
-                FileName = d.FileName,
+                Title = d.FileName,
                 Description = d.Description,
-                UploadedAt = d.UploadedAt
+                Status = d.Status,
+                UpdatedAt = d.UpdatedAt
             })
             .ToListAsync(cancellationToken);
 
-        return ApiResponse<List<DocumentResponse>>.SuccessResponse(documents);
+        // Create metadata response
+        var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+        return ApiResponse<List<DocumentResponse>>.SuccessResponseWithMeta(documents, metaData);
     }
 
-
-    public async Task<ApiResponse<List<DocumentResponse>>> GetDocumentsByStudentIdAsync(Guid studentId, CancellationToken cancellationToken)
-    {
-        var documents = await _context.Documents
-            .Where(d => d.UploaderId == studentId)
-            .Select(d => new DocumentResponse
-            {
-                Id = d.Id,
-                UploaderId = d.UploaderId,
-                TutorId = d.TutorId,
-                FileUrl = d.FileUrl,
-                FileName = d.FileName,
-                Description = d.Description,
-                UploadedAt = d.UploadedAt
-            })
-            .ToListAsync(cancellationToken);
-
-        return ApiResponse<List<DocumentResponse>>.SuccessResponse(documents);
-
-    }
 
     public async Task<ApiResponse<Unit>> DeleteDocumentAsync(Guid documentId, CancellationToken cancellationToken)
     {
         var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
         if (document == null)
-            throw new NotFoundException("Document not found");
+            throw new EntityNotFoundException("Document", documentId);
 
         await _storageService.DeleteFileAsync(document.FileUrl);
 
@@ -107,23 +99,5 @@ public class DocumentService : IDocumentService
         await _context.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<Unit>.SuccessResponse(Unit.Value);
-    }
-
-    public async Task<ApiResponse<DocumentResponse>> GetDocumentByIdAsync(Guid ownerId, Guid documentId, CancellationToken cancellationToken)
-    {
-        var document = await _context.Documents.FirstOrDefaultAsync(d => d.Id == documentId && d.UploaderId == ownerId, cancellationToken);
-        if (document == null)
-            throw new NotFoundException("Document not found");
-
-        return ApiResponse<DocumentResponse>.SuccessResponse(new DocumentResponse
-        {
-            Id = document.Id,
-            UploaderId = document.UploaderId,
-            TutorId = document.TutorId,
-            FileUrl = document.FileUrl,
-            FileName = document.FileName,
-            Description = document.Description,
-            UploadedAt = document.UploadedAt
-        });
     }
 }
