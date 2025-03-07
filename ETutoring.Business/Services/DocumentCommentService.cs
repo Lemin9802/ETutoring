@@ -1,9 +1,9 @@
 using ETutoring.Business.Dtos.Documents;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
-using ETutoring.Core.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.Business.Services;
@@ -25,7 +25,7 @@ public class DocumentCommentService : IDocumentCommentService
         var document = await _context.Documents
             .FirstOrDefaultAsync(d => d.Id == request.DocumentId, cancellationToken);
         if (document == null)
-            throw new NotFoundException("Document not found");
+            throw new EntityNotFoundException("Document", request.DocumentId);
 
         // Validate parent comment if provided
         if (request.ParentCommentId.HasValue)
@@ -33,7 +33,7 @@ public class DocumentCommentService : IDocumentCommentService
             var parentComment = await _context.DocumentComments
                 .FirstOrDefaultAsync(c => c.Id == request.ParentCommentId, cancellationToken);
             if (parentComment == null)
-                throw new NotFoundException("Parent comment not found");
+                throw new EntityNotFoundException("Document Comments", request.ParentCommentId);
         }
 
         var comment = new DocumentComment
@@ -55,7 +55,7 @@ public class DocumentCommentService : IDocumentCommentService
         var comment = await _context.DocumentComments
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
         if (comment == null)
-            throw new NotFoundException("Comment not found");
+            throw new EntityNotFoundException("Document Comments", commentId);
 
         comment.Content = request.Content;
         await _context.SaveChangesAsync(cancellationToken);
@@ -70,7 +70,7 @@ public class DocumentCommentService : IDocumentCommentService
             .Include(c => c.Replies)
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
         if (comment == null)
-            throw new NotFoundException("Comment not found");
+            throw new EntityNotFoundException("Document Comments", commentId);
 
         // Remove all replies first
         _context.DocumentComments.RemoveRange(comment.Replies);

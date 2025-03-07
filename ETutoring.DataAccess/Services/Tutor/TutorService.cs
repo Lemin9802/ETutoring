@@ -23,19 +23,20 @@ namespace ETutoring.DataAccess.Services.Tutor
         {
             try
             {
-                var students = await (
-                        from management in _context.StudentTutorManagements
-                        join student in _context.Users on management.StudentId equals student.Id
-                        where management.TutorId == tutorId
-                        select new GetStudentsForTutorResponse
+                var students = await _context.StudentTutorManagements
+                    .Where(management => management.TutorId == tutorId)
+                    .Join(_context.Users,
+                        management => management.StudentId,
+                        student => student.Id,
+                        (management, student) => new GetStudentsForTutorResponse
                         {
                             StudentId = student.Id,
                             FullName = student.FullName,
                             Address = student.Address,
                             PhoneNumber = student.PhoneNumber,
                             Email = student.Email
-                        }
-                    ).Skip((page - 1) * size)
+                        })
+                    .Skip((page - 1) * size)
                     .Take(size)
                     .ToListAsync();
 

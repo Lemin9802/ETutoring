@@ -1,24 +1,25 @@
-﻿using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Interfaces.Students;
+﻿using ETutoring.Business.Dtos.Request;
+using ETutoring.Business.Dtos.Request.Message;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Response;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Interfaces.Message;
+using ETutoring.Business.Interfaces.Moderator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using ETutoring.Business.Interfaces.Moderator;
-using ETutoring.Business.Interfaces.Tutor;
-using ETutoring.DataAccess.Services.Students;
-using ETutoring.Business.Dtos.Request.Moderator;
-using ETutoring.Business.Dtos.Request;
-using ETutoring.Business.Dtos.Response;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
 using ETutoring.Business.Dtos.Request.Message;
-using ETutoring.Business.Dtos.Response.Message;
-using ETutoring.Business.Dtos.Response.Moderator;
-using ETutoring.Business.Dtos.Response.Students;
 using ETutoring.Business.Interfaces.Message;
 using ETutoring.Business.Dtos.Response.User;
 using ETutoring.Core.Common;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Amazon.Runtime.Internal;
+using System.Security.Claims;
+using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Response.Message;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.Students;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -37,27 +38,29 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("list-tutors")]
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutors([FromBody] PaginationRequest request)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutors([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetAllTutorsAsync(request.Page, request.Size);
+            return await _moderatorService.GetAllTutorsAsync(meta);
         }
 
         [HttpPost("get-tutors-users")]
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] PaginationRequest request)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetAllTutorsStudentsAsync(request.Page, request.Size);
+            return await _moderatorService.GetAllTutorsStudentsAsync(meta);
+
         }
 
         [HttpPost("assign-multiple")]
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudents([FromBody] AssignTutorMultipleStudentsRequest request)
         {
             return await _moderatorService.AssignTutorToMultipleStudentsAsync(request.StudentIds, request.TutorId, request.AssignedBy);
+
         }
 
         [HttpPost("management-history")]
-        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistory([FromBody] PaginationRequest request)
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistory([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetManagementHistoryAsync(request.Page, request.Size);
+            return await _moderatorService.GetManagementHistoryAsync(meta);
         }
 
         [HttpPost("management-history/details")]
@@ -67,9 +70,9 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("students")]
-        public async Task<ApiResponse<List<StudentDto>>> GetAllStudents([FromBody] PaginationRequest request)
+        public async Task<ApiResponse<List<StudentDto>>> GetAllStudents([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetAllStudentsAsync(request.Page, request.Size);
+            return await _moderatorService.GetAllStudentsAsync(meta);
         }
 
         [HttpPost("assign-chatroom")]

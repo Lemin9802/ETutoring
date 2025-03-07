@@ -30,19 +30,16 @@ namespace ETutoring.API.Controllers
         }
 
         [HttpPost("get-by-blog")]
-        public async Task<ActionResult<ApiResponse<List<Comment>>>> GetCommentsByBlogIdAsync([FromBody] Guid blogId, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<List<Comment>>>> GetCommentsByBlogIdAsync([FromBody] GetCommentRequest request, CancellationToken cancellationToken = default)
         {
-            var comments = await _commentService.GetCommentsByBlogIdAsync(blogId, cancellationToken);
+            var comments = await _commentService.GetCommentsByBlogIdAsync(request.BlogId, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(comments, "Retrieved comments successfully"));
         }
 
         [HttpPost("update")]
-        public async Task<ActionResult<ApiResponse<Comment>>> UpdateCommentAsync([FromBody] Guid commentId,  string newContent,  CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<Comment>>> UpdateCommentAsync([FromBody] UpdateCommentRequest request,  CancellationToken cancellationToken)
         {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
-
-            var updatedComment = await _commentService.UpdateCommentAsync(commentId, userId, newContent, cancellationToken);
+            var updatedComment = await _commentService.UpdateCommentAsync(request.CommentId, request.UserId, request.NewContent, cancellationToken);
 
             if (updatedComment == null)
                 return NotFound(ApiResponseHandler.FailureResponse<Comment>("Comment not found"));
@@ -52,12 +49,9 @@ namespace ETutoring.API.Controllers
 
 
         [HttpPost("delete")]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteCommentAsync([FromBody] Guid commentId, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteCommentAsync([FromBody] DeleteCommentRequest request, CancellationToken cancellationToken)
         {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
-
-            var isDeleted = await _commentService.DeleteCommentAsync(commentId, userId, isAdmin, cancellationToken);
+            var isDeleted = await _commentService.DeleteCommentAsync(request.CommentId, request.UserId, cancellationToken);
             if (!isDeleted)
                 return Forbid("You do not have permission to delete this comment");
 

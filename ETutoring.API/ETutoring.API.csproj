@@ -19,4 +19,7 @@
     <ProjectReference Include="..\ETutoring.Business\ETutoring.Business.csproj" />
     <ProjectReference Include="..\ETutoring.DataAccess\ETutoring.DataAccess.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Middleware\" />
+  </ItemGroup>
 </Project>

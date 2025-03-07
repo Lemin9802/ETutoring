@@ -1,5 +1,5 @@
-﻿using ETutoring.DataAccess.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
 using ETutoring.Business.Dtos.Response;
 using System.Diagnostics;
@@ -7,6 +7,9 @@ using System.Net;
 using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.Students;
 using ETutoring.Core.Common;
+using ETutoring.Core.Common;
+using ETutoring.DataAccess.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.DataAccess.Services.Students
 {
@@ -21,7 +24,6 @@ namespace ETutoring.DataAccess.Services.Students
 
         public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(Guid studentId)
         {
-            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var tutors = await (
@@ -38,7 +40,6 @@ namespace ETutoring.DataAccess.Services.Students
                     }
                 ).ToListAsync();
 
-                stopwatch.Stop();
 
                 if (!tutors.Any())
                     return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("This student does not have any tutors assigned.");
@@ -47,7 +48,6 @@ namespace ETutoring.DataAccess.Services.Students
             }
             catch (Exception ex)
             {
-                stopwatch.Stop();
                 return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"An error occurred while retrieving tutors: {ex.Message}");
             }
         }

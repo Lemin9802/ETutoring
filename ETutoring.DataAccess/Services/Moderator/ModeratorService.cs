@@ -13,6 +13,8 @@ using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.User;
 using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
+using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Documents;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -25,9 +27,8 @@ namespace ETutoring.DataAccess.Services.Moderator
             _context = context;
         }
 
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(int page, int size)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaResponse meta)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var tutorRoleId = await _context.Roles
                 .Where(r => r.Name == "Tutor")
@@ -54,13 +55,15 @@ namespace ETutoring.DataAccess.Services.Moderator
                     RoleId = joined.userRole.RoleId,
                     RoleName = "Tutor" // since it's a tutor role
                 })
-                .Skip((page - 1) * size)
-                .Take(size)
                 .ToListAsync();
 
-            stopwatch.Stop();
+            var totalItems = tutors.Count;
 
-            return ApiResponse<List<UserDto>>.SuccessResponse(tutors, "Tutors retrieved successfully.");
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(tutors, metaData);
         }
 
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
@@ -145,9 +148,8 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
 
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(int page, int size)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaResponse meta)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var roleIds = await _context.Roles
                 .Where(r => r.Name == "Tutor" || r.Name == "Student")
@@ -178,18 +180,19 @@ namespace ETutoring.DataAccess.Services.Moderator
                     RoleId = joined.userRole.RoleId,
                     RoleName = joined.role.Name
                 })
-                .Skip((page - 1) * size)
-                .Take(size)
                 .ToListAsync();
 
-            stopwatch.Stop();
+            var totalItems = users.Count;
 
-            return ApiResponse<List<UserDto>>.SuccessResponse(users, "Tutors and Students retrieved successfully.");
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(users, metaData);
         }
 
-        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(int page, int size)
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaResponse meta)
         {
-            var stopwatch = Stopwatch.StartNew();
             var history = await _context.StudentTutorManagementHistories
                 .OrderByDescending(log => log.AssignedAt)
                 .Select(log => new StudentTutorManagementHistoryResponse
@@ -212,16 +215,20 @@ namespace ETutoring.DataAccess.Services.Moderator
                     AssignedAt = log.AssignedAt,
                     Action = log.Action
                 })
-                .Skip((page - 1) * size)
-                .Take(size)
                 .ToListAsync();
 
-            return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponse(history, "Management history retrieved successfully.");
+            var totalItems = history.Count;
+
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+
+            return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponseWithMeta(history, metaData);
         }
 
         public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId)
         {
-            var stopwatch = Stopwatch.StartNew();
 
             var history = await _context.StudentTutorManagementHistories
                 .Where(log => log.StudentTutorManagementId == studentTutorManagementId)
@@ -249,17 +256,14 @@ namespace ETutoring.DataAccess.Services.Moderator
                 })
                 .ToListAsync();
 
-            stopwatch.Stop();
-
             if (!history.Any())
                 return ApiResponse<List<StudentTutorManagementHistoryResponse>>.FailureResponse("No history found for the given assignment.");
 
             return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponse(history, "Assignment history retrieved successfully.");
         }
 
-        public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(int page, int size)
+        public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaResponse meta)
         {
-            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var studentRoleId = await _context.Roles
@@ -289,16 +293,18 @@ namespace ETutoring.DataAccess.Services.Moderator
 
                 var totalRecords = await query.CountAsync(); // Lấy tổng số bản ghi
                 var students = await query
-                    .Skip((page - 1) * size)
-                    .Take(size)
                     .ToListAsync();
 
-                stopwatch.Stop();
-                return ApiResponse<List<StudentDto>>.SuccessResponse(students, "Students retrieved successfully.");
+                var totalItems = students.Count;
+
+                int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+                var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+                return ApiResponse<List<StudentDto>>.SuccessResponseWithMeta(students, metaData);
             }
             catch (Exception ex)
             {
-                stopwatch.Stop();
                 return ApiResponse<List<StudentDto>>.FailureResponse("An error occurred while retrieving students.", new List<string> { ex.Message });
             }
         }

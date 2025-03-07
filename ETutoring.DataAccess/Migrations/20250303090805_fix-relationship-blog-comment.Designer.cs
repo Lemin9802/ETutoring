@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303090805_fix-relationship-blog-comment")]
+    partial class fixrelationshipblogcomment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,31 +266,6 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("blogs_comments", (string)null);
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.ChattingRoom", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tutor_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_chatting_rooms");
-
-                    b.ToTable("chatting_rooms", (string)null);
-                });
-
             modelBuilder.Entity("ETutoring.Core.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -356,12 +334,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("text")
                         .HasColumnName("file_url");
 
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("status");
-
                     b.Property<Guid>("TutorId")
                         .HasColumnType("uuid")
                         .HasColumnName("tutor_id");
@@ -369,6 +341,10 @@ namespace ETutoring.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at");
 
                     b.Property<Guid>("UploaderId")
                         .HasColumnType("uuid")
@@ -494,49 +470,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasDatabaseName("ix_email_sent_user_id");
 
                     b.ToTable("email_sent", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Message", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("ChatroomId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("chatroom_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("ReceiverId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("receiver_id");
-
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("sender_id");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
-                    b.HasKey("Id")
-                        .HasName("pk_messages");
-
-                    b.HasIndex("ChatroomId")
-                        .HasDatabaseName("ix_messages_chatroom_id");
-
-                    b.ToTable("messages", (string)null);
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
@@ -916,16 +849,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasConstraintName("fk_email_sent_application_user_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Message", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ChattingRoom", "Chatroom")
-                        .WithMany()
-                        .HasForeignKey("ChatroomId")
-                        .HasConstraintName("fk_messages_chatting_rooms_chatroom_id");
-
-                    b.Navigation("Chatroom");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
