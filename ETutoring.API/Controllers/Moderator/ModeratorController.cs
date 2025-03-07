@@ -2,12 +2,6 @@
 using ETutoring.Business.Dtos.Request.Message;
 using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Response;
-using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Interfaces.Message;
-using ETutoring.Business.Interfaces.Moderator;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
 using ETutoring.Business.Dtos.Request.Message;
 using ETutoring.Business.Interfaces.Message;
@@ -15,11 +9,14 @@ using ETutoring.Business.Dtos.Response.User;
 using ETutoring.Core.Common;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Amazon.Runtime.Internal;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Interfaces.Message;
+using ETutoring.Business.Interfaces.Moderator;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
+using System.Diagnostics;
 using System.Security.Claims;
-using ETutoring.Business.Dtos;
-using ETutoring.Business.Dtos.Response.Message;
-using ETutoring.Business.Dtos.Response.Moderator;
-using ETutoring.Business.Dtos.Response.Students;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -46,15 +43,13 @@ namespace ETutoring.API.Controllers.Moderator
         [HttpPost("get-tutors-users")]
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetAllTutorsStudentsAsync(meta);
-
+            return await _moderatorService.GetAllTutorsStudentsAsync(request.Page, request.Size);
         }
 
         [HttpPost("assign-multiple")]
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudents([FromBody] AssignTutorMultipleStudentsRequest request)
         {
             return await _moderatorService.AssignTutorToMultipleStudentsAsync(request.StudentIds, request.TutorId, request.AssignedBy);
-
         }
 
         [HttpPost("management-history")]

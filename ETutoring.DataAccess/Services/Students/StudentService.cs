@@ -1,15 +1,14 @@
 ﻿using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
+using Microsoft.EntityFrameworkCore;
 using ETutoring.Business.Dtos.Response;
 using System.Diagnostics;
 using System.Net;
 using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.Students;
 using ETutoring.Core.Common;
-using ETutoring.Core.Common;
 using ETutoring.DataAccess.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.DataAccess.Services.Students
 {
