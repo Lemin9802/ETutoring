@@ -11,8 +11,8 @@ namespace ETutoring.DataAccess.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "manage_student_tutors");
+            //migrationBuilder.DropTable(
+                //name: "manage_student_tutors");
 
             migrationBuilder.CreateTable(
                 name: "student_tutor_managements",
