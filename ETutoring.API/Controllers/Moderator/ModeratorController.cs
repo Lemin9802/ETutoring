@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
 using System.Security.Claims;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.Students;
+using ETutoring.Business.Dtos.Response.Message;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -35,15 +38,15 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("list-tutors")]
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutors([FromBody] MetaResponse meta)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutors([FromBody] MetaDataResponse meta)
         {
             return await _moderatorService.GetAllTutorsAsync(meta);
         }
 
         [HttpPost("get-tutors-users")]
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] MetaResponse meta)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] MetaDataResponse meta)
         {
-            return await _moderatorService.GetAllTutorsStudentsAsync(request.Page, request.Size);
+            return await _moderatorService.GetAllTutorsStudentsAsync(meta);
         }
 
         [HttpPost("assign-multiple")]
@@ -53,7 +56,7 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("management-history")]
-        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistory([FromBody] MetaResponse meta)
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistory([FromBody] MetaDataResponse meta)
         {
             return await _moderatorService.GetManagementHistoryAsync(meta);
         }
@@ -65,7 +68,7 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("students")]
-        public async Task<ApiResponse<List<StudentDto>>> GetAllStudents([FromBody] MetaResponse meta)
+        public async Task<ApiResponse<List<StudentDto>>> GetAllStudents([FromBody] MetaDataResponse meta)
         {
             return await _moderatorService.GetAllStudentsAsync(meta);
         }

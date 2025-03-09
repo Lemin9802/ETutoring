@@ -12,11 +12,11 @@ namespace ETutoring.Business.Interfaces.Moderator
 {
     public interface IModeratorService
     {
-        Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaResponse meta);
-        Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaResponse meta);
+        Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta);
+        Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaDataResponse meta);
         Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy);
-        Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaResponse meta);
+        Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaDataResponse meta);
         Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
-        Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaResponse meta);
+        Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaDataResponse meta);
     }
 }
