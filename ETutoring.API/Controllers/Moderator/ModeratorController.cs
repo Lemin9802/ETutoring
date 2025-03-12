@@ -17,6 +17,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
 using System.Security.Claims;
+using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Response.Message;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.Students;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -43,7 +47,7 @@ namespace ETutoring.API.Controllers.Moderator
         [HttpPost("get-tutors-users")]
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsTeachers([FromBody] MetaResponse meta)
         {
-            return await _moderatorService.GetAllTutorsStudentsAsync(request.Page, request.Size);
+            return await _moderatorService.GetAllTutorsStudentsAsync(meta);
         }
 
         [HttpPost("assign-multiple")]
@@ -78,11 +82,26 @@ namespace ETutoring.API.Controllers.Moderator
             return StatusCode(200, response);
         }
 
-        [HttpPost("assigned-chatrooms")]
-        [Authorize(Roles = "Student,Tutor,Moderator")]
-        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatrooms([FromBody] GetAssignedChatroomsRequest request)
+        [HttpPost("get-all-chatrooms")]
+        [Authorize(Roles = "Moderator")]
+        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatrooms([FromBody] MetaResponse meta)
         {
-            return await _messageService.GetAssignedChatroomsAsync(request);
+            return await _messageService.GetAssignedChatroomsAsync(meta);
         }
+
+        [HttpPost("update-assign-chatroom")]
+        [Authorize(Roles = "Moderator")]
+        public async Task<ApiResponse<UpdateAssignChatroomResponse>> UpdateAssignChatroom([FromBody] UpdateAssignChatroomRequest request)
+        {
+            return await _messageService.UpdateAssignChatroomAsync(request);
+        }
+
+        [HttpPost("delete-assign-chatroom")]
+        [Authorize(Roles = "Moderator")]
+        public async Task<ApiResponse<DeleteAssignChatroomResponse>> DeleteAssignChatroom([FromBody] DeleteAssignChatroomRequest request)
+        {
+            return await _messageService.DeleteAssignChatroomAsync(request);
+        }
+
     }
 }

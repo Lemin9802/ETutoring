@@ -27,5 +27,7 @@ namespace ETutoring.Business.Interfaces.Message
             /// Người dùng rời khỏi phòng chat.
             /// </summary>
             Task LeaveChatroom(Guid userId, Guid chatroomId);
-        }
+
+            Task UpdateAssignChatroom(Guid userId, Guid chatroomId);
+    }
 }

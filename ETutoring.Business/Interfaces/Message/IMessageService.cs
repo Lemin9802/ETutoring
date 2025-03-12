@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Request.Message;
 using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Response;
@@ -18,6 +19,8 @@ namespace ETutoring.Business.Interfaces.Message
         Task<ApiResponse<SendMessageResponse>> SendMessageAsync(SendMessageRequest request);
         Task<ApiResponse<DeleteMessageResponse>> DeleteMessageAsync(DeleteMessageRequest request);
         Task<ApiResponse<AssignChatroomResponse>> AssignChatroomAsync(AssignChatroomRequest request);
-        Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync(GetAssignedChatroomsRequest request);
+        Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync( MetaResponse meta);
+        Task<ApiResponse<UpdateAssignChatroomResponse>> UpdateAssignChatroomAsync(UpdateAssignChatroomRequest request);
+        Task<ApiResponse<DeleteAssignChatroomResponse>> DeleteAssignChatroomAsync(DeleteAssignChatroomRequest request);
     }
 }
