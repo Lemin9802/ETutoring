@@ -27,7 +27,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             _context = context;
         }
 
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta)
         {
 
             var tutorRoleId = await _context.Roles
@@ -148,7 +148,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
 
-        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaDataResponse meta)
         {
 
             var roleIds = await _context.Roles
@@ -191,7 +191,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(users, metaData);
         }
 
-        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaDataResponse meta)
         {
             var history = await _context.StudentTutorManagementHistories
                 .OrderByDescending(log => log.AssignedAt)
@@ -262,7 +262,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponse(history, "Assignment history retrieved successfully.");
         }
 
-        public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaDataResponse meta)
         {
             try
             {
