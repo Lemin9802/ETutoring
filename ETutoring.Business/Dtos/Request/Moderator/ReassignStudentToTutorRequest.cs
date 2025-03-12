@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Request.Moderator
 {
-    public class ReassignStudentToTutorRequest : BaseRequest
+    public class ReassignStudentToTutorRequest
     {
         [Required]
         public Guid StudentId { get; set; }

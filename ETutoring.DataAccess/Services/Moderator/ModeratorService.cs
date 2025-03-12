@@ -9,7 +9,12 @@ using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Dtos.Students;
 using ETutoring.Business.Dtos.Response;
 using ETutoring.Business.Dtos.Response.Students;
-using StudentTutorStatusResponse = ETutoring.Business.Dtos.Response.Moderator.StudentTutorStatusResponse;
+using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.User;
+using ETutoring.Core.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
+using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Documents;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -22,9 +27,8 @@ namespace ETutoring.DataAccess.Services.Moderator
             _context = context;
         }
 
-        public async Task<BaseResponse> GetAllTutorsAsync(BaseRequest request)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var tutorRoleId = await _context.Roles
                 .Where(r => r.Name == "Tutor")
@@ -32,7 +36,7 @@ namespace ETutoring.DataAccess.Services.Moderator
                 .FirstOrDefaultAsync();
 
             if (tutorRoleId == Guid.Empty)
-                return new BaseResponse(400, "Tutor role not found.");
+                return ApiResponse<List<UserDto>>.FailureResponse("Tutor role not found.");
 
             var tutors = await _context.Users
                 .Join(_context.UserRoles,
@@ -40,170 +44,29 @@ namespace ETutoring.DataAccess.Services.Moderator
                     userRole => userRole.UserId,
                     (user, userRole) => new { user, userRole })
                 .Where(joined => joined.userRole.RoleId == tutorRoleId)
-                .Select(joined => new
+                .Select(joined => new UserDto
                 {
-                    joined.user.Id,
-                    joined.user.FullName,
-                    joined.user.Email,
-                    joined.user.PhoneNumber,
-                    joined.user.Address,
-                    joined.user.IsActive
-                })
-                .Skip((request.Page - 1) * request.Size)
-                .Take(request.Size)
-                .ToListAsync();
-
-            stopwatch.Stop();
-
-            return new BaseResponse(200, "Tutors retrieved successfully.", tutors, stopwatch.ElapsedMilliseconds);
-        }
-
-        public async Task<BaseResponse> GetAllTutorsStudentsAsync(BaseRequest request)
-        {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-            var roleIds = await _context.Roles
-                .Where(r => r.Name == "Tutor" || r.Name == "Student")
-                .Select(r => r.Id)
-                .ToListAsync();
-
-            if (!roleIds.Any())
-                return new BaseResponse(400, "Tutor or Student role not found.");
-
-            var users = await _context.Users
-                .Join(_context.UserRoles,
-                    user => user.Id,
-                    userRole => userRole.UserId,
-                    (user, userRole) => new { user, userRole })
-                .Join(_context.Roles,
-                    joined => joined.userRole.RoleId,
-                    role => role.Id,
-                    (joined, role) => new { joined.user, joined.userRole, role })
-                .Where(joined => roleIds.Contains(joined.userRole.RoleId))
-                .Select(joined => new
-                {
-                    joined.user.Id,
-                    joined.user.FullName,
-                    joined.user.Email,
-                    joined.user.PhoneNumber,
-                    joined.user.Address,
-                    joined.user.IsActive,
+                    Id = joined.user.Id,
+                    FullName = joined.user.FullName,
+                    Email = joined.user.Email,
+                    PhoneNumber = joined.user.PhoneNumber,
+                    Address = joined.user.Address,
+                    IsActive = joined.user.IsActive,
                     RoleId = joined.userRole.RoleId,
-                    RoleName = joined.role.Name
+                    RoleName = "Tutor" // since it's a tutor role
                 })
-                .Skip((request.Page - 1) * request.Size)
-                .Take(request.Size)
                 .ToListAsync();
 
+            var totalItems = tutors.Count;
 
-            stopwatch.Stop();
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
 
-            return new BaseResponse(200, "Tutors and Students retrieved successfully.", users, stopwatch.ElapsedMilliseconds);
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(tutors, metaData);
         }
 
-        public async Task<BaseResponse> GetAllStudentsAsync(StudentTutorStatusRequest request)
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            var studentRoleId = await _context.Roles
-                .Where(r => r.Name == "Student")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
-
-            var query = from student in _context.Users
-                        join userRole in _context.UserRoles on student.Id equals userRole.UserId
-                        join studentTutor in _context.StudentTutorManagements on student.Id equals studentTutor.StudentId into tutorMapping
-                        from studentTutor in tutorMapping.DefaultIfEmpty()
-                        where userRole.RoleId == studentRoleId
-                        select new StudentTutorStatusResponse
-                        {
-                            Id = student.Id,
-                            FullName = student.FullName,
-                            Address = student.Address,
-                            PhoneNumber = student.PhoneNumber,
-                            Email = student.Email,
-                            HasTutor = studentTutor != null
-                        };
-
-            if (request.HasTutor.HasValue)
-            {
-                query = query.Where(s => s.HasTutor == request.HasTutor.Value);
-            }
-
-            var students = await query.Skip((request.Page - 1) * request.Size).Take(request.Size).ToListAsync();
-            stopwatch.Stop();
-
-            return new BaseResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds);
-        }
-
-        public async Task<BaseResponse> AssignTutorToStudentAsync(Guid studentId, Guid tutorId, Guid assignedBy)
-        {
-            var studentRoleId = await _context.Roles
-                .Where(r => r.Name == "Student")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
-
-            var tutorRoleId = await _context.Roles
-                .Where(r => r.Name == "Tutor")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
-
-            var isStudent = await _context.UserRoles.AnyAsync(ur => ur.UserId == studentId && ur.RoleId == studentRoleId);
-            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
-
-            if (!isStudent || !isTutor)
-                return new BaseResponse(400, "Invalid Student or Tutor.");
-
-            var existingManagement = await _context.StudentTutorManagements
-                .FirstOrDefaultAsync(st => st.StudentId == studentId);
-
-            string action = existingManagement != null ? "Reassigned" : "Assigned";
-
-            if (existingManagement != null)
-            {
-                _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-                {
-                    StudentTutorManagementId = existingManagement.Id,
-                    StudentId = studentId,
-                    TutorId = existingManagement.TutorId,
-                    AssignedBy = assignedBy,
-                    AssignedAt = DateTime.UtcNow,
-                    Action = "Reassigned"
-                });
-
-                existingManagement.TutorId = tutorId;
-                _context.StudentTutorManagements.Update(existingManagement);
-            }
-            else
-            {
-                var newManagement = new StudentTutorManagement
-                {
-                    StudentId = studentId,
-                    TutorId = tutorId,
-                    AssignedBy = assignedBy,
-                    AssignedAt = DateTime.UtcNow,
-                    Action = "Assigned"
-                };
-
-                _context.StudentTutorManagements.Add(newManagement);
-            }
-
-            _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-            {
-                StudentTutorManagementId = existingManagement?.Id ?? Guid.NewGuid(),
-                StudentId = studentId,
-                TutorId = tutorId,
-                AssignedBy = assignedBy,
-                AssignedAt = DateTime.UtcNow,
-                Action = action
-            });
-
-            await _context.SaveChangesAsync();
-
-            return new BaseResponse(200, "Tutor assigned successfully.");
-        }
-
-        public async Task<BaseResponse> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
+        public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
         {
             var studentRoleId = await _context.Roles
                 .Where(r => r.Name == "Student")
@@ -217,7 +80,7 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
             if (!isTutor)
-                return new BaseResponse(400, "Invalid Tutor.");
+                return ApiResponse<bool>.FailureResponse("Invalid Tutor.");
 
             var validStudents = await _context.Users
                 .Join(_context.UserRoles,
@@ -229,7 +92,7 @@ namespace ETutoring.DataAccess.Services.Moderator
                 .ToListAsync();
 
             if (!validStudents.Any())
-                return new BaseResponse(400, "No valid students found.");
+                return ApiResponse<bool>.FailureResponse("No valid students found.");
 
             var existingAssignments = await _context.StudentTutorManagements
                 .Where(stm => validStudents.Contains(stm.StudentId))
@@ -282,12 +145,54 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             await _context.SaveChangesAsync();
 
-            return new BaseResponse(200, "Tutor assigned to multiple students successfully.");
+            return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
 
-        public async Task<BaseResponse> GetManagementHistoryAsync(BaseRequest request)
+        public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaDataResponse meta)
         {
-            var stopwatch = Stopwatch.StartNew();
+
+            var roleIds = await _context.Roles
+                .Where(r => r.Name == "Tutor" || r.Name == "Student")
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            if (!roleIds.Any())
+                return ApiResponse<List<UserDto>>.FailureResponse("Tutor or Student role not found.");
+
+            var users = await _context.Users
+                .Join(_context.UserRoles,
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                .Join(_context.Roles,
+                    joined => joined.userRole.RoleId,
+                    role => role.Id,
+                    (joined, role) => new { joined.user, joined.userRole, role })
+                .Where(joined => roleIds.Contains(joined.userRole.RoleId))
+                .Select(joined => new UserDto
+                {
+                    Id = joined.user.Id,
+                    FullName = joined.user.FullName,
+                    Email = joined.user.Email,
+                    PhoneNumber = joined.user.PhoneNumber,
+                    Address = joined.user.Address,
+                    IsActive = joined.user.IsActive,
+                    RoleId = joined.userRole.RoleId,
+                    RoleName = joined.role.Name
+                })
+                .ToListAsync();
+
+            var totalItems = users.Count;
+
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(users, metaData);
+        }
+
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaDataResponse meta)
+        {
             var history = await _context.StudentTutorManagementHistories
                 .OrderByDescending(log => log.AssignedAt)
                 .Select(log => new StudentTutorManagementHistoryResponse
@@ -310,34 +215,20 @@ namespace ETutoring.DataAccess.Services.Moderator
                     AssignedAt = log.AssignedAt,
                     Action = log.Action
                 })
-                .Skip((request.Page - 1) * request.Size)
-                .Take(request.Size)
                 .ToListAsync();
 
-            stopwatch.Stop();
-            return new BaseResponse(200, "Management history retrieved successfully.", history, stopwatch.ElapsedMilliseconds);
+            var totalItems = history.Count;
+
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+
+            return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponseWithMeta(history, metaData);
         }
 
-        public async Task<BaseResponse> ReassignTutorToStudentAsync(ReassignStudentToTutorRequest request)
+        public async Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId)
         {
-            var existingAssignment = await _context.StudentTutorManagements.FirstOrDefaultAsync(st => st.StudentId == request.StudentId);
-
-            if (existingAssignment == null)
-                return new BaseResponse(400, "Student does not have a tutor assigned.");
-
-            existingAssignment.TutorId = request.TutorId;
-            existingAssignment.AssignedBy = request.AssignedBy;
-            existingAssignment.AssignedAt = DateTime.UtcNow;
-
-            _context.StudentTutorManagements.Update(existingAssignment);
-            await _context.SaveChangesAsync();
-
-            return new BaseResponse(200, "Tutor reassigned successfully.");
-        }
-
-        public async Task<BaseResponse> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId)
-        {
-            var stopwatch = Stopwatch.StartNew();
 
             var history = await _context.StudentTutorManagementHistories
                 .Where(log => log.StudentTutorManagementId == studentTutorManagementId)
@@ -365,17 +256,14 @@ namespace ETutoring.DataAccess.Services.Moderator
                 })
                 .ToListAsync();
 
-            stopwatch.Stop();
-
             if (!history.Any())
-                return new BaseResponse(404, "No history found for the given assignment.", null, stopwatch.ElapsedMilliseconds);
+                return ApiResponse<List<StudentTutorManagementHistoryResponse>>.FailureResponse("No history found for the given assignment.");
 
-            return new BaseResponse(200, "Assignment history retrieved successfully.", history, stopwatch.ElapsedMilliseconds);
+            return ApiResponse<List<StudentTutorManagementHistoryResponse>>.SuccessResponse(history, "Assignment history retrieved successfully.");
         }
 
-        public async Task<BaseResponse> GetAllStudentsAsync(BaseRequest request)
+        public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaDataResponse meta)
         {
-            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var studentRoleId = await _context.Roles
@@ -405,17 +293,19 @@ namespace ETutoring.DataAccess.Services.Moderator
 
                 var totalRecords = await query.CountAsync(); // Lấy tổng số bản ghi
                 var students = await query
-                    .Skip((request.Page - 1) * request.Size)
-                    .Take(request.Size)
                     .ToListAsync();
 
-                stopwatch.Stop();
-                return new BaseResponse(200, "Students retrieved successfully.", students, stopwatch.ElapsedMilliseconds, totalRecords);
+                var totalItems = students.Count;
+
+                int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+                var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+                return ApiResponse<List<StudentDto>>.SuccessResponseWithMeta(students, metaData);
             }
             catch (Exception ex)
             {
-                stopwatch.Stop();
-                return new BaseResponse(500, "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds);
+                return ApiResponse<List<StudentDto>>.FailureResponse("An error occurred while retrieving students.", new List<string> { ex.Message });
             }
         }
     }

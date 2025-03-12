@@ -4,6 +4,11 @@ using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using ETutoring.Business.Dtos.Response;
+using System.Net;
+using ETutoring.Business.Dtos.Response.Students;
+using ETutoring.Core.Common;
 
 namespace ETutoring.API.Controllers.Students
 {
@@ -20,10 +25,9 @@ namespace ETutoring.API.Controllers.Students
         }
 
         [HttpPost("get-tutors")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<StudentTutorResponse>>>> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
+        public async Task<ApiResponse<List<GetTutorForStudentResponse>>>GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
-            var response = await _studentService.GetTutorsForStudentAsync(model.StudentId);
-            return response;
+            return await _studentService.GetTutorsForStudentAsync(model.StudentId);            
         }
     }
 }

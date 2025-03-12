@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ETutoring.Business.Dtos.Response;
+using ETutoring.Business.Dtos.Response.Tutor;
+using ETutoring.Core.Common;
 
 namespace ETutoring.Business.Interfaces.Tutor
 {
     public interface ITutorService
     {
-        Task<BaseResponse> GetStudentsForTutorAsync(Guid tutorId);
+        Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, int page, int size);
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace ETutoring.API.Controllers
 {
@@ -43,6 +44,7 @@ namespace ETutoring.API.Controllers
                 Address = user.Address,
                 PhoneNumber = user.PhoneNumber,
                 ProfilePicture = user.ProfilePicture,
+                Email = user.Email,
                 Nationality = user.Nationality,
                 IdentificationNumber = user.IdentificationNumber,
                 IsEmailConfirmed = user.IsEmailConfirmed,
@@ -60,8 +62,7 @@ namespace ETutoring.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+            if (!Guid.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Sub), out var parsedUserId))
                 return Unauthorized(new { message = "Invalid user token." });
 
             var updatedUser = await _userProfileService.UpdateUserProfileAsync(parsedUserId, model);
@@ -70,6 +71,5 @@ namespace ETutoring.API.Controllers
 
             return Ok(new { message = "Profile updated successfully" });
         }
-
     }
 }

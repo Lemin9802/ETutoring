@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Students
 {
-    public class StudentTutorManagementHistoryRequest : BaseRequest
+    public class StudentTutorManagementHistoryRequest
     {
         [Required]
         public Guid StudentTutorManagementId { get; set; }

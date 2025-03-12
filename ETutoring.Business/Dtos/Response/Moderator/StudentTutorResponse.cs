@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    public class StudentTutorResponse : BaseResponse
+    // Response sau khi assign tutor cho student
+    public class StudentTutorResponse
     {
         public Guid StudentId { get; set; }
         public string StudentName { get; set; }

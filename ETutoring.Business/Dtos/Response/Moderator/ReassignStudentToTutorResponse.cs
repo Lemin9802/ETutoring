@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Response.Moderator
 {
-    internal class ReassignStudentToTutorResponse : BaseResponse
+    internal class ReassignStudentToTutorResponse
     {
         public ReassignStudentToTutorResponse() { }
         public Guid StudentId { get; set; }
