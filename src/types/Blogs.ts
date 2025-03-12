@@ -5,6 +5,9 @@ export type BlogType = {
   title: string;
   author: string;
   createdAt: string;
+  updatedAt?: string;
+  user?: { id: string; name: string };
+  user_id: string;
   imageUrl?: string | StaticImageData;
   content: string;
 };

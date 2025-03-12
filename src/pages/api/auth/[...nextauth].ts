@@ -18,14 +18,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing email or password");
         }
 
-        const response = await fetch(
-          `${process.env.BACKEND_URL}/api/auth/login`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(credentials),
-          }
-        );
+        const response = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        });
 
         const result = await response.json();
 
@@ -49,39 +46,30 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        // Send user info to your .NET backend to sync the user
-        const response = await fetch(
-          `${process.env.BACKEND_URL}/api/auth/sync-google-user`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              provider: "google",
-            }),
-          }
-        );
+        const response = await fetch(`${process.env.BACKEND_URL}/api/auth/sync-google-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            provider: "google",
+          }),
+        });
 
         const result: APIResponse = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || !result.success) {
           console.error("Failed to sync user with the backend.");
-          return false; // Reject the sign-in
-        }
-
-        // Assuming your backend responds with accessToken and refreshToken
-        if (result.success) {
-          user.accessToken = result.data.access_token;
-          user.refreshToken = result.data.refresh_token;
-        } else {
-          console.error("Failed to retrieve tokens from the backend.");
           return false;
         }
+
+        // Lưu access_token vào user object
+        user.accessToken = result.data.access_token;
+        user.refreshToken = result.data.refresh_token;
       }
 
-      return true; // Allow the sign-in
+      return true;
     },
     async jwt({ token, user }) {
       if (user) {
@@ -89,30 +77,32 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
 
         try {
-          // Decode the accessToken to get user role
+          // Giải mã access_token để lấy role
           const decodedToken = jwtDecode<JWT>(user.accessToken);
-          token.role = decodedToken.role || "student"; // Default to 'student' if no role found
+          token.role = decodedToken.role || "student";
           token.id = decodedToken.sub!;
         } catch (error) {
           console.error("Failed to decode access token:", error);
-          token.role = "student"; // Fallback role
+          token.role = "student";
         }
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.accessToken = token.accessToken;
-      session.user.refreshToken = token.refreshToken;
-      session.user.roles = token.role;
-      session.user.id = token.id;
+      session.user = {
+        ...session.user,
+        accessToken: token.accessToken ?? "",
+        refreshToken: token.refreshToken ?? "",
+        roles: token.role ?? "student",
+        id: token.id ?? "",
+      };
+    
       return session;
     },
     async redirect({ baseUrl }) {
-      // Default to /dashboard
       return `${baseUrl}/students`;
     },
   },
-  // Default redirect URL
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
