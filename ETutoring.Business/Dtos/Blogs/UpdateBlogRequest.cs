@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ETutoring.Business.Dtos.Blogs;
-public record UpdateBlogRequest
+namespace ETutoring.Business.Dtos.Blogs
 {
-    public Guid BlogId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
+    public record UpdateBlogRequest
+    {
+        public string Title { get; set; }
+        public string Content { get; set; }
+    }
 }
-
