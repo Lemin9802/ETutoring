@@ -1,218 +1,105 @@
-import Image from "next/image";
-import React, { useState, useRef } from "react";
-import NoImage from "public/images/blogs/no-image.svg";
-import Link from "next/link";
-import { Modal, Button } from "antd";
-import {
-  CommentOutlined,
-  LikeOutlined,
-  LikeFilled,
-  ShareAltOutlined,
-} from "@ant-design/icons";
-import { BlogType, CommentType } from "@/types/Blogs";
-import CommentSection from "./CommentSection";
+import { useState } from "react";
+import { Card, Button, Modal, Input, message, Popconfirm } from "antd";
+import axios from "axios";
+import { BlogType } from "@/types/Blogs";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface BlogCardProps extends BlogType {}
+interface BlogCardProps {
+  blog: BlogType;
+  onBlogUpdated: (updatedBlog: BlogType) => void;
+  onBlogDeleted: (deletedBlogId: string) => void;
+}
 
-const BlogCard: React.FC<BlogCardProps> = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  id,
-  title,
-  author,
-  createdAt,
-  imageUrl,
-  content,
-}) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [comments, setComments] = useState<CommentType[]>([
-    {
-      id: crypto.randomUUID(),
-      user: "Alice",
-      text: "Great article! 🎉",
-      replies: [],
-    },
-    {
-      id: crypto.randomUUID(),
-      user: "Bob",
-      text: "Thanks for sharing this.",
-      replies: [],
-    },
-    {
-      id: crypto.randomUUID(),
-      user: "You",
-      text: "Thanks for sharing this.",
-      replies: [],
-    },
-  ]);
+const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [title, setTitle] = useState(blog.title);
+  const [content, setContent] = useState(blog.content);
+  const [loading, setLoading] = useState(false);
 
-  const commentSectionRef = useRef<HTMLDivElement>(null); // Ref for comments section
-
-  // Toggle Like Button
-  const handleLike = () => {
-    setIsLiked((prev) => !prev);
-  };
-
-  // Handle Comment Button Click (Open Modal and Scroll to Comments)
-  const handleOpenComments = () => {
-    setIsModalOpen(true);
-    setTimeout(() => {
-      commentSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 300); // Delay to ensure modal is fully opened
-  };
-
-  // Add Comment (Including Replies)
-  const handleAddComment = (text: string, parentId?: string) => {
-    const newComment = {
-      id: crypto.randomUUID(), // Generate a GUID
-      user: "You",
-      text,
-      replies: [],
-    };
-
-    if (parentId) {
-      // Add reply to the specific comment
-      setComments(
-        (prev) =>
-          prev.map((comment) =>
-            comment.id === parentId
-              ? {
-                  ...comment,
-                  replies: [...(comment.replies || []), newComment],
-                }
-              : comment
-          ) as CommentType[]
-      );
-    } else {
-      // Add a new top-level comment
-      setComments([...comments, newComment]);
+  const handleUpdateBlog = async () => {
+    if (!title.trim() || !content.trim()) {
+      message.warning("Title and content cannot be empty!");
+      return;
     }
-
-    setTimeout(() => {
-      commentSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    setLoading(true);
+    try {
+      const response = await axios.put(`/api/blogs/update/${blog.id}`, {
+        title,
+        content,
+      });
+      if (response.status === 200) {
+        message.success("Blog updated successfully!");
+        onBlogUpdated(response.data.blog); // ✅ Truyền đúng tham số
+        setIsEditModalVisible(false);
+      } else {
+        throw new Error("Failed to update blog");
+      }
+    } catch (error) {
+      console.error("Error updating blog:", error);
+      message.error("Failed to update blog. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteComment = (commentId: string) => {
-    setComments((prev) =>
-      prev
-        .map((comment) => {
-          // If the comment to delete is a reply, filter it from replies
-          if (comment.replies) {
-            return {
-              ...comment,
-              replies: comment.replies.filter(
-                (reply) => reply.id !== commentId
-              ),
-            };
-          }
-          return comment;
-        })
-        // Filter out the top-level comment if it's the one being deleted
-        .filter((comment) => comment.id !== commentId)
-    );
+  const handleDeleteBlog = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.delete(`/api/blogs/delete/${blog.id}`);
+      if (response.status === 200) {
+        message.success("Blog deleted successfully!");
+        onBlogDeleted(blog.id); // ✅ Truyền đúng tham số
+      } else {
+        throw new Error("Failed to delete blog");
+      }
+    } catch (error) {
+      console.error("Error deleting blog:", error);
+      message.error("Failed to delete blog. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-      {/* Author and Date */}
-      <div className="flex items-center text-gray-500 text-sm">
-        <span className="font-semibold text-gray-700">{author}</span>
-        <span className="mx-2">•</span>
-        <span>{createdAt}</span>
-      </div>
-
-      {/* Blog Title */}
-      <Link href={`/blogs/details`} className="block mt-2">
-        <h2 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
-          {title}
-        </h2>
-      </Link>
-
-      {/* Blog Image (Optional) */}
-      {imageUrl && (
-        <div className="mt-3">
-          <Image
-            src={imageUrl || NoImage}
-            alt={title}
-            className="w-full max-w-md rounded-md object-cover transition-opacity duration-300 hover:opacity-80"
-            width={600}
-            height={300}
-          />
-        </div>
-      )}
-
-      {/* Blog Content (Shortened) */}
-      <p className="mt-2 text-gray-700">
-        {content.length > 200 ? `${content.substring(0, 200)}...` : content}
-        {content.length > 200 && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-blue-500 hover:underline ml-2"
-          >
-            Read More
-          </button>
-        )}
-      </p>
-
-      {/* Actions (Like, Comment, Share) */}
-      <div className="mt-4 flex items-center gap-6 text-gray-500">
-        {/* Like Button */}
-        <button
-          className={`flex items-center gap-2 ${
-            isLiked ? "text-red-500" : "hover:text-blue-500"
-          }`}
-          onClick={handleLike}
+    <Card title={blog.title} extra={<Button onClick={() => setIsEditModalVisible(true)}>Edit</Button>}>
+      <p>{blog.content}</p>
+      <div className="flex justify-end gap-2 mt-4">
+        <Popconfirm
+          title="Are you sure you want to delete this blog? This action cannot be undone."
+          onConfirm={handleDeleteBlog}
+          okText="Yes, Delete"
+          cancelText="Cancel"
         >
-          {isLiked ? <LikeFilled /> : <LikeOutlined />}
-          <span>{isLiked ? "Liked" : "Like"}</span>
-        </button>
-
-        {/* Comment Button */}
-        <button
-          className="flex items-center gap-2 hover:text-blue-500"
-          onClick={handleOpenComments} // Open modal and scroll to comments
-        >
-          <CommentOutlined />
-          <span>Comment</span>
-        </button>
-
-        {/* Share Button */}
-        <button className="flex items-center gap-2 hover:text-blue-500">
-          <ShareAltOutlined />
-          <span>Share</span>
-        </button>
+          <Button danger loading={loading}>Delete</Button>
+        </Popconfirm>
       </div>
-
-      {/* Modal for Full Blog Content and Comments */}
+      {/* Edit Modal */}
       <Modal
-        title={title}
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        width={800}
-        centered
-        styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }} // Enable scrolling inside the modal
-        footer={[
-          <Button key="close" onClick={() => setIsModalOpen(false)}>
-            Close
-          </Button>,
-        ]}
+        title="Edit Blog"
+        visible={isEditModalVisible}
+        onCancel={() => setIsEditModalVisible(false)}
+        footer={null}
       >
-        {/* Full Blog Content */}
-        <p className="text-gray-700">{content}</p>
-
-        {/* Divider */}
-        <hr className="my-4" />
-
-        {/* Comments Section (Scroll to this when clicking Comment button) */}
-        <CommentSection
-          comments={comments}
-          onAddComment={handleAddComment}
-          onDeleteComment={handleDeleteComment}
+        <Input
+          placeholder="Enter blog title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="mb-4"
         />
+        <Input.TextArea
+          rows={4}
+          placeholder="Enter blog content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="mb-4"
+        />
+        <div className="flex justify-end gap-2">
+          <Button onClick={() => setIsEditModalVisible(false)}>Cancel</Button>
+          <Button type="primary" loading={loading} onClick={handleUpdateBlog}>
+            Update Blog
+          </Button>
+        </div>
       </Modal>
-    </div>
+    </Card>
   );
 };
 
