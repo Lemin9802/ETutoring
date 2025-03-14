@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Net;
 using ETutoring.Business.Dtos.Response;
+using ETutoring.Core.Common;
 
 namespace ETutoring.API.Controllers.Tutor
 {
@@ -23,17 +24,19 @@ namespace ETutoring.API.Controllers.Tutor
         [HttpPost("get-students")]
         public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest model)
         {
-            var stopwatch = Stopwatch.StartNew();
             try
             {
-                var response = await _tutorService.GetStudentsForTutorAsync(model.TutorId);
-                stopwatch.Stop();
-                return StatusCode(response.StatusCode, response);
+                var response = await _tutorService.GetStudentsForTutorAsync(model.TutorId, model.page, model.size);
+                if (!response.Success)
+                {
+                    return StatusCode((int)HttpStatusCode.NotFound, response); // 404 if no students found
+                }
+
+                return StatusCode((int)HttpStatusCode.OK, response); // 200 OK with the list of students
             }
             catch (Exception ex)
             {
-                stopwatch.Stop();
-                return StatusCode(500, new BaseResponse(HttpStatusCode.InternalServerError.GetHashCode(), "An error occurred while retrieving students.", ex.Message, stopwatch.ElapsedMilliseconds));
+                return StatusCode(500, new ApiResponse<object>(false, "An error occurred while retrieving students.", errors: new List<string> { ex.Message }, data: null));
             }
         }
     }

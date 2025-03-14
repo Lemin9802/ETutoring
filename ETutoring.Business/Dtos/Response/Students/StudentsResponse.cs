@@ -8,10 +8,10 @@ using System.Collections.Generic;
 
 namespace ETutoring.Business.Dtos.Response.Students
 {
-    public class StudentsResponse : BaseResponse
+    public class StudentsResponse
     {
         public StudentsResponse(int statusCode, string message, List<StudentDto> students, long took = 0)
-            : base(statusCode, message, students, took) { }
+            { }
     }
 }
 

@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250310102127_UpdateBlogRelations")]
+    partial class UpdateBlogRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -496,77 +499,12 @@ namespace ETutoring.DataAccess.Migrations
                     b.ToTable("email_sent", (string)null);
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.Meeting", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CreatorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("creator_id");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("description");
-
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("end_time");
-
-                    b.Property<Guid>("ReceiverId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("receiver_id");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_time");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_meetings");
-
-                    b.HasIndex("CreatorId")
-                        .HasDatabaseName("ix_meetings_creator_id");
-
-                    b.HasIndex("ReceiverId")
-                        .HasDatabaseName("ix_meetings_receiver_id");
-
-                    b.ToTable("meetings", (string)null);
-                });
-
             modelBuilder.Entity("ETutoring.Core.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<Guid?>("ChatroomId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("chatroom_id");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -593,9 +531,6 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_messages");
-
-                    b.HasIndex("ChatroomId")
-                        .HasDatabaseName("ix_messages_chatroom_id");
 
                     b.ToTable("messages", (string)null);
                 });
@@ -977,37 +912,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasConstraintName("fk_email_sent_application_user_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Message", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ChattingRoom", "Chatroom")
-                        .WithMany()
-                        .HasForeignKey("ChatroomId")
-                        .HasConstraintName("fk_messages_chatting_rooms_chatroom_id");
-
-                    b.Navigation("Chatroom");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Meeting", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Student")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_meetings_asp_net_users_creator_id");
-
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
-                        .WithMany()
-                        .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_meetings_asp_net_users_receiver_id");
-
-                    b.Navigation("Student");
-
-                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>

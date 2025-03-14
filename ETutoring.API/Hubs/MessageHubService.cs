@@ -15,13 +15,25 @@ public class MessageHubService : IMessageHubService
     {
         try
         {
-            // Truyền tin nhắn qua SignalR nếu kết nối thành công
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", receiverId.ToString(), senderId.ToString(), message);
+            string senderStr = senderId.ToString();
+            string receiverStr = receiverId.ToString();
+
+            // Nếu sender khác receiver, chỉ gửi cho receiver
+            if (senderId != receiverId)
+            {
+                await _hubContext.Clients.User(receiverStr)
+                    .SendAsync("ReceiveMessage", senderStr, receiverStr, message);
+            }
+            else
+            {
+                // Nếu sender gửi cho chính mình, gửi 1 lần
+                await _hubContext.Clients.User(senderStr)
+                    .SendAsync("ReceiveMessage", senderStr, receiverStr, message);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error while sending message via SignalR: {ex.Message}");
-            // Bạn có thể xử lý lỗi tại đây hoặc trả về thông báo lỗi nếu cần thiết
         }
     }
 
@@ -56,6 +68,20 @@ public class MessageHubService : IMessageHubService
     }
 
     public async Task LeaveChatroom(Guid userId, Guid chatroomId)
+    {
+        try
+        {
+            string roomName = chatroomId.ToString();
+            await _hubContext.Groups.RemoveFromGroupAsync(userId.ToString(), roomName);
+            await _hubContext.Clients.Group(roomName).SendAsync("UserLeft", userId.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while leaving chatroom: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateAssignChatroom(Guid userId, Guid chatroomId)
     {
         try
         {

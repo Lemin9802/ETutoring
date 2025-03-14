@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Response.Students
 {
-    public class StudentTutorStatusResponse : BaseResponse
+    public class GetTutorForStudentResponse
     {
-        public Guid StudentId { get; set; }
-        public string StudentName { get; set; }
-        public bool HasTutor { get; set; }
+        public Guid TutorId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
     }
 
 }

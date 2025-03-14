@@ -18,5 +18,20 @@ namespace ETutoring.Core.Helpers
         {
             return user.IsInRole("Admin");
         }
+
+        public static bool IsModerator(this ClaimsPrincipal user)
+        {
+            return user.IsInRole("Moderator");
+        }
+
+        public static bool IsTutor(this ClaimsPrincipal user)
+        {
+            return user.IsInRole("Tutor");
+        }
+
+        public static bool IsStudent(this ClaimsPrincipal user)
+        {
+            return user.IsInRole("Student");
+        }
     }
 }

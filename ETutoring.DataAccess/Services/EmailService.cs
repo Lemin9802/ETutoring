@@ -7,6 +7,7 @@ using ETutoring.Core.Settings;
 using ETutoring.DataAccess.Data;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -93,5 +94,10 @@ public class EmailService : IEmailService
         // Replace placeholders dynamically
         return placeholders.Aggregate(templateContent, (current, placeholder) => current.Replace($"{{{{{placeholder.Key}}}}}", placeholder.Value));
     }
-
+    public async Task<List<EmailSent>> GetAllEmailsAsync()
+    {
+        return await _context.EmailSent
+            .OrderByDescending(e => e.CreatedAt) // Sort by newest sent date
+            .ToListAsync();
+    }
 }

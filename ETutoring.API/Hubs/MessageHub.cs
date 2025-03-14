@@ -45,26 +45,27 @@ namespace ETutoring.API.Hubs
         {
             Console.WriteLine($"Sending message from {sender} to {receiver}: {message}");
 
-            var tasks = new List<Task>();
-
-            // Gửi tin nhắn cho người nhận
-            if (UserConnections.TryGetValue(receiver, out var receiverConnections))
+            // Nếu sender khác receiver, chỉ gửi event cho Receiver
+            if (sender != receiver)
             {
-                tasks.Add(Clients.Clients(receiverConnections.ToList()).SendAsync("ReceiveMessage", sender, receiver, message));
-                Console.WriteLine($"Message sent to receiver {receiver}");
+                if (UserConnections.TryGetValue(receiver, out var receiverConnections))
+                {
+                    await Clients.Clients(receiverConnections.ToList())
+                        .SendAsync("ReceiveMessage", sender, receiver, message);
+                    Console.WriteLine($"Message sent to receiver {receiver}");
+                }
             }
-
-            // Gửi tin nhắn cho người gửi để cập nhật UI (trừ trường hợp sender == receiver)
-            if (sender != receiver && UserConnections.TryGetValue(sender, out var senderConnections))
+            else
             {
-                tasks.Add(Clients.Clients(senderConnections.ToList()).SendAsync("ReceiveMessage", sender, receiver, message));
-                Console.WriteLine($"Message also sent to sender {sender} for UI update");
+                // Trường hợp sender gửi cho chính mình
+                if (UserConnections.TryGetValue(sender, out var senderConnections))
+                {
+                    await Clients.Clients(senderConnections.ToList())
+                        .SendAsync("ReceiveMessage", sender, receiver, message);
+                    Console.WriteLine($"Message sent to sender {sender} (self-chat)");
+                }
             }
-
-            await Task.WhenAll(tasks);
         }
-
-
 
         public async Task AssignChatroom(string studentId, string tutorId)
         {
