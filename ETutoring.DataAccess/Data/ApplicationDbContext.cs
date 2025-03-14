@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace ETutoring.DataAccess.Data;
 
@@ -18,17 +17,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
     public DbSet<BlogComment> BlogsComments { get; set; }
 
-    public DbSet<ApplicationUser> Users { get; set; }
-
     public DbSet<EmailSent> EmailSent { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+
     public DbSet<Document> Documents { get; set; }
+
     public DbSet<DocumentComment> DocumentComments { get; set; }
+
+    public DbSet<Meeting> Meetings { get; set; }
+
     public DbSet<StudentTutorManagement> StudentTutorManagements { get; set; }
-    public DbSet<Message> Messages{ get; set; }
+
+    public DbSet<Message> Messages { get; set; }
+
     public DbSet<ChattingRoom> ChattingRooms { get; set; }
+
     public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

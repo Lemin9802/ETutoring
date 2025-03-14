@@ -3,6 +3,7 @@ using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ETutoring.API.Middleware;
 
@@ -44,7 +45,12 @@ public class ExceptionHandlingMiddleware
                 break;
 
             case EntityNotHaveDataException:
-                statusCode = (int)HttpStatusCode.OK;
+                statusCode = (int)HttpStatusCode.NoContent;
+                response = ApiResponseHandler.FailureResponse<Unit>(exception.Message);
+                break;
+
+            case AuthErrorException:
+                statusCode = (int)HttpStatusCode.Unauthorized;
                 response = ApiResponseHandler.FailureResponse<Unit>(exception.Message);
                 break;
 
@@ -59,11 +65,11 @@ public class ExceptionHandlingMiddleware
 
         var options = new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Correct naming policy
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = true
         };
 
         await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
-
     }
 }

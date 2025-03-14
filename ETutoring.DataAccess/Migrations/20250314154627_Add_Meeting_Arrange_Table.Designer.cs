@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250314154627_Add_Meeting_Arrange_Table")]
+    partial class Add_Meeting_Arrange_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,9 +47,20 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("department");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -56,6 +70,14 @@ namespace ETutoring.DataAccess.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean")
                         .HasColumnName("email_confirmed");
+
+                    b.Property<DateTime?>("EnrollmentDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("enrollment_date");
+
+                    b.Property<int?>("ExperienceYears")
+                        .HasColumnType("integer")
+                        .HasColumnName("experience_years");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -68,6 +90,10 @@ namespace ETutoring.DataAccess.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("gender");
+
+                    b.Property<decimal?>("HourlyRate")
+                        .HasColumnType("numeric")
+                        .HasColumnName("hourly_rate");
 
                     b.Property<string>("IdentificationNumber")
                         .IsRequired()
@@ -99,6 +125,11 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lockout_end");
 
+                    b.Property<string>("Major")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("major");
+
                     b.Property<string>("Nationality")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -129,9 +160,18 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("phone_number_confirmed");
 
+                    b.Property<string>("Position")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("position");
+
                     b.Property<string>("ProfilePicture")
                         .HasColumnType("text")
                         .HasColumnName("profile_picture");
+
+                    b.Property<decimal?>("Salary")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("salary");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
@@ -140,6 +180,11 @@ namespace ETutoring.DataAccess.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("two_factor_enabled");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("updated_by");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
@@ -522,10 +567,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ChatroomId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("chatroom_id");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text")
@@ -551,9 +592,6 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_messages");
-
-                    b.HasIndex("ChatroomId")
-                        .HasDatabaseName("ix_messages_chatroom_id");
 
                     b.ToTable("messages", (string)null);
                 });
@@ -837,7 +875,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_blogs_users_user_id");
+                        .HasConstraintName("fk_blogs_application_user_user_id");
 
                     b.Navigation("User");
                 });
@@ -870,7 +908,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_comments_users_user_id");
+                        .HasConstraintName("fk_comments_application_user_user_id");
 
                     b.Navigation("User");
                 });
@@ -903,7 +941,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("CommenterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_document_comments_users_commenter_id");
+                        .HasConstraintName("fk_document_comments_application_user_commenter_id");
 
                     b.HasOne("ETutoring.Core.Entities.Document", "Document")
                         .WithMany("Comments")
@@ -932,40 +970,30 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_email_sent_users_user_id");
+                        .HasConstraintName("fk_email_sent_application_user_user_id");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.Meeting", b =>
                 {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Creator")
+                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Student")
                         .WithMany()
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_meetings_users_creator_id");
+                        .HasConstraintName("fk_meetings_asp_net_users_creator_id");
 
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Receiver")
+                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
                         .WithMany()
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_meetings_users_receiver_id");
+                        .HasConstraintName("fk_meetings_asp_net_users_receiver_id");
 
-                    b.Navigation("Creator");
+                    b.Navigation("Student");
 
-                    b.Navigation("Receiver");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Message", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ChattingRoom", "Chatroom")
-                        .WithMany()
-                        .HasForeignKey("ChatroomId")
-                        .HasConstraintName("fk_messages_chatting_rooms_chatroom_id");
-
-                    b.Navigation("Chatroom");
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.RefreshToken", b =>
@@ -975,7 +1003,7 @@ namespace ETutoring.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_users_user_id");
+                        .HasConstraintName("fk_refresh_tokens_application_user_user_id");
 
                     b.Navigation("User");
                 });

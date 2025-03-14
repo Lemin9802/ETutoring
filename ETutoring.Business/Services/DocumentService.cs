@@ -62,7 +62,7 @@ public class DocumentService : IDocumentService
 
         // Retrieve paginated documents
         var documents = await _context.Documents
-            .Where(d => d.UploaderId == userId)
+            .Where(d => d.UploaderId == userId || d.TutorId == userId)
             .OrderBy(d => d.CreatedAt)
             .Skip((meta.PageNumber - 1) * meta.PageSize)
             .Take(meta.PageSize)
