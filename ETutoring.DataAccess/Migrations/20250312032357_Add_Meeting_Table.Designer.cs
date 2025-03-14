@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312032357_Add_Meeting_Table")]
+    partial class Add_Meeting_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -507,10 +510,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("creator_id");
-
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
@@ -524,22 +523,22 @@ namespace ETutoring.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
-                    b.Property<Guid>("ReceiverId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("receiver_id");
-
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_time");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("title");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -548,11 +547,11 @@ namespace ETutoring.DataAccess.Migrations
                     b.HasKey("Id")
                         .HasName("pk_meetings");
 
-                    b.HasIndex("CreatorId")
-                        .HasDatabaseName("ix_meetings_creator_id");
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_meetings_student_id");
 
-                    b.HasIndex("ReceiverId")
-                        .HasDatabaseName("ix_meetings_receiver_id");
+                    b.HasIndex("TutorId")
+                        .HasDatabaseName("ix_meetings_tutor_id");
 
                     b.ToTable("meetings", (string)null);
                 });
@@ -976,17 +975,17 @@ namespace ETutoring.DataAccess.Migrations
                 {
                     b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Student")
                         .WithMany()
-                        .HasForeignKey("CreatorId")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_meetings_asp_net_users_creator_id");
+                        .HasConstraintName("fk_meetings_application_user_student_id");
 
                     b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
                         .WithMany()
-                        .HasForeignKey("ReceiverId")
+                        .HasForeignKey("TutorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_meetings_asp_net_users_receiver_id");
+                        .HasConstraintName("fk_meetings_application_user_tutor_id");
 
                     b.Navigation("Student");
 
