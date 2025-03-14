@@ -21,11 +21,11 @@ public class MeetingConfiguration : IEntityTypeConfiguration<Meeting>
         builder.Property(m => m.EndTime)
             .IsRequired();
 
-        builder.HasOne(m => m.Student)
+        builder.HasOne(m => m.Creator)
             .WithMany()
             .HasForeignKey(m => m.CreatorId);
 
-        builder.HasOne(m => m.Tutor)
+        builder.HasOne(m => m.Receiver)
             .WithMany()
             .HasForeignKey(m => m.ReceiverId);
     }

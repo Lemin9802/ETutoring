@@ -90,6 +90,7 @@ namespace ETutoring.API
             builder.Services.AddScoped<IModeratorService, ModeratorService>();
             builder.Services.AddScoped<ITutorService, TutorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IMeetingService, MeetingService>();
 
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IMessageHubService, MessageHubService>();

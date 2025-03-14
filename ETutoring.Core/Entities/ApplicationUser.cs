@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ETutoring.Core.Entities;
 
@@ -39,39 +38,13 @@ public class ApplicationUser : IdentityUser<Guid>
     [Required, DefaultValue(false)]
     public bool IsPhoneConfirmed { get; set; } = false;
 
-    [StringLength(100)]
-    public string? Major { get; set; }
-
-    public DateTime? EnrollmentDate { get; set; }
-
-    [Range(0, 50)]
-    public int? ExperienceYears { get; set; }
-
-    [Range(0, 1000)]
-    public decimal? HourlyRate { get; set; }
-
-    [StringLength(100)]
-    public string? Position { get; set; }
-
-    [StringLength(100)]
-    public string? Department { get; set; }
-
-    [Column(TypeName = "decimal(18,2)")]
-    public decimal? Salary { get; set; }
-
     [Required, DefaultValue(true)]
     public bool IsActive { get; set; } = true;
 
     public DateTime? LastLoginTime { get; set; }
 
-    [Required, StringLength(50)]
-    public string CreatedBy { get; set; } = string.Empty;
-
-    [StringLength(50)]
-    public string? UpdatedBy { get; set; }
-
     public ICollection<EmailSent> EmailNotifications { get; set; } = new List<EmailSent>();
-    
+
     // Add these new navigation properties
     public ICollection<Document> UploadedDocuments { get; set; } = new List<Document>();
     public ICollection<Document> ReceivedDocuments { get; set; } = new List<Document>();

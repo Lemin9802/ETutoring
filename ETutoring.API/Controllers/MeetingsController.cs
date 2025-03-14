@@ -1,4 +1,5 @@
 ﻿using ETutoring.Business.Dtos.Meetings;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
@@ -52,7 +53,7 @@ namespace ETutoring.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<MeetingResponse>>>> GetUserMeetings(CancellationToken cancellationToken)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var meetings = await _meetingService.GetUserMeetings(Guid.Parse(userId ?? throw new Exception("Not found user in JWT token")), cancellationToken);
+            var meetings = await _meetingService.GetUserMeetings(Guid.Parse(userId ?? throw new AuthErrorException("Not found user in JWT token")), cancellationToken);
             var response = ApiResponse<IEnumerable<MeetingResponse>>.SuccessResponse(meetings, "Meetings retrieved successfully.");
             return Ok(response);
         }

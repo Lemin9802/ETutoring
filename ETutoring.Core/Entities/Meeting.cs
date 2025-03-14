@@ -19,9 +19,9 @@ public class Meeting : BaseEntity
 
     public MeetingStatus Status { get; private set; } = MeetingStatus.Pending;
 
-    public ApplicationUser Student { get; set; } = new();
+    public ApplicationUser Creator { get; set; }
 
-    public ApplicationUser Tutor { get; set; } = new();
+    public ApplicationUser Receiver { get; set; }
 
     public Meeting(string title, string? description, DateTime startTime, DateTime endTime, Guid creatorId, Guid receiverId)
     {

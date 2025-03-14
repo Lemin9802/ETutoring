@@ -18,6 +18,7 @@ public class MeetingService : IMeetingService
     public async Task<CreateMeetingRequest> CreateMeetingAsync(CreateMeetingRequest meeting, CancellationToken cancellationToken)
     {
         var newMeeting = meeting.ToCreateMeeting();
+
         await _context.Meetings.AddAsync(newMeeting, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
