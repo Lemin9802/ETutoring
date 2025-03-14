@@ -45,6 +45,7 @@ const DropdownNotification = () => {
           throw new Error("Invalid email data format");
         }
       } catch (error) {
+        console.error(error);
         setError("⚠️ Failed to load emails");
       } finally {
         setLoading(false);

@@ -25,7 +25,7 @@ const { Option } = Select;
 const { Dragger } = Upload;
 
 interface DataType {
-  key: string;
+  id: string;
   title: string;
   author: string;
   status: number;
@@ -130,7 +130,6 @@ const DocumentUploadedListPage: React.FC = () => {
     setCurrentPage(pagination.current);
     setPageSize(pagination.pageSize);
   };
-
   const columns: ColumnsType<DataType> = [
     {
       title: (
@@ -180,25 +179,16 @@ const DocumentUploadedListPage: React.FC = () => {
       ),
     },
     {
-      title: (
-        <Text strong style={{ fontSize: "14px" }}>
-          Action
-        </Text>
-      ),
-      key: "action",
-      render: (record: DataType) => (
-        <Link
-          href={{
-            pathname: "/students/upload-document-detail/detail",
-            query: { id: record.key },
-          }}
-        >
-          <Button type="primary" ghost>
-            Detail
-          </Button>
-        </Link>
-      ),
-    },
+        title: "Action",
+        key: "action",
+        render: (record: DataType) => (
+          <Link href={`/students/upload-document-detail/detail?id=${record.id}`}>
+            <Button type="primary" ghost>
+              Detail
+            </Button>
+          </Link>
+        ),
+      },
   ];
 
   return (
