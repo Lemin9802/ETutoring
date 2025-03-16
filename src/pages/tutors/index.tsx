@@ -1,8 +1,8 @@
 import React from "react";
-import SmallCalendar from "@/pages/teacher/small-calendar"; 
-import MessagesPieChart from '@/pages/teacher/message-dashboard';
-import MessagesBarChart from '@/pages/teacher/student-message';
-import Timeline from '@/pages/teacher/timeline';
+import SmallCalendar from "@/pages/tutors/small-calendar"; 
+import MessagesPieChart from '@/pages/tutors/message-dashboard';
+import MessagesBarChart from '@/pages/tutors/student-message';
+import Timeline from '@/pages/tutors/timeline';
 import { Roboto } from "next/font/google";
 
 const funnel = Roboto({

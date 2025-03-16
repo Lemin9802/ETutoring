@@ -20,7 +20,7 @@ export interface UserListType {
   identification_number: string;
   is_email_confirmed: boolean;
   is_phone_confirmed: boolean;
- role: UserRole;
+  role: UserRole;
   is_active: boolean;
   last_login_time: string | null;
   
@@ -35,21 +35,27 @@ const AdminUserListPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userDetails, setUserDetails] = useState<UserListType | null>(null);
   const [total, setTotal] = useState(0);
-  const fetchUsers = async (page: number, size: number) => {
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const fetchUsers = async (page_number: number, page_size: number) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/moderators/users/get-all-students", {
+      const response = await fetch("/api/moderators/users/get-all-students-tutors", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ page, size }),
+        body: JSON.stringify({ page_number, page_size }),
       });
 
       const result = await response.json();
       if (response.ok) {
         setUsers(result.data);
-        setTotal(result.total);
+        // Sử dụng thông tin phân trang từ meta
+        setTotal(result.meta.total_items);
+        setCurrent(result.meta.page_number);
+        setPageSize(result.meta.page_size);
       } else {
         console.error("Error fetching users:", result.error);
       }
@@ -61,7 +67,7 @@ const AdminUserListPage = () => {
 
   useEffect(() => {
     if (!session) return;
-    fetchUsers(1, 2); 
+    fetchUsers(1, 5); 
   }, [session]);
 
   const selectedUsers = useMemo(() => {
@@ -94,6 +100,10 @@ const AdminUserListPage = () => {
     {
       title: "Email",
       dataIndex: "email",
+    },
+    {
+      title: "Role",
+      dataIndex: "role_name",
     },
     {
       title: "Last Login",
@@ -142,7 +152,10 @@ const AdminUserListPage = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
   };
+
   const handlePaginationChange = (page: number, pageSize: number) => {
+    setCurrent(page);
+    setPageSize(pageSize);
     fetchUsers(page, pageSize);
   };
   return (
@@ -158,8 +171,11 @@ const AdminUserListPage = () => {
       </Card>
       <Table rowSelection={rowSelection} columns={columns} dataSource={filteredUsers} loading={loading} pagination={{
           total: total,
+          current: current,
+          pageSize: pageSize,
           onChange: handlePaginationChange,
-        }} rowKey="id" />
+        }}  rowKey="id" 
+        />
 
       {/* Modal for User Details */}
       <Modal

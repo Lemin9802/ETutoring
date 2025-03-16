@@ -1,9 +1,13 @@
-import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import axios from "axios";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]";
+import { authOptions } from "../auth/[...nextauth]";
+import { APIResponse } from "@/types/APIResponse";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res
@@ -23,34 +27,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { id } = req.body;
-    const bodyData = {
-      id
-    };
+    const { blogId } = req.body;
+    if (!blogId) {
+      return res.status(400).json({ message: "Blog ID is required" });
+    }
 
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/api/users/profile`,
+    // Gửi request xóa blog lên backend
+    const response = await axios.post<APIResponse>(
+      `${process.env.BACKEND_URL}/api/blogs/delete`,
+      { blogId },
       {
-        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(bodyData),
       }
     );
 
-    const data = await response.json();
-    return res.status(200).json(data);
+    // Trả về dữ liệu
+    return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
         message:
           error.response?.data?.message ||
-          "An error occurred while creating the blog",
+          "An error occurred while deleting the blog",
       });
     }
 
-    return res.status(500).json({ message: "An error occurred" });
+    return res
+      .status(500)
+      .json({ message: "An error occurred while deleting the blog" });
   }
 }
