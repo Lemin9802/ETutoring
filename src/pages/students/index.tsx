@@ -1,52 +1,98 @@
-import { CheckCircleOutlined, ClockCircleOutlined, CloudOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Calendar, Card, Col, Image, List, Modal, Progress, Row, Table, Timeline } from "antd";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloudOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Calendar,
+  Card,
+  Col,
+  Image,
+  List,
+  Modal,
+  Progress,
+  Row,
+  Table,
+  Timeline,
+} from "antd";
 import Title from "antd/es/typography/Title";
 import { Dayjs } from "dayjs";
 import React, { useState } from "react";
+import Link from "next/link";
 
 const eventsData = [
-  { title: 'Math Exam', date: '2025-02-20', description: 'Prepare your notes for the exam.' },
-  { title: 'Science Presentation', date: '2025-02-25', description: 'Prepare slides and rehearse.' },
-  { title: 'Group Project Submission', date: '2025-03-01', description: 'Finalizing and submitting the project.' },
-  { title: 'Homework Deadline', date: '2025-02-20', description: 'Submit your homework on time.' },
+  {
+    title: "Math Exam",
+    date: "2025-02-20",
+    description: "Prepare your notes for the exam.",
+  },
+  {
+    title: "Science Presentation",
+    date: "2025-02-25",
+    description: "Prepare slides and rehearse.",
+  },
+  {
+    title: "Group Project Submission",
+    date: "2025-03-01",
+    description: "Finalizing and submitting the project.",
+  },
+  {
+    title: "Homework Deadline",
+    date: "2025-02-20",
+    description: "Submit your homework on time.",
+  },
 ];
 
 const newsData = [
-  { title: 'Understanding React Hooks', date: '2025-02-12' },
-  { title: '10 Tips for Better UX Design', date: '2025-02-11' },
-  { title: 'JavaScript ES2022 Features', date: '2025-02-10' },
+  { title: "Understanding React Hooks", date: "2025-02-12" },
+  { title: "10 Tips for Better UX Design", date: "2025-02-11" },
+  { title: "JavaScript ES2022 Features", date: "2025-02-10" },
 ];
 
 const DashboardPage: React.FC = () => {
   const [pendingTasks, setPendingTasks] = useState([
-    { title: 'Submit your final assignment', status: 'Pending' },
-    { title: 'Prepare for the upcoming exam', status: 'Pending' },
-    { title: 'Attend the group meeting', status: 'Pending' },
+    { title: "Submit your final assignment", status: "Pending" },
+    { title: "Prepare for the upcoming exam", status: "Pending" },
+    { title: "Attend the group meeting", status: "Pending" },
   ]);
 
   const [recentSubmissions] = useState([
-    { title: 'Submit your final assignment', status: 'Checked' },
-    { title: 'Complete the survey for course feedback', status: 'Checked' },
-    { title: 'Prepare your presentation for class', status: 'Pending' },
+    { title: "Submit your final assignment", status: "Checked" },
+    { title: "Complete the survey for course feedback", status: "Checked" },
+    { title: "Prepare your presentation for class", status: "Pending" },
   ]);
 
   const [, setSelectedDate] = useState<Dayjs | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<{ title: string; date: string; description: string } | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<{
+    title: string;
+    date: string;
+    description: string;
+  } | null>(null);
 
-  const [weather, ] = useState<{ temperature: number; condition: string }>({ temperature: 25, condition: 'Sunny' });
+  const [weather] = useState<{ temperature: number; condition: string }>({
+    temperature: 25,
+    condition: "Sunny",
+  });
 
   const columns = [
-    { title: 'Task Title', dataIndex: 'title', key: 'title' },
+    { title: "Task Title", dataIndex: "title", key: "title" },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (status === 'Checked' ? <CheckCircleOutlined style={{ color: 'green' }} /> : <ClockCircleOutlined style={{ color: 'orange' }} />),
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) =>
+        status === "Checked" ? (
+          <CheckCircleOutlined style={{ color: "green" }} />
+        ) : (
+          <ClockCircleOutlined style={{ color: "orange" }} />
+        ),
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (text: string, record: { title: string; status: string }) => (
         <Button
           type="primary"
@@ -61,12 +107,12 @@ const DashboardPage: React.FC = () => {
 
   const markTaskCompleted = (title: string) => {
     const newTasks = pendingTasks.map((task) =>
-      task.title === title ? { ...task, status: 'Checked' } : task
+      task.title === title ? { ...task, status: "Checked" } : task
     );
     setPendingTasks(newTasks);
   };
 
-  const handleDateClick = (date:Dayjs) => {
+  const handleDateClick = (date: Dayjs) => {
     const filteredEvents = eventsData.filter(
       (event) => event.date === date.format("YYYY-MM-DD")
     );
@@ -87,9 +133,9 @@ const DashboardPage: React.FC = () => {
       </ul>
     );
   };
-  const daysStudied = 2;  // Example: 2 days studied
-  const totalDays = 30;   // Example: total 30 days
-  
+  const daysStudied = 2; // Example: 2 days studied
+  const totalDays = 30; // Example: total 30 days
+
   return (
     <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
       <Card className="mt-4">
@@ -107,8 +153,12 @@ const DashboardPage: React.FC = () => {
                   />
                 </Col>
                 <Col xs={16} sm={18}>
-                  <Title level={4}><UserOutlined /> John Doe</Title>
-                  <p className="text-sm text-gray-600">Web Development | Student</p>
+                  <Title level={4}>
+                    <UserOutlined /> John Doe
+                  </Title>
+                  <p className="text-sm text-gray-600">
+                    Web Development | Student
+                  </p>
                   <p className="text-sm text-gray-600">Location: New York</p>
                 </Col>
               </Row>
@@ -121,19 +171,29 @@ const DashboardPage: React.FC = () => {
                     <CloudOutlined /> Current Weather
                   </Title>
                   <p className="text-gray-600">Location: Ho Chi Minh City</p>
-                  <p className="text-gray-600">Temperature: {weather.temperature}°C</p>
-                  <p className="text-gray-600">Condition: {weather.condition}</p>
+                  <p className="text-gray-600">
+                    Temperature: {weather.temperature}°C
+                  </p>
+                  <p className="text-gray-600">
+                    Condition: {weather.condition}
+                  </p>
                 </Col>
-  
+
                 {/* Vertical Divider */}
-                <Col className="flex justify-center items-center" xs={24} sm={1}>
+                <Col
+                  className="flex justify-center items-center"
+                  xs={24}
+                  sm={1}
+                >
                   <div className="border-l-2 h-24 mx-4"></div>
                 </Col>
-  
+
                 {/* Right Section: Days Studied */}
                 <Col xs={24} sm={11} className="flex flex-col space-y-4">
-                  <Title level={5} className="text-center">Days Studied</Title>
-  
+                  <Title level={5} className="text-center">
+                    Days Studied
+                  </Title>
+
                   {/* Progress Bar to show Study and Rest Days */}
                   <div className="flex flex-col items-center space-y-2">
                     <Progress
@@ -141,31 +201,44 @@ const DashboardPage: React.FC = () => {
                       width={80}
                       percent={(daysStudied / totalDays) * 100}
                       format={() => `${daysStudied} / ${totalDays}`}
-                      strokeColor="#4caf50"  // Green for study days
+                      strokeColor="#4caf50" // Green for study days
                     />
                   </div>
                 </Col>
-  
               </Row>
             </Card>
           </Col>
-  
-          <Col xs={24} sm={8} md={9} className="flex justify-center items-center">
+
+          <Col
+            xs={24}
+            sm={8}
+            md={9}
+            className="flex justify-center items-center"
+          >
             <Card className="shadow-lg rounded-lg p-6 bg-white w-full max-w-lg">
-              <Title level={4} className="mb-4">My Calendar</Title>
+              <Title level={4} className="mb-4">
+                My Calendar
+              </Title>
               <div className="w-full h-80">
-                <Calendar onSelect={handleDateClick} dateCellRender={dateCellRender} fullscreen={false} />
+                <Calendar
+                  onSelect={handleDateClick}
+                  dateCellRender={dateCellRender}
+                  fullscreen={false}
+                />
               </div>
             </Card>
           </Col>
         </Row>
       </Card>
-  
+
       {/* Tasks and Submissions */}
       <Card className="mt-4">
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>
-            <Card title="Pending Tasks" className="shadow-md rounded-lg bg-red-50">
+            <Card
+              title="Pending Tasks"
+              className="shadow-md rounded-lg bg-red-50"
+            >
               <Table
                 dataSource={pendingTasks}
                 columns={columns}
@@ -174,9 +247,12 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-  
+
           <Col xs={24} md={12}>
-            <Card title="Recent Submissions" className="shadow-md rounded-lg bg-blue-50">
+            <Card
+              title="Recent Submissions"
+              className="shadow-md rounded-lg bg-blue-50"
+            >
               <Table
                 dataSource={recentSubmissions}
                 columns={columns}
@@ -187,43 +263,51 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
       </Card>
-  
+
       {/* Latest News and Community Groups */}
       <Row gutter={[24, 24]} className="mt-8">
         <Col span={24}>
           <Card className="shadow-lg rounded-lg p-6 bg-yellow-50">
             <Title level={4}>Community Groups</Title>
             <List
-              dataSource={["Design Community, USA", "UX Hunters", "Frontend Developers"]}
+              dataSource={[
+                "Design Community, USA",
+                "UX Hunters",
+                "Frontend Developers",
+              ]}
               renderItem={(item) => <List.Item>{item}</List.Item>}
             />
           </Card>
         </Col>
-  
+
         <Col span={24}>
           <Card className="shadow-lg rounded-lg p-6 bg-gray-100">
             <Title level={4}>Latest News</Title>
             <List
               dataSource={newsData}
-              renderItem={item => (
+              renderItem={(item) => (
                 <List.Item>
-                  <Title level={5} className="text-blue-500">{item.title}</Title>
-                  <span className="text-sm text-gray-600 float-right">{item.date}</span>
+                  <Title level={5} className="text-blue-500">
+                    {item.title}
+                  </Title>
+                  <span className="text-sm text-gray-600 float-right">
+                    {item.date}
+                  </span>
                 </List.Item>
               )}
             />
           </Card>
         </Col>
       </Row>
-  
+
       {/* Event Details Modal */}
       <Modal
-        title={selectedEvent ? selectedEvent.title : 'Event Details'}
+        title={selectedEvent ? selectedEvent.title : "Event Details"}
         visible={isModalVisible}
         onOk={() => setIsModalVisible(false)}
         onCancel={() => setIsModalVisible(false)}
         className="event-modal"
-        style={{ borderRadius: '8px' }}
+        style={{ borderRadius: "8px" }}
       >
         <Timeline>
           <Timeline.Item>
@@ -232,8 +316,22 @@ const DashboardPage: React.FC = () => {
           </Timeline.Item>
         </Timeline>
       </Modal>
+
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Students Dashboard</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Dashboard cards */}
+          <Link href="/documents/document-list" className="block">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <h2 className="text-xl font-semibold mb-2">Documents</h2>
+              <p className="text-gray-600">View and manage your documents</p>
+            </div>
+          </Link>
+          {/* ... other dashboard cards ... */}
+        </div>
+      </div>
     </div>
-  );  
+  );
 };
 
 export default DashboardPage;

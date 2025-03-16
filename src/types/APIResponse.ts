@@ -4,4 +4,12 @@ export type APIResponse = {
   data: any;
   message: string;
   error: string[];
+  meta: Meta;
+};
+
+export type Meta = {
+  page_number: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
 };
