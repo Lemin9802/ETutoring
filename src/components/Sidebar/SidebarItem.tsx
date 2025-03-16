@@ -3,6 +3,7 @@ import SidebarDropdown from "@/components/Sidebar/SidebarDropdown";
 import { usePathname } from "next/navigation";
 import { SidebarItemType } from "@/types/SidebarItem";
 import Image from "next/image";
+import React from "react";
 
 type SidebarItemProps = {
   item: SidebarItemType;
@@ -43,9 +44,14 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
             isItemActive ? "bg-graydark" : ""
           } text-white group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out hover:bg-graydark`}
         >
-          {item.icon && (
-            <Image src={item.icon} alt={item.label} width={20} height={20} />
-          )}
+          {item.icon &&
+            (typeof item.icon === "string" ? (
+              <Image src={item.icon} alt={item.label} width={20} height={20} />
+            ) : (
+              <span className="text-white">
+                {React.createElement(item.icon, { size: 20 })}
+              </span>
+            ))}
           {item.label}
           {item.children && (
             <svg
