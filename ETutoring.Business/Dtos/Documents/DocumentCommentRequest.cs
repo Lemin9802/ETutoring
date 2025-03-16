@@ -24,4 +24,9 @@ public class DocumentCommentResponse
     public DateTime? UpdatedAt { get; set; }
     public string CommenterName { get; set; } = string.Empty;
     public List<DocumentCommentResponse> Replies { get; set; } = new();
-} 
+}
+
+public record DocumentCommendRequest
+{
+    public Guid DocumentId { get; set; }
+}

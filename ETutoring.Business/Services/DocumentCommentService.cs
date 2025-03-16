@@ -19,7 +19,7 @@ public class DocumentCommentService : IDocumentCommentService
         _identityServices = identityServices;
     }
 
-    public async Task<ApiResponse<Unit>> CreateCommentAsync(CreateDocumentCommentRequest request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<DocumentCommentResponse>> CreateCommentAsync(CreateDocumentCommentRequest request, CancellationToken cancellationToken)
     {
         // Validate document exists
         var document = await _context.Documents
@@ -47,7 +47,21 @@ public class DocumentCommentService : IDocumentCommentService
         await _context.DocumentComments.AddAsync(comment, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ApiResponse<Unit>.SuccessResponse(Unit.Value);
+        var response = new DocumentCommentResponse()
+        {
+            Id = comment.Id,
+            DocumentId = comment.DocumentId,
+            CommenterId = comment.CommenterId,
+            Content = comment.Content,
+            ParentCommentId = comment.ParentCommentId,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            CommenterName = (await _identityServices.GetUserByIdAsync(comment.CommenterId))?.Data.FullName ??
+                            "Unknown User",
+            Replies = new List<DocumentCommentResponse>()
+        };
+
+        return ApiResponse<DocumentCommentResponse>.SuccessResponse(response);
     }
 
     public async Task<ApiResponse<DocumentCommentResponse>> UpdateCommentAsync(Guid commentId, UpdateDocumentCommentRequest request, CancellationToken cancellationToken)
