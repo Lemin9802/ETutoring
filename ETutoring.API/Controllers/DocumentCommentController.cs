@@ -22,17 +22,17 @@ public class DocumentCommentController : ControllerBase
     /// <summary>
     /// Gets all comments for a specific document
     /// </summary>
-    /// <param name="documentId">The ID of the document</param>
+    /// <param name="document"></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of document comments with their replies</returns>
-    [HttpPost("get/{documentId:guid}")]
+    [HttpPost("gets")]
     [ProducesResponseType(typeof(ApiResponse<List<DocumentCommentResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResponse<List<DocumentCommentResponse>>>> GetDocumentComments(
-        Guid documentId,
+        [FromBody] DocumentCommendRequest document,
         CancellationToken cancellationToken)
     {
-        var result = await _commentService.GetDocumentCommentsAsync(documentId, cancellationToken);
+        var result = await _commentService.GetDocumentCommentsAsync(document.DocumentId, cancellationToken);
         return Ok(result);
     }
 
@@ -43,10 +43,10 @@ public class DocumentCommentController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success response if comment is created</returns>
     [HttpPost("create")]
-    [ProducesResponseType(typeof(ApiResponse<Unit>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<DocumentCommentResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<Unit>>> CreateComment(
+    public async Task<ActionResult<ApiResponse<DocumentCommentResponse>>> CreateComment(
         [FromBody] CreateDocumentCommentRequest request,
         CancellationToken cancellationToken)
     {
@@ -90,4 +90,4 @@ public class DocumentCommentController : ControllerBase
         var result = await _commentService.DeleteCommentAsync(commentId, cancellationToken);
         return Ok(result);
     }
-} 
+}

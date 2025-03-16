@@ -98,6 +98,7 @@ namespace ETutoring.API
             builder.Services.AddAWSService<IAmazonS3>();
             builder.Services.AddScoped<IStorageService, AWSS3Service>();
             builder.Services.AddScoped<IDocumentService, DocumentService>();
+            builder.Services.AddScoped<IDocumentCommentService, DocumentCommentService>();
             var app = builder.Build();
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
