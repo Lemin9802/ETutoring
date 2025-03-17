@@ -31,7 +31,6 @@ const StatisticalCalendar: React.FC<StatisticalCalendarProps> = ({
     if (onDateChange) {
       onDateChange(value, mode);
     }
-    console.log(value.format('YYYY-MM-DD'), mode);
   };
 
   const wrapperStyle: React.CSSProperties = {
