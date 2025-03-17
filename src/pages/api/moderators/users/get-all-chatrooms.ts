@@ -16,21 +16,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const token = session.user.accessToken;
-        const { user_id } = req.body;
-
-        if (!user_id) {
-            return res.status(400).json({ message: "Missing user_id" });
-        }
+        const { page_number, page_size } = req.body;
+        const bodyData = {
+          page_number,
+          page_size,
+        };
 
         const response = await fetch(
-            `${process.env.BACKEND_URL}/api/moderator/assigned-chatrooms`,
+            `${process.env.BACKEND_URL}/api/moderator/get-all-chatrooms`,
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ user_id }),
+                body: JSON.stringify(bodyData),
             }
         );
 

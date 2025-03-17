@@ -97,14 +97,14 @@ const api = {
   },
 
   // Fetch all assignments
-  getAssignments: async (userId: string): Promise<Assignment[]> => {
+  getAssignments: async (page_number: number, page_size: number): Promise<Assignment[]> => {
     try {
-      const response = await fetch("/api/moderators/users/assigned-chatrooms", {
+      const response = await fetch("/api/moderators/users/get-all-chatrooms", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id: userId }), // Sending user_id as required
+        body: JSON.stringify({ page_number, page_size }), // Sending user_id as required
       });
 
       const result = await response.json();
@@ -206,7 +206,7 @@ const RelationshipManagement: React.FC = () => {
         const [tutorsData, studentsData, assignmentsData] = await Promise.all([
           api.getTutors(1, 100),
           api.getStudents(1, 100),
-          api.getAssignments(session.user.id),
+          api.getAssignments(1,10),
         ]);
 
         setTutors(tutorsData);

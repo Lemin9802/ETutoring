@@ -23,11 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { page, size } = req.body;
+    const { page_number, page_size } = req.body;
     const bodyData = {
-      page,
-      size,
-      sort: "",
+      page_number,
+      page_size,
     };
 
     const response = await fetch(
