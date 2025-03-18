@@ -66,8 +66,9 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(tutors, metaData);
         }
 
-        public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
+        public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(AssignTutorMultipleStudentsRequest request)
         {
+            // Lấy Role ID của Student và Tutor
             var studentRoleId = await _context.Roles
                 .Where(r => r.Name == "Student")
                 .Select(r => r.Id)
@@ -78,22 +79,25 @@ namespace ETutoring.DataAccess.Services.Moderator
                 .Select(r => r.Id)
                 .FirstOrDefaultAsync();
 
-            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
+            // Kiểm tra tutor có vai trò Tutor không
+            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
             if (!isTutor)
                 return ApiResponse<bool>.FailureResponse("Invalid Tutor.");
 
+            // Lấy danh sách student hợp lệ (có vai trò Student)
             var validStudents = await _context.Users
                 .Join(_context.UserRoles,
-                    user => user.Id,
-                    userRole => userRole.UserId,
-                    (user, userRole) => new { user, userRole })
-                .Where(joined => studentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
+                      user => user.Id,
+                      userRole => userRole.UserId,
+                      (user, userRole) => new { user, userRole })
+                .Where(joined => request.StudentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
                 .Select(joined => joined.user.Id)
                 .ToListAsync();
 
             if (!validStudents.Any())
                 return ApiResponse<bool>.FailureResponse("No valid students found.");
 
+            // Lấy các assignment đã tồn tại cho các student hợp lệ
             var existingAssignments = await _context.StudentTutorManagements
                 .Where(stm => validStudents.Contains(stm.StudentId))
                 .ToListAsync();
@@ -101,43 +105,53 @@ namespace ETutoring.DataAccess.Services.Moderator
             foreach (var studentId in validStudents)
             {
                 var existingManagement = existingAssignments.FirstOrDefault(stm => stm.StudentId == studentId);
-                string action = existingManagement != null ? "Reassigned" : "Assigned";
+                StudentTutorManagement managementToUse;
+                string action;
 
                 if (existingManagement != null)
                 {
+                    action = "Reassigned";
+                    // Ghi lại lịch sử assignment trước khi cập nhật (nếu cần)
                     _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
                     {
                         StudentTutorManagementId = existingManagement.Id,
                         StudentId = studentId,
-                        TutorId = existingManagement.TutorId,
-                        AssignedBy = assignedBy,
+                        TutorId = existingManagement.TutorId, // Lấy tutor cũ
+                        AssignedBy = request.AssignedBy,
                         AssignedAt = DateTime.UtcNow,
-                        Action = "Reassigned"
+                        Action = action
                     });
 
-                    existingManagement.TutorId = tutorId;
+                    // Cập nhật assignment
+                    existingManagement.TutorId = request.TutorId;
+                    existingManagement.AssignedBy = request.AssignedBy;
+                    existingManagement.AssignedAt = DateTime.UtcNow;
+                    existingManagement.Action = action;
                     _context.StudentTutorManagements.Update(existingManagement);
+                    managementToUse = existingManagement;
                 }
                 else
                 {
+                    action = "Assigned";
                     var newManagement = new StudentTutorManagement
                     {
                         StudentId = studentId,
-                        TutorId = tutorId,
-                        AssignedBy = assignedBy,
+                        TutorId = request.TutorId,
+                        AssignedBy = request.AssignedBy,
                         AssignedAt = DateTime.UtcNow,
-                        Action = "Assigned"
+                        Action = action
                     };
-
                     _context.StudentTutorManagements.Add(newManagement);
+                    managementToUse = newManagement;
                 }
 
+                // Thêm lịch sử assignment cho mỗi student
                 _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
                 {
-                    StudentTutorManagementId = existingManagement?.Id ?? Guid.NewGuid(),
+                    StudentTutorManagementId = managementToUse.Id,
                     StudentId = studentId,
-                    TutorId = tutorId,
-                    AssignedBy = assignedBy,
+                    TutorId = request.TutorId,
+                    AssignedBy = request.AssignedBy,
                     AssignedAt = DateTime.UtcNow,
                     Action = action
                 });
