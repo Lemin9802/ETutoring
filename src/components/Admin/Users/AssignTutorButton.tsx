@@ -54,7 +54,7 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
     setIsModalVisible(false);
   };
 
-  console.log("Total: ", total)
+  console.log("Total: ", total);
 
   return (
     <>
@@ -77,7 +77,7 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
           placeholder="Select a Tutor"
           onChange={setSelectedTutor}
         >
-          {tutors.map((tutor) => (
+          {tutors?.map((tutor) => (
             <Option key={tutor.id} value={tutor.email}>
               {tutor.email} {/* Hiển thị email vì full_name rỗng */}
             </Option>

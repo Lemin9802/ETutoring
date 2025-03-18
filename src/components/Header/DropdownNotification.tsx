@@ -85,10 +85,10 @@ const DropdownNotification = () => {
       <li>
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-gray-200 hover:bg-gray-300 focus:outline-none"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow-md">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-white shadow-sm">
               {unreadCount}
             </span>
           )}
@@ -96,7 +96,9 @@ const DropdownNotification = () => {
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-6 w-6"
+            className={`h-5 w-5 transition-colors duration-200 ${
+              dropdownOpen ? "text-primary" : "text-gray-500"
+            }`}
           >
             <path
               fillRule="evenodd"
@@ -108,38 +110,110 @@ const DropdownNotification = () => {
 
         {/* Notification dropdown */}
         {dropdownOpen && (
-          <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-1 sm:left-auto sm:right-0 mt-2 w-80 max-w-xs md:max-w-sm lg:max-w-md rounded-lg border border-gray-300 bg-white shadow-lg">
-            <div className="p-4 border-b">
-              <h1 className="text-lg sm:text-xl font-medium">Notifications</h1>
+          <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-1 sm:left-auto sm:right-0 mt-2 w-80 max-w-xs md:max-w-sm lg:max-w-md rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Notifications
+                </h1>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium text-primary bg-primary/10 rounded-full">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Loading, error, or notifications */}
             {loading ? (
-              <p className="p-4 text-gray-500 text-center">Loading...</p>
+              <div className="p-4 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
             ) : error ? (
-              <p className="p-4 text-red-500 text-center">{error}</p>
+              <div className="p-4 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-50 mb-2">
+                  <svg
+                    className="w-6 h-6 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-red-500 text-sm">{error}</p>
+              </div>
             ) : notifications.length === 0 ? (
-              <p className="p-4 text-gray-500 text-center">
-                No notifications available.
-              </p>
+              <div className="p-4 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-2">
+                  <svg
+                    className="w-6 h-6 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-sm">
+                  No notifications available.
+                </p>
+              </div>
             ) : (
               <>
-                <ul className="max-h-64 overflow-y-auto">
+                <ul className="max-h-64 overflow-y-auto divide-y divide-gray-100">
                   {displayedNotifications.map((notif) => (
                     <li key={notif.id}>
                       <button
                         type="button"
-                        className={`w-full text-left px-4 py-3 border-b text-sm ${
-                          notif.isRead
-                            ? "bg-gray-100 text-gray-500"
-                            : "bg-white text-black font-semibold"
-                        } hover:bg-gray-200 focus:outline-none`}
+                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors duration-150 ${
+                          notif.isRead ? "bg-white" : "bg-primary/5"
+                        }`}
                         onClick={() => handleNotificationClick(notif)}
                       >
-                        <p>{notif.subject}</p>
-                        <p className="text-xs text-gray-400">
-                          {notif.createdAt}
-                        </p>
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`flex-shrink-0 mt-1 ${
+                              notif.isRead ? "text-gray-400" : "text-primary"
+                            }`}
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-sm font-medium ${
+                                notif.isRead ? "text-gray-500" : "text-gray-900"
+                              }`}
+                            >
+                              {notif.subject}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {notif.createdAt}
+                            </p>
+                          </div>
+                        </div>
                       </button>
                     </li>
                   ))}
@@ -147,10 +221,10 @@ const DropdownNotification = () => {
 
                 {/* Show more/less button */}
                 {notifications.length > initialDisplayCount && (
-                  <div className="p-2 text-center border-t">
+                  <div className="p-3 text-center border-t border-gray-100">
                     <button
                       onClick={() => setShowAll(!showAll)}
-                      className="text-blue-500 focus:outline-none"
+                      className="text-sm font-medium text-primary hover:text-primary/80 focus:outline-none"
                     >
                       {showAll ? "Show Less" : "Show All"}
                     </button>

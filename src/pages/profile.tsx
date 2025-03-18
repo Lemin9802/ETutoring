@@ -1,22 +1,24 @@
 import { EditOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import {
-  Avatar,
   Button,
   Card,
   Col,
   DatePicker,
   Descriptions,
   Divider,
-  Form, Input,
+  Form,
+  Input,
   message,
   Modal,
   Row,
   Select,
-  Spin, Tag,
-  Typography
+  Spin,
+  Tag,
+  Typography,
 } from "antd";
 import moment from "moment";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const { Title, Text } = Typography;
@@ -85,7 +87,9 @@ const Profile: React.FC = () => {
       gender: userDetails?.gender,
       address: userDetails?.address,
       nationality: userDetails?.nationality,
-      date_of_birth: userDetails?.date_of_birth ? moment(userDetails.date_of_birth) : null,
+      date_of_birth: userDetails?.date_of_birth
+        ? moment(userDetails.date_of_birth)
+        : null,
     });
   };
 
@@ -103,9 +107,11 @@ const Profile: React.FC = () => {
       onOk: async () => {
         try {
           const updatedFields = Object.fromEntries(
-            Object.entries(values).filter(([, v]) => v !== undefined && v !== null)
+            Object.entries(values).filter(
+              ([, v]) => v !== undefined && v !== null
+            )
           );
-  
+
           const response = await fetch("/api/profile/update-profile", {
             method: "POST",
             headers: {
@@ -117,12 +123,14 @@ const Profile: React.FC = () => {
               ...updatedFields, // Send only fields that have changed
             }),
           });
-  
+
           const result = await response.json();
-  
+
           if (response.ok) {
             message.success("Profile updated successfully!");
-            setUserDetails((prev) => prev ? { ...prev, ...updatedFields } : prev);
+            setUserDetails((prev) =>
+              prev ? { ...prev, ...updatedFields } : prev
+            );
             setIsModalOpen(false);
           } else {
             message.error(result?.message || "Failed to update profile!");
@@ -133,7 +141,7 @@ const Profile: React.FC = () => {
         }
       },
     });
-  };  
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -157,46 +165,77 @@ const Profile: React.FC = () => {
         <Card className="shadow-lg">
           <Row justify="space-between" align="middle">
             <Title level={2}>Profile</Title>
-            <Button type="primary" icon={<EditOutlined />} size="large" onClick={showModal}>
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              size="large"
+              onClick={showModal}
+            >
               Update Profile
             </Button>
           </Row>
-  
+
           <Divider />
-  
+
           <Row gutter={[16, 16]} align="middle">
             <Col>
-              <Avatar
-                src={userDetails?.profile_picture || "/default-avatar.png"}
-                size={100}
-                className="border-4 border-gray-300"
-              >
-                {!userDetails.profile_picture && userDetails.full_name?.[0]}
-              </Avatar>
+              <Image
+                src={userDetails?.profile_picture || session?.user?.image || ""}
+                alt="Avatar"
+                width={100}
+                height={100}
+                className="rounded-full"
+              />
             </Col>
             <Col>
-              <Title level={3}>{userDetails.full_name || "N/A"}</Title>
-              <Tag color="red">{session?.user?.roles}</Tag>
+              <Title level={3}>
+                {userDetails.full_name || userDetails.email || "N/A"}
+              </Title>
+              <Tag color="blue">{session?.user?.roles}</Tag>
             </Col>
           </Row>
-  
+
           <Divider />
-  
-          <Descriptions title="User Information" bordered column={1} size="middle">
-            <Descriptions.Item label="Gender">{userDetails.gender || "N/A"}</Descriptions.Item>
-            <Descriptions.Item label="Phone Number">{userDetails.phone_number || "N/A"}</Descriptions.Item>
-            <Descriptions.Item label="Nationality">{userDetails.nationality || "N/A"}</Descriptions.Item>
-            <Descriptions.Item label="Address">{userDetails.address || "N/A"}</Descriptions.Item>
+
+          <Descriptions
+            title="User Information"
+            bordered
+            column={1}
+            size="middle"
+          >
+            <Descriptions.Item label="Gender">
+              {userDetails.gender || "N/A"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Phone Number">
+              {userDetails.phone_number || "N/A"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Nationality">
+              {userDetails.nationality || "N/A"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Address">
+              {userDetails.address || "N/A"}
+            </Descriptions.Item>
             <Descriptions.Item label="Date of Birth">
-              {userDetails.date_of_birth ? moment(userDetails.date_of_birth).format("DD/MM/YYYY") : "N/A"}
+              {userDetails.date_of_birth
+                ? moment(userDetails.date_of_birth).format("DD/MM/YYYY")
+                : "N/A"}
             </Descriptions.Item>
           </Descriptions>
         </Card>
       </Col>
-  
-      <Modal title="Update Profile" open={isModalOpen} onCancel={handleCancel} footer={null}>
+
+      <Modal
+        title="Update Profile"
+        open={isModalOpen}
+        onCancel={handleCancel}
+        footer={null}
+      >
         <Form form={form} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item name="full_name" label="Full Name" rules={[{ required: true }]}>
+          <Form.Item
+            name="full_name"
+            label="Full Name"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item name="phone_number" label="Phone Number">
@@ -212,12 +251,14 @@ const Profile: React.FC = () => {
             <DatePicker className="w-full" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">Save</Button>
+            <Button type="primary" htmlType="submit">
+              Save
+            </Button>
           </Form.Item>
         </Form>
       </Modal>
     </Row>
-  );  
+  );
 };
 
 export default Profile;

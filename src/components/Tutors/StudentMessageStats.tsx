@@ -1,30 +1,40 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Select } from 'antd';
+import { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { Select } from "antd";
 import { Roboto } from "next/font/google";
 
 const funnel = Roboto({
   subsets: ["latin"],
-  weight: ["300", "400", "700"], 
+  weight: ["300", "400", "700"],
   display: "swap",
 });
 
-const StudentsMessagesPage = () => {
+const StudentsMessagesStats = () => {
   // Declare data with the appropriate type
   const [data, setData] = useState<{ student: string; messages: number }[]>([]);
-  const [filteredData, setFilteredData] = useState<{ student: string; messages: number }[]>([]);
+  const [filteredData, setFilteredData] = useState<
+    { student: string; messages: number }[]
+  >([]);
 
   useEffect(() => {
     // Fake API Data
     const fetchData = async () => {
       const fakeData = [
-        { student: 'Alice Nguyen', messages: 50 },
-        { student: 'Bob Tran', messages: 70 },
-        { student: 'Charlie Le', messages: 40 },
-        { student: 'David Ho', messages: 65 },
-        { student: 'Emma Pham', messages: 55 },
+        { student: "Alice Nguyen", messages: 50 },
+        { student: "Bob Tran", messages: 70 },
+        { student: "Charlie Le", messages: 40 },
+        { student: "David Ho", messages: 65 },
+        { student: "Emma Pham", messages: 55 },
       ];
       setData(fakeData);
       setFilteredData(fakeData); // Initialize filteredData with full data
@@ -34,9 +44,9 @@ const StudentsMessagesPage = () => {
 
   const handleFilterChange = (value: string) => {
     let sortedData = [...data];
-    if (value === 'most') {
+    if (value === "most") {
       sortedData = sortedData.sort((a, b) => b.messages - a.messages); // Sort descending
-    } else if (value === 'less') {
+    } else if (value === "less") {
       sortedData = sortedData.sort((a, b) => a.messages - b.messages); // Sort ascending
     }
     setFilteredData(sortedData); // Update filteredData with the sorted data
@@ -45,12 +55,18 @@ const StudentsMessagesPage = () => {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className={funnel.className}>
-        <h2 className="text-2xl font-bold mb-4 text-center">Average Messages per Student</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          Average Messages per Student
+        </h2>
       </div>
-      
+
       {/* Filter Dropdown - Align to the right */}
       <div className="flex justify-end mb-4">
-        <Select defaultValue="most" onChange={handleFilterChange} style={{ width: 120 }}>
+        <Select
+          defaultValue="most"
+          onChange={handleFilterChange}
+          style={{ width: 120 }}
+        >
           <Select.Option value="most">Most</Select.Option>
           <Select.Option value="less">Less</Select.Option>
         </Select>
@@ -71,4 +87,4 @@ const StudentsMessagesPage = () => {
   );
 };
 
-export default StudentsMessagesPage;
+export default StudentsMessagesStats;
