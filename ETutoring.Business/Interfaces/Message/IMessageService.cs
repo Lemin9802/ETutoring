@@ -22,5 +22,8 @@ namespace ETutoring.Business.Interfaces.Message
         Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync( MetaResponse meta);
         Task<ApiResponse<UpdateAssignChatroomResponse>> UpdateAssignChatroomAsync(UpdateAssignChatroomRequest request);
         Task<ApiResponse<DeleteAssignChatroomResponse>> DeleteAssignChatroomAsync(DeleteAssignChatroomRequest request);
+        Task<ApiResponse<AverageMessagesResponse>> GetAverageMessagesPerTutorAsync();
+        Task<byte[]> GenerateTutorPerformancePdfReportAsync();
+        Task<byte[]> GenerateTutorPerformanceExcelReportAsync();
     }
 }

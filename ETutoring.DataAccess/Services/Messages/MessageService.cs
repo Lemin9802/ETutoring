@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace ETutoring.DataAccess.Services.Messages
 {
-    public class MessageService : IMessageService
+    public partial class MessageService : IMessageService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMessageHubService _messageHubService;
@@ -32,12 +32,12 @@ namespace ETutoring.DataAccess.Services.Messages
                 .GroupBy(m => m.SenderId == request.UserId ? m.ReceiverId : m.SenderId)
                 .Select(g => new
                 {
-                    ConversationId = g.FirstOrDefault().Id,
+                    ConversationId = g.FirstOrDefault() != null ? g.FirstOrDefault().Id : Guid.Empty,
                     ParticipantId = g.Key,
                     LastMessage = g.OrderByDescending(m => m.Timestamp).Select(m => m.Content).FirstOrDefault(),
                     LastMessageTime = g.OrderByDescending(m => m.Timestamp).Select(m => m.Timestamp).FirstOrDefault(),
-                    SenderId = g.FirstOrDefault().SenderId,
-                    ReceiverId = g.FirstOrDefault().ReceiverId
+                    SenderId = g.FirstOrDefault() != null ? g.FirstOrDefault().SenderId : string.Empty,
+                    ReceiverId = g.FirstOrDefault() != null ? g.FirstOrDefault().ReceiverId : string.Empty
                 })
                 .OrderByDescending(c => c.LastMessageTime)
                 .ToListAsync();
