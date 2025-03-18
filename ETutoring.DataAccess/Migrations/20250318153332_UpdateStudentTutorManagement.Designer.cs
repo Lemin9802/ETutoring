@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250318153332_UpdateStudentTutorManagement")]
+    partial class UpdateStudentTutorManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -653,7 +656,7 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.Property<Guid>("StudentTutorManagementId")
                         .HasColumnType("uuid")
-                        .HasColumnName("student_tutor_management_id");
+                        .HasColumnName("StudentTutorManagementId");
 
                     b.Property<Guid>("TutorId")
                         .HasColumnType("uuid")
@@ -661,9 +664,6 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_student_tutor_management_histories");
-
-                    b.HasIndex("StudentTutorManagementId")
-                        .HasDatabaseName("ix_student_tutor_management_histories_student_tutor_management");
 
                     b.ToTable("student_tutor_management_histories", (string)null);
                 });
@@ -989,18 +989,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasConstraintName("fk_student_tutor_managements_student_tutor_management_historie");
                 });
 
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagementHistory", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.StudentTutorManagement", "StudentTutorManagement")
-                        .WithMany("Histories")
-                        .HasForeignKey("StudentTutorManagementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_tutor_management_histories_student_tutor_management");
-
-                    b.Navigation("StudentTutorManagement");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -1082,11 +1070,6 @@ namespace ETutoring.DataAccess.Migrations
             modelBuilder.Entity("ETutoring.Core.Entities.DocumentComment", b =>
                 {
                     b.Navigation("Replies");
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.StudentTutorManagement", b =>
-                {
-                    b.Navigation("Histories");
                 });
 #pragma warning restore 612, 618
         }

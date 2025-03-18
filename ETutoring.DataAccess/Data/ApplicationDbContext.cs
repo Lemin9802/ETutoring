@@ -40,7 +40,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         base.OnModelCreating(builder);
         builder.Entity<BlogComment>()
         .HasKey(bc => new { bc.BlogId, bc.CommentId });
-
+        builder.Entity<StudentTutorManagementHistory>()
+            .HasOne(h => h.StudentTutorManagement)
+            .WithMany(m => m.Histories)
+            .HasForeignKey(h => h.StudentTutorManagementId);
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

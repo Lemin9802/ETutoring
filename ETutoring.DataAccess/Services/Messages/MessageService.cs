@@ -245,18 +245,19 @@ namespace ETutoring.DataAccess.Services.Messages
                     return ApiResponse<UpdateAssignChatroomResponse>.FailureResponse("Chatroom not found.");
                 }
 
-                // Cập nhật thông tin assign (ví dụ: cập nhật TutorId)
+                // Cập nhật cả TutorId và StudentId
                 chatroom.TutorId = request.NewTutorId;
+                chatroom.StudentId = request.NewStudentId;
 
                 _context.ChattingRooms.Update(chatroom);
                 await _context.SaveChangesAsync();
 
-                // Nếu có hub service để thông báo update, gọi ở đây (nếu cần)
-                await _messageHubService.UpdateAssignChatroom(chatroom.StudentId, request.NewTutorId);
-
+                // Trả về response bao gồm cả TutorId và StudentId mới
                 return ApiResponse<UpdateAssignChatroomResponse>.SuccessResponse(new UpdateAssignChatroomResponse
                 {
                     RoomId = chatroom.Id,
+                    TutorId = chatroom.TutorId,
+                    StudentId = chatroom.StudentId,
                     Success = true,
                     Message = "Chatroom assignment updated successfully."
                 });
@@ -267,6 +268,7 @@ namespace ETutoring.DataAccess.Services.Messages
                 return ApiResponse<UpdateAssignChatroomResponse>.FailureResponse("An error occurred while updating chatroom assignment.");
             }
         }
+
         public async Task<ApiResponse<DeleteAssignChatroomResponse>> DeleteAssignChatroomAsync(DeleteAssignChatroomRequest request)
         {
             try

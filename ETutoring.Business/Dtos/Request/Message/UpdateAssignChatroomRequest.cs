@@ -10,5 +10,6 @@ namespace ETutoring.Business.Dtos.Request.Message
     {
         public Guid RoomId { get; set; }
         public Guid NewTutorId { get; set; }
+        public Guid NewStudentId { get; set; }
     }
 }

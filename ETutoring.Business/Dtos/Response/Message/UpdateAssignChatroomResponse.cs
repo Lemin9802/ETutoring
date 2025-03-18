@@ -10,6 +10,8 @@ namespace ETutoring.Business.Dtos.Response.Message
     public class UpdateAssignChatroomResponse
     {
         public Guid RoomId { get; set; }
+        public Guid TutorId { get; set; }
+        public Guid StudentId { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
     }

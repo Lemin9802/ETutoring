@@ -56,7 +56,7 @@ namespace ETutoring.API.Controllers.Moderator
         [HttpPost("assign-multiple")]
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudents([FromBody] AssignTutorMultipleStudentsRequest request)
         {
-            return await _moderatorService.AssignTutorToMultipleStudentsAsync(request.StudentIds, request.TutorId, request.AssignedBy);
+            return await _moderatorService.AssignTutorToMultipleStudentsAsync(request);
         }
 
         [HttpPost("management-history")]
@@ -105,6 +105,5 @@ namespace ETutoring.API.Controllers.Moderator
         {
             return await _messageService.DeleteAssignChatroomAsync(request);
         }
-
     }
 }
