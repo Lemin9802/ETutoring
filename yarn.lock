@@ -2638,6 +2638,7 @@ dunder-proto@^1.0.0, dunder-proto@^1.0.1:
     chart.js "^4.4.7"
     dayjs "^1.11.13"
     e-tutoring-fe "file:"
+    framer-motion "^12.5.0"
     jsonwebtoken "^9.0.2"
     jwt-decode "^4.0.0"
     lucide-react "^0.476.0"
