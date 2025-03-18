@@ -168,6 +168,9 @@ public class IdentityServices : IIdentityServices
                 RefreshToken = refreshToken
             };
 
+            user.LastLoginTime = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
             return AuthResult<TokenResponse>.Success(tokenResponse);
         }
 
@@ -209,6 +212,9 @@ public class IdentityServices : IIdentityServices
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken
         };
+
+        user.LastLoginTime = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
 
         return AuthResult<TokenResponse>.Success(newTokenResponse);
     }

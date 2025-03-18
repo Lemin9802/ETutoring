@@ -1,11 +1,9 @@
 ﻿using ETutoring.Business.Dtos.Request.Tutor;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Tutor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Net;
-using ETutoring.Business.Dtos.Response;
-using ETutoring.Core.Common;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace ETutoring.API.Controllers.Tutor
 {
@@ -24,20 +22,11 @@ namespace ETutoring.API.Controllers.Tutor
         [HttpPost("get-students")]
         public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest model)
         {
-            try
-            {
-                var response = await _tutorService.GetStudentsForTutorAsync(model.TutorId, model.page, model.size);
-                if (!response.Success)
-                {
-                    return StatusCode((int)HttpStatusCode.NotFound, response); // 404 if no students found
-                }
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? throw new AuthErrorException("Cannot find credentials"));
 
-                return StatusCode((int)HttpStatusCode.OK, response); // 200 OK with the list of students
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<object>(false, "An error occurred while retrieving students.", errors: new List<string> { ex.Message }, data: null));
-            }
+            var response = await _tutorService.GetStudentsForTutorAsync(userId, model.Page, model.Size);
+
+            return Ok(response);
         }
     }
 }

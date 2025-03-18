@@ -1,12 +1,9 @@
-﻿using ETutoring.DataAccess.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using ETutoring.Business.Dtos.Response.Tutor;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Tutor;
-using ETutoring.Business.Dtos.Response;
-using System.Diagnostics;
-using System.Net;
-using ETutoring.Business.Dtos.Response.Moderator;
-using ETutoring.Business.Dtos.Response.Tutor;
 using ETutoring.Core.Common;
+using ETutoring.DataAccess.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.DataAccess.Services.Tutor
 {
@@ -21,34 +18,28 @@ namespace ETutoring.DataAccess.Services.Tutor
 
         public async Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, int page, int size)
         {
-            try
-            {
-                var students = await _context.StudentTutorManagements
-                    .Where(management => management.TutorId == tutorId)
-                    .Join(_context.Users,
-                        management => management.StudentId,
-                        student => student.Id,
-                        (management, student) => new GetStudentsForTutorResponse
-                        {
-                            StudentId = student.Id,
-                            FullName = student.FullName,
-                            Address = student.Address,
-                            PhoneNumber = student.PhoneNumber,
-                            Email = student.Email
-                        })
-                    .Skip((page - 1) * size)
-                    .Take(size)
-                    .ToListAsync();
+            var students = await _context.StudentTutorManagements
+                .Where(management => management.TutorId == tutorId)
+                .Join(_context.Users,
+                    management => management.StudentId,
+                    student => student.Id,
+                    (management, student) => new GetStudentsForTutorResponse
+                    {
+                        StudentId = student.Id,
+                        FullName = student.FullName,
+                        Address = student.Address,
+                        PhoneNumber = student.PhoneNumber,
+                        Email = student.Email
+                    })
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
 
-                if (!students.Any())
-                    return ApiResponse<List<GetStudentsForTutorResponse>>.FailureResponse("This tutor does not have any students assigned.");
+            if (!students.Any())
+                throw new EntityNotYetHaveDataException("This tutor does not have any students assigned");
 
-                return ApiResponse<List<GetStudentsForTutorResponse>>.SuccessResponse(students, "Students retrieved successfully.");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<GetStudentsForTutorResponse>>.FailureResponse($"An error occurred while retrieving students: {ex.Message}");
-            }
+            return ApiResponse<List<GetStudentsForTutorResponse>>.SuccessResponse(students, "Students retrieved successfully.");
+
         }
     }
 }

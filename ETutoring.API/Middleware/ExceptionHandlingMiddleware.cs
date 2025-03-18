@@ -49,6 +49,11 @@ public class ExceptionHandlingMiddleware
                 response = ApiResponseHandler.FailureResponse<Unit>(exception.Message);
                 break;
 
+            case EntityNotYetHaveDataException:
+                statusCode = (int)HttpStatusCode.NotFound;
+                response = ApiResponseHandler.FailureResponse<Unit>(exception.Message);
+                break;
+
             case AuthErrorException:
                 statusCode = (int)HttpStatusCode.Unauthorized;
                 response = ApiResponseHandler.FailureResponse<Unit>(exception.Message);
