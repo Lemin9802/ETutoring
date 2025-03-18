@@ -150,6 +150,11 @@ export const menuGroupsModerators = [
         route: "/moderators",
       },
       {
+        icon: Calendar,
+        label: "Calendar",
+        route: "/moderators/calendar",
+      },
+      {
         icon: User,
         label: "Manage Students",
         route: "/moderators/manage/users/students",
@@ -195,22 +200,22 @@ export const menuGroupsTeachers = [
       {
         icon: Home,
         label: "Dashboard",
-        route: "/teachers",
+        route: "/tutors",
       },
       {
         icon: Calendar,
-        label: "Schedule",
-        route: "/teachers/schedule",
+        label: "Calendar",
+        route: "/calendar",
       },
       {
         icon: MessageSquare,
         label: "Chatting",
-        route: "/teachers/chat/messages",
+        route: "/messages",
       },
       {
         icon: User,
         label: "My Students",
-        route: "/teachers/students",
+        route: "/tutors/students",
       },
       {
         icon: File,
@@ -220,22 +225,22 @@ export const menuGroupsTeachers = [
       {
         icon: BarChart,
         label: "Performance",
-        route: "/teachers/performance",
+        route: "/tutors/performance",
       },
       {
         icon: FileEdit,
         label: "Resources",
-        route: "/teachers/resources",
+        route: "/tutors/resources",
       },
       {
         icon: User,
         label: "Profile",
-        route: "/teachers/profile",
+        route: "/profile",
       },
       {
         icon: Settings,
         label: "Settings",
-        route: "/teachers/settings",
+        route: "/tutors/settings",
       },
     ],
   },
