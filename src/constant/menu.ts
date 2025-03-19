@@ -57,6 +57,16 @@ export const menuGroupsStudents = [
         route: "/tables",
       },
       {
+        icon: File,
+        label: "My Blogs",
+        route: "/students/blogs",
+      },
+      {
+        icon: Calendar,
+        label: "Meeting Calendar",
+        route: "/meeting",
+      },
+      {
         icon: Settings,
         label: "Settings",
         route: "/settings",
