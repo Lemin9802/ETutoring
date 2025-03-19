@@ -47,34 +47,38 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
   };
 
   const handleUpdateBlog = async (id: string) => {
-    if (!title.trim() || !content.trim()) {
-      message.warning("Title and content cannot be empty!");
+    if (!id) {
+      message.error("❌ Error: Blog ID is missing.");
       return;
     }
-
+    if (!title.trim() || !content.trim()) {
+      message.warning("⚠ Title and content cannot be empty!");
+      return;
+    }
+  
     setLoading(true);
     try {
-      const response = await axios.put(`/api/blogs/update/${id}`, {
+      console.log(`📝 Updating Blog ID: ${id}`);
+      const response = await axios.post(`/api/blogs/update?id=${id}`, {
         title,
         content,
       });
-
+  
       if (response.status === 200) {
-        message.success("Blog updated successfully!");
-        if (onBlogUpdated) {
-          onBlogUpdated(response.data.blog);
-        }
+        console.log("✅ API Response:", response.data);
+        message.success("✅ Blog updated successfully!");
+        if (onBlogUpdated) onBlogUpdated(response.data.blog);
         onClose();
       } else {
-        throw new Error("Failed to update blog");
+        throw new Error("⚠ Failed to update blog");
       }
     } catch (error) {
-      console.error("Error updating blog:", error);
-      message.error("Failed to update blog. Please try again.");
+      console.error("❌ API Error:", error);
+      message.error("❌ Failed to update blog. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleDeleteBlog = async (id: string) => {
     setLoading(true);
