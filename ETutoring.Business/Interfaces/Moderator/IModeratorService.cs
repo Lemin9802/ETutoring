@@ -18,5 +18,6 @@ namespace ETutoring.Business.Interfaces.Moderator
         Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetManagementHistoryAsync(MetaDataResponse meta);
         Task<ApiResponse<List<StudentTutorManagementHistoryResponse>>> GetDetailsManagementHistoryAsync(Guid studentTutorManagementId);
         Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(MetaDataResponse meta);
+        Task<ApiResponse<bool>> RemoveTutorFromMultipleStudentsAsync(RemoveTutorMultipleStudentsRequest request);
     }
 }
