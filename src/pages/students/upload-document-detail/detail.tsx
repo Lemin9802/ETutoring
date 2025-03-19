@@ -24,16 +24,21 @@ const PdfViewer: React.FC = () => {
     const router = useRouter();
     const { id } = router.query;
 
-    const [documentData, setDocumentData] = useState<any>(null);
+    interface DocumentData {
+        id: string;
+        file_url: string;
+        // Add other properties as needed
+    }
+
+    const [, setDocumentData] = useState<DocumentData | null>(null);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (id) {
             axios.post('/api/documents/user', { page_number: 1, page_size: 10 })
                 .then(response => {
-                    const document = response.data.data.find((doc: any) => doc.id === id);
+                    const document = response.data.data.find((doc: DocumentData) => doc.id === id);
                     if (document) {
                         setDocumentData(document);
                         setFileUrl(document.file_url);

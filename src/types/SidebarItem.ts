@@ -9,6 +9,6 @@ export type SidebarChild = {
 export type SidebarItemType = {
   label: string;
   route: string;
-  icon?: StaticImageData | React.ComponentType<any>;
+  icon?: StaticImageData | React.ComponentType<React.SVGProps<SVGSVGElement>>;
   children?: SidebarChild[]; // Optional nested items
 };

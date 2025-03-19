@@ -54,7 +54,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
       if (!res?.ok) {
         setError("Invalid email or password. Please try again.");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);

@@ -126,10 +126,10 @@ const DocumentUploadedListPage: React.FC = () => {
     },
   };
 
-  const handleTableChange = (pagination: any) => {
-    setCurrentPage(pagination.current);
-    setPageSize(pagination.pageSize);
-  };
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
+    setCurrentPage(pagination.current || 1);
+    setPageSize(pagination.pageSize || 10);
+};
   const columns: ColumnsType<DataType> = [
     {
       title: (

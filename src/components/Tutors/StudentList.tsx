@@ -175,7 +175,7 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     }));
   };
 
-  const handleFilterChange = (name: keyof FilterOptions, value: any) => {
+  const handleFilterChange = (name: keyof FilterOptions, value: string | [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
     // No need to call fetchStudents here as the useEffect will handle it
   };
@@ -238,7 +238,7 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     {
       title: "Status",
       key: "status",
-      render: (_: any, record: Student) => {
+      render: (_: unknown, record: Student) => {
         // Determine status based on last login (active if logged in within the last 7 days)
         const lastLogin = record.last_login_time
           ? dayjs(record.last_login_time)
@@ -255,7 +255,7 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     {
       title: "Action",
       key: "action",
-      render: (_: any, record: Student) => (
+      render: (_: unknown, record: Student) => (
         <div className="flex space-x-2">
           <a
             href={`/tutors/students/${record.id}`}
@@ -306,7 +306,7 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
                 <div className="mb-1 font-medium">Last Login Period</div>
                 <RangePicker
                   style={{ width: "100%" }}
-                  value={filters.loginDateRange as any}
+                  value={filters.loginDateRange as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null}
                   onChange={(dates) =>
                     handleFilterChange("loginDateRange", dates)
                   }

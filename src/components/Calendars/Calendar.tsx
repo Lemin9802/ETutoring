@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import { MailOutlined } from "@ant-design/icons";
 import {
-  Badge,
   Calendar as AntCalendar,
-  Modal,
-  Typography,
-  Divider,
   Avatar,
-  Tag,
+  Badge,
+  Divider,
+  Modal,
+  Typography
 } from "antd";
 import type { Dayjs } from "dayjs";
-import { CalendarProps } from "antd";
 import dayjs from "dayjs";
-import { MailOutlined } from "@ant-design/icons";
-import { Meeting, Attendee } from "./types";
+import React, { useState } from "react";
+import { Meeting } from "./types";
 
 interface CalendarComponentProps {
   meetings?: Meeting[];
