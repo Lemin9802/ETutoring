@@ -14,7 +14,6 @@ const StudentBlogIndex = () => {
   const [blogs, setBlogs] = useState<BlogType[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [editingBlog, setEditingBlog] = useState<BlogType | null>(null);
 
   // Fetch only the logged-in user's blogs
   const fetchMyBlogs = useCallback(async () => {
