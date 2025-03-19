@@ -97,64 +97,32 @@ namespace ETutoring.DataAccess.Services.Moderator
             if (!validStudents.Any())
                 return ApiResponse<bool>.FailureResponse("No valid students found.");
 
-            // Lấy các assignment đã tồn tại cho các student hợp lệ
-            var existingAssignments = await _context.StudentTutorManagements
-                .Where(stm => validStudents.Contains(stm.StudentId))
+            var existingAllocations = await _context.Allocations
+                .Where(a => validStudents.Contains(a.StudentId))
                 .ToListAsync();
 
             foreach (var studentId in validStudents)
             {
-                var existingManagement = existingAssignments.FirstOrDefault(stm => stm.StudentId == studentId);
-                StudentTutorManagement managementToUse;
-                string action;
+                var existingAllocation = existingAllocations.FirstOrDefault(a => a.StudentId == studentId);
 
-                if (existingManagement != null)
+                if (existingAllocation != null)
                 {
-                    action = "Reassigned";
-                    // Ghi lại lịch sử assignment trước khi cập nhật (nếu cần)
-                    _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-                    {
-                        StudentTutorManagementId = existingManagement.Id,
-                        StudentId = studentId,
-                        TutorId = existingManagement.TutorId, // Lấy tutor cũ
-                        AssignedBy = request.AssignedBy,
-                        AssignedAt = DateTime.UtcNow,
-                        Action = action
-                    });
-
-                    // Cập nhật assignment
-                    existingManagement.TutorId = request.TutorId;
-                    existingManagement.AssignedBy = request.AssignedBy;
-                    existingManagement.AssignedAt = DateTime.UtcNow;
-                    existingManagement.Action = action;
-                    _context.StudentTutorManagements.Update(existingManagement);
-                    managementToUse = existingManagement;
+                    existingAllocation.TutorId = request.TutorId;
+                    existingAllocation.AssignedBy = request.AssignedBy;
+                    existingAllocation.AssignedAt = DateTime.UtcNow;
+                    _context.Allocations.Update(existingAllocation);
                 }
                 else
                 {
-                    action = "Assigned";
-                    var newManagement = new StudentTutorManagement
+                    var newAllocation = new Allocation
                     {
                         StudentId = studentId,
                         TutorId = request.TutorId,
                         AssignedBy = request.AssignedBy,
-                        AssignedAt = DateTime.UtcNow,
-                        Action = action
+                        AssignedAt = DateTime.UtcNow
                     };
-                    _context.StudentTutorManagements.Add(newManagement);
-                    managementToUse = newManagement;
+                    _context.Allocations.Add(newAllocation);
                 }
-
-                // Thêm lịch sử assignment cho mỗi student
-                _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-                {
-                    StudentTutorManagementId = managementToUse.Id,
-                    StudentId = studentId,
-                    TutorId = request.TutorId,
-                    AssignedBy = request.AssignedBy,
-                    AssignedAt = DateTime.UtcNow,
-                    Action = action
-                });
             }
 
             await _context.SaveChangesAsync();
@@ -322,5 +290,40 @@ namespace ETutoring.DataAccess.Services.Moderator
                 return ApiResponse<List<StudentDto>>.FailureResponse("An error occurred while retrieving students.", new List<string> { ex.Message });
             }
         }
+
+        public async Task<ApiResponse<bool>> RemoveTutorFromMultipleStudentsAsync(RemoveTutorMultipleStudentsRequest request)
+        {
+            // Lấy Role ID của Student
+            var studentRoleId = await _context.Roles
+                .Where(r => r.Name == "Student")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            // Lấy danh sách student hợp lệ (có vai trò Student)
+            var validStudents = await _context.Users
+                .Join(_context.UserRoles,
+                      user => user.Id,
+                      userRole => userRole.UserId,
+                      (user, userRole) => new { user, userRole })
+                .Where(joined => request.StudentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
+                .Select(joined => joined.user.Id)
+                .ToListAsync();
+
+            if (!validStudents.Any())
+                return ApiResponse<bool>.FailureResponse("No valid students found.");
+
+            var existingAllocations = await _context.Allocations
+                .Where(a => validStudents.Contains(a.StudentId) && a.TutorId == request.TutorId)
+                .ToListAsync();
+
+            if (!existingAllocations.Any())
+                return ApiResponse<bool>.FailureResponse("No allocations found for the provided tutor and students.");
+
+            _context.Allocations.RemoveRange(existingAllocations);
+            await _context.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResponse(true, "Tutor removed from multiple students successfully.");
+        }
+
     }
 }
