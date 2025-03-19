@@ -5,6 +5,7 @@ using ETutoring.Core.Entities;
 using ETutoring.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 
 namespace ETutoring.API.Controllers
@@ -20,9 +21,15 @@ namespace ETutoring.API.Controllers
             _blogService = blogService;
         }
 
+        // ✅ Create blog
         [HttpPost("create")]
         public async Task<ActionResult<ApiResponse<Blog>>> CreateBlogAsync([FromBody] CreateBlogRequest request, CancellationToken cancellationToken = default)
         {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("Not found user in JWT token");
+
+            request.UserId = Guid.Parse(userId);
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
         }
@@ -31,53 +38,63 @@ namespace ETutoring.API.Controllers
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<Blog>>>> GetAllBlogsAsync(CancellationToken cancellationToken = default)
         {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("Not found user in JWT token");
 
-            var blogs = await _blogService.GetAllBlogsAsync(userId, isAdmin, cancellationToken);
+            var isAdmin = User.IsAdmin();
+            var blogs = await _blogService.GetAllBlogsAsync(Guid.Parse(userId), isAdmin, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blogs, "Blogs Retrieved Successfully"));
         }
 
+        // ✅ Get blog by ID (Search & View Detail)
         [HttpPost("get-by-id")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<Blog>>> GetBlogByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
+        public async Task<ActionResult<ApiResponse<Blog>>> GetBlogByIdAsync(
+        [FromBody] Guid id,
+        CancellationToken cancellationToken = default)
+            {
+                Console.WriteLine($"🔍 Fetching Blog ID: {id}");
 
-            var blog = await _blogService.GetBlogByIdAsync(id, userId, isAdmin, cancellationToken);
-            if (blog == null)
-                return NotFound(ApiResponseHandler.FailureResponse<Blog>("Blog not found"));
+                var isAdmin = User.IsAdmin();
+                var blog = await _blogService.GetBlogByIdAsync(id, isAdmin, cancellationToken);
 
-            return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Retrieved Successfully"));
-        }
+                if (blog == null)
+                    return NotFound(ApiResponseHandler.FailureResponse<Blog>("Blog not found"));
 
+                return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Retrieved Successfully"));
+            }
         [HttpPost("update")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<Blog>>> UpdateBlogAsync(Guid id, [FromBody] UpdateBlogRequest request, CancellationToken cancellationToken = default)
-        {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
+        public async Task<ActionResult<ApiResponse<Blog>>> UpdateBlogAsync(
+        [FromQuery] Guid id,
+        [FromBody] UpdateBlogRequest request,
+        CancellationToken cancellationToken = default)
+            {
+                var isAdmin = User.IsAdmin();
+                var updatedBlog = await _blogService.UpdateBlogAsync(id, request, isAdmin, cancellationToken);
 
-            var updatedBlog = await _blogService.UpdateBlogAsync(id, request, userId, isAdmin, cancellationToken);
-            if (updatedBlog == null)
-                return NotFound(ApiResponseHandler.FailureResponse<Blog>("Blog not found or not authorized to update"));
+                if (updatedBlog == null)
+                    return NotFound(ApiResponseHandler.FailureResponse<Blog>("Blog not found or not authorized to update"));
 
-            return Ok(ApiResponseHandler.SuccessResponse(updatedBlog, "Blog Updated Successfully"));
-        }
-
+                return Ok(ApiResponseHandler.SuccessResponse(updatedBlog, "Blog Updated Successfully"));
+            }
         [HttpPost("delete")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<bool>>> DeleteBlogAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            var userId = User.GetUserId();
-            var isAdmin = User.IsAdmin();
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteBlogAsync(
+        [FromBody] Guid id,
+        CancellationToken cancellationToken = default)
+            {
+                var isAdmin = User.IsAdmin();
+                if (!isAdmin)
+                    return Forbid();
 
-            var result = await _blogService.DeleteBlogAsync(id, userId, isAdmin, cancellationToken);
-            if (!result)
-                return NotFound(ApiResponseHandler.FailureResponse<bool>("Blog not found or not authorized to delete"));
+                var result = await _blogService.DeleteBlogAsync(id, isAdmin, cancellationToken);
+                if (!result)
+                    return NotFound(ApiResponseHandler.FailureResponse<bool>("Blog not found or not authorized to delete"));
 
-            return Ok(ApiResponseHandler.SuccessResponse(true, "Blog Deleted Successfully"));
-        }
+                return Ok(ApiResponseHandler.SuccessResponse(true, "Blog Deleted Successfully"));
+            }
+
     }
 }
