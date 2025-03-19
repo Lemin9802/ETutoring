@@ -41,6 +41,7 @@ interface CommentType {
   content: string;
   document_id: string;
   parent_id?: string | null;
+  replies?: CommentType[];
 }
 
 interface CommentInputProps {
@@ -233,13 +234,13 @@ const Feedback: React.FC = () => {
             document_id: id,
           });
 
-          const fetchedComments = response.data.data.flatMap((comment: any) => {
+          const fetchedComments = response.data.data.flatMap((comment: CommentType) => {
             // Include the parent comment
             const mainComment = { ...comment };
 
             // Include the replies as separate comments
             const replies = comment.replies
-              ? comment.replies.map((reply: any) => ({
+              ? comment.replies.map((reply: CommentType) => ({
                   ...reply,
                 }))
               : [];

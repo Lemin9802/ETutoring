@@ -9,7 +9,14 @@ const { Panel } = Collapse;
 const Feedback: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
-  const [documentData, setDocumentData] = useState<any>(null);
+  interface DocumentData {
+    id: string;
+    title: string;
+    file_url: string;
+    recipient_name: string;
+  }
+
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null);
   const [comments, setComments] = useState<{ name: string; time: string; content: string; document_id: string }[]>([]);
   const [newComment, setNewComment] = useState("");
   const [feedback, setFeedback] = useState<string>("");
@@ -19,7 +26,7 @@ const Feedback: React.FC = () => {
     if (id) {
       axios.post("/api/documents/user", { page_number: 1, page_size: 10 })
         .then(response => {
-          const document = response.data.data.find((doc: any) => doc.id === id);
+          const document = response.data.data.find((doc: DocumentData) => doc.id === id);
           if (document) {
             setDocumentData(document);
           }
@@ -34,7 +41,7 @@ const Feedback: React.FC = () => {
     if (id) {
       axios.post(`/api/documents/comments/get`, { document_id: id })
         .then(response => {
-          const fetchedComments = response.data.data.map((comment: any) => ({
+          const fetchedComments = response.data.data.map((comment: { name: string; time: string; content: string }) => ({
             ...comment,
             document_id: id as string,
           }));

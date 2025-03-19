@@ -21,8 +21,8 @@ interface ButtonWithIconProps {
 }
 
 const DocumentViewer: React.FC = () => {
-  const pdfUrl: string =
-    "https://etutoring-storage.s3.amazonaws.com/documents/4e5fd223-89fd-47bd-a1ae-86fd04827e20-Git_Commit_Message_Standard.pdf";
+  // const pdfUrl: string =
+  //   "https://etutoring-storage.s3.amazonaws.com/documents/4e5fd223-89fd-47bd-a1ae-86fd04827e20-Git_Commit_Message_Standard.pdf";
   const pageNavigationPluginInstance = pageNavigationPlugin();
   const [isInfoVisible, setIsInfoVisible] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -31,17 +31,22 @@ const DocumentViewer: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
 
-  const [documentData, setDocumentData] = useState<any>(null);
+  interface DocumentData {
+    id: string;
+    title: string;
+    file_url: string;
+  }
+
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       axios
         .post("/api/documents/user", { page_number: 1, page_size: 10 })
         .then((response) => {
-          const document = response.data.data.find((doc: any) => doc.id === id);
+          const document = response.data.data.find((doc: DocumentData) => doc.id === id);
           if (document) {
             setDocumentData(document);
             setFileUrl(document.file_url);
