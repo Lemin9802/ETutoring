@@ -100,8 +100,8 @@ namespace ETutoring.API.Controllers.Moderator
             return await _messageService.DeleteAssignChatroomAsync(request);
         }
 
-        [HttpGet("students/unassigned")]
-        public async Task<IActionResult> GetUnassignedStudents()
+        [HttpPost("students/unassigned")]
+        public async Task<IActionResult> GetUnassignedStudents([FromBody] object request)
         {
             try
             {
@@ -115,11 +115,12 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
-        [HttpGet("students/inactive")]
-        public async Task<IActionResult> GetInactiveStudents([FromQuery] int days = 7)
+        [HttpPost("students/inactive")]
+        public async Task<IActionResult> GetInactiveStudents([FromBody] InactiveStudentsRequest request)
         {
             try
             {
+                var days = request?.Days ?? 7;
                 var response = await _studentService.GetInactiveStudentsAsync(days);
                 return Ok(response);
             }
@@ -130,8 +131,8 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
-        [HttpGet("students/unassigned/pdf")]
-        public async Task<IActionResult> GetUnassignedStudentsPdfReport()
+        [HttpPost("students/unassigned/pdf")]
+        public async Task<IActionResult> GetUnassignedStudentsPdfReport([FromBody] object request)
         {
             try
             {
@@ -145,8 +146,8 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
-        [HttpGet("students/unassigned/excel")]
-        public async Task<IActionResult> GetUnassignedStudentsExcelReport()
+        [HttpPost("students/unassigned/excel")]
+        public async Task<IActionResult> GetUnassignedStudentsExcelReport([FromBody] object request)
         {
             try
             {
@@ -160,11 +161,12 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
-        [HttpGet("students/inactive/pdf")]
-        public async Task<IActionResult> GetInactiveStudentsPdfReport([FromQuery] int days = 7)
+        [HttpPost("students/inactive/pdf")]
+        public async Task<IActionResult> GetInactiveStudentsPdfReport([FromBody] InactiveStudentsRequest request)
         {
             try
             {
+                var days = request?.Days ?? 7;
                 var pdfBytes = await _studentService.GenerateInactiveStudentsPdfReportAsync(days);
                 return File(pdfBytes, "application/pdf", "InactiveStudentsReport.pdf");
             }
@@ -175,11 +177,12 @@ namespace ETutoring.API.Controllers.Moderator
             }
         }
 
-        [HttpGet("students/inactive/excel")]
-        public async Task<IActionResult> GetInactiveStudentsExcelReport([FromQuery] int days = 7)
+        [HttpPost("students/inactive/excel")]
+        public async Task<IActionResult> GetInactiveStudentsExcelReport([FromBody] InactiveStudentsRequest request)
         {
             try
             {
+                var days = request?.Days ?? 7;
                 var excelBytes = await _studentService.GenerateInactiveStudentsExcelReportAsync(days);
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "InactiveStudentsReport.xlsx");
             }
