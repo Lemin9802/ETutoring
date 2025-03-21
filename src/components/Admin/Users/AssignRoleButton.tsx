@@ -2,7 +2,6 @@ import { Button, Modal, Select, message } from "antd";
 import { useEffect, useState } from "react";
 import { FaUserEdit } from "react-icons/fa";
 
-// Mảng role cố định dựa trên bảng Role
 const roleOptions = [
     {
         id: "0194b0b1-587e-7ea9-b82d-e894bb669981",
@@ -53,7 +52,6 @@ const AssignRoleButton: React.FC = () => {
         fetchUsers(1, 10);
     }, []);
 
-    // Xử lý khi nhấn OK trong modal
     const handleAssign = async () => {
         if (!selectedUser || !selectedRole) {
             message.error("Vui lòng chọn user và role.");
@@ -122,7 +120,7 @@ const AssignRoleButton: React.FC = () => {
                         <Select.Option
                             key={user.id}
                             value={user.id}
-                            label={user.email} // Quan trọng: truyền label để filter
+                            label={user.email}
                         >
                             {user.email}
                         </Select.Option>
