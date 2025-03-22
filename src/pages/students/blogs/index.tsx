@@ -29,6 +29,7 @@ const StudentBlogIndex = () => {
       setBlogs(response.data.data || []);
     } catch (error) {
       console.error("Error fetching my blogs:", error);
+      message.error("Failed to fetch your blogs. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,7 @@ const StudentBlogIndex = () => {
     <div className="min-h-screen bg-gray-100">
       <Banner
         title="📝 My Blogs"
-        description="Manage and edit your personal blogs here."
+        description="Manage your blogs here."
         bgColor="bg-blue-600"
       />
 
@@ -70,19 +71,20 @@ const StudentBlogIndex = () => {
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onBlogCreated={(newBlog: BlogType) => {
-            if (!newBlog || !newBlog.id) {
+          if (!newBlog || !newBlog.id) {
             console.error("❌ Error: Created blog is invalid", newBlog);
             return;
-            }
-            message.success("🎉 Blog created successfully!");
+          }
+          message.success("🎉 Blog created successfully!");
+          // Bổ sung blog mới vào danh sách
+          setBlogs((prev) => [newBlog, ...prev]);
         }}
         onBlogUpdated={(updatedBlog: BlogType) =>
-            setBlogs((prev) =>
+          setBlogs((prev) =>
             prev.map((b) => (b.id === updatedBlog.id ? updatedBlog : b))
-            )
+          )
         }
-        />
-
+      />
 
       {/* Blog Listing */}
       <div className="max-w-6xl mx-auto px-4 py-6">
@@ -93,7 +95,9 @@ const StudentBlogIndex = () => {
         ) : blogs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogs
-              .filter((blog) => blog?.title?.toLowerCase().includes(search.toLowerCase()))
+              .filter((blog) =>
+                blog?.title?.toLowerCase().includes(search.toLowerCase())
+              )
               .map((blog) => (
                 <BlogCard
                   key={blog.id}
