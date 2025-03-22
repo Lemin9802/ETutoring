@@ -11,11 +11,22 @@ interface BlogWriteModalProps {
   onBlogDeleted?: (deletedBlogId: string) => void;
 }
 
-const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlogDeleted }: BlogWriteModalProps) => {
+/**
+ * Nếu Modal này chủ yếu để TẠO blog,
+ * thì ta có thể lược bỏ phần update/delete
+ */
+const BlogWriteModal = ({
+  visible,
+  onClose,
+  onBlogCreated,
+  onBlogUpdated,
+  onBlogDeleted,
+}: BlogWriteModalProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ============ CREATE Blog ============
   const handleCreateBlog = async () => {
     if (!title.trim() || !content.trim()) {
       message.warning("Title and content cannot be empty!");
@@ -31,7 +42,10 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
 
       if (response.status === 200) {
         message.success("Blog created successfully!");
-        onBlogCreated(response.data.blog);
+        // Lưu ý: theo code BE, response trả về data.data chứ không phải response.data.blog
+        // Kiểm tra log:
+        const createdBlog: BlogType = response.data.data;
+        onBlogCreated(createdBlog);
         setTitle("");
         setContent("");
         onClose();
@@ -46,6 +60,11 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
     }
   };
 
+  /**
+   * DƯỚI ĐÂY: Nếu bạn **thực sự** muốn modal này vừa Create, vừa Update, vừa Delete,
+   * thì bạn cần 1 cách "nhận ID" (props hoặc state). Tạm để code mẫu:
+   */
+
   const handleUpdateBlog = async (id: string) => {
     if (!id) {
       message.error("❌ Error: Blog ID is missing.");
@@ -55,19 +74,20 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
       message.warning("⚠ Title and content cannot be empty!");
       return;
     }
-  
+
     setLoading(true);
     try {
       console.log(`📝 Updating Blog ID: ${id}`);
-      const response = await axios.post(`/api/blogs/update?id=${id}`, {
+      const response = await axios.post("/api/blogs/update", {
+        id,
         title,
         content,
       });
-  
+
       if (response.status === 200) {
-        console.log("✅ API Response:", response.data);
+        const updatedBlog: BlogType = response.data.data; // BE trả về data.data
         message.success("✅ Blog updated successfully!");
-        if (onBlogUpdated) onBlogUpdated(response.data.blog);
+        if (onBlogUpdated) onBlogUpdated(updatedBlog);
         onClose();
       } else {
         throw new Error("⚠ Failed to update blog");
@@ -78,13 +98,16 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   const handleDeleteBlog = async (id: string) => {
+    if (!id) {
+      message.error("❌ Error: Blog ID is missing.");
+      return;
+    }
     setLoading(true);
     try {
-      const response = await axios.delete(`/api/blogs/delete/${id}`);
-
+      const response = await axios.post("/api/blogs/delete", { id });
       if (response.status === 200) {
         message.success("Blog deleted successfully!");
         if (onBlogDeleted) {
@@ -119,19 +142,28 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
       />
       <div className="flex justify-end gap-2">
         <Button onClick={onClose}>Cancel</Button>
+        {/* Nút Create */}
         <Button type="primary" loading={loading} onClick={handleCreateBlog}>
           Create Blog
         </Button>
-        <Button type="default" loading={loading} onClick={() => handleUpdateBlog("blog-id")}>
+
+        {/* Chỉ để DEMO Update/Delete (đang HARDCODE blog-id) */}
+        <Button
+          type="default"
+          loading={loading}
+          onClick={() => handleUpdateBlog("some-blog-id")}
+        >
           Update Blog
         </Button>
         <Popconfirm
           title="Are you sure you want to delete this blog? This action cannot be undone."
-          onConfirm={() => handleDeleteBlog("blog-id")}
+          onConfirm={() => handleDeleteBlog("some-blog-id")}
           okText="Yes, Delete"
           cancelText="Cancel"
         >
-          <Button danger loading={loading}>Delete Blog</Button>
+          <Button danger loading={loading}>
+            Delete Blog
+          </Button>
         </Popconfirm>
       </div>
     </Modal>
