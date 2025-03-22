@@ -11,13 +11,12 @@ interface BlogListProps {
   blogs?: BlogType[];
 }
 
-const BlogList = ({ filter, userId, blogs: initialBlogs }: BlogListProps) => {
-  const { data: session, status } = useSession();
+const BlogList = ({ filter, userId}: BlogListProps) => {
+  const { data: session} = useSession();
   const [blogs, setBlogs] = useState<BlogType[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchBlogs = useCallback(
@@ -28,7 +27,6 @@ const BlogList = ({ filter, userId, blogs: initialBlogs }: BlogListProps) => {
       }
 
       setLoading(true);
-      setError(false);
 
       try {
         const response = await axios.post(
@@ -53,7 +51,6 @@ const BlogList = ({ filter, userId, blogs: initialBlogs }: BlogListProps) => {
         setHasMore(newBlogs.length > 0);
       } catch (error) {
         console.error("Error fetching blogs:", error);
-        setError(true);
       } finally {
         setLoading(false);
       }
