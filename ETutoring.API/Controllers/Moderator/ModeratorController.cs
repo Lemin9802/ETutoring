@@ -132,7 +132,7 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("students/unassigned/pdf")]
-        public async Task<IActionResult> GetUnassignedStudentsPdfReport([FromBody] object request)
+        public async Task<IActionResult> GetUnassignedStudentsPdfReport()
         {
             try
             {
@@ -147,7 +147,7 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("students/unassigned/excel")]
-        public async Task<IActionResult> GetUnassignedStudentsExcelReport([FromBody] object request)
+        public async Task<IActionResult> GetUnassignedStudentsExcelReport()
         {
             try
             {

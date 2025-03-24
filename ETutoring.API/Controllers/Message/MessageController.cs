@@ -19,7 +19,7 @@ namespace ETutoring.API.Controllers.Message
             _messageService = messageService;
         }
 
-        [HttpGet("tutor-performance")]
+        [HttpPost("tutor-performance")]
         [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> GetAverageMessagesPerTutor()
         {
@@ -35,7 +35,7 @@ namespace ETutoring.API.Controllers.Message
             }
         }
 
-        [HttpGet("tutor-performance/pdf")]
+        [HttpPost("tutor-performance/pdf")]
         [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> GetTutorPerformancePdfReport()
         {
@@ -51,7 +51,7 @@ namespace ETutoring.API.Controllers.Message
             }
         }
 
-        [HttpGet("tutor-performance/excel")]
+        [HttpPost("tutor-performance/excel")]
         [Authorize(Roles = "Moderator")]
         public async Task<IActionResult> GetTutorPerformanceExcelReport()
         {
