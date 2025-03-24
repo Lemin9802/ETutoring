@@ -26,7 +26,7 @@ export interface UserListType {
   
 }
 
-const AdminUserListPage = () => {
+const ManageUserPage = () => {
   const { data: session } = useSession();
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -258,4 +258,4 @@ const AdminUserListPage = () => {
   );
 };
 
-export default AdminUserListPage; 
+export default ManageUserPage; 

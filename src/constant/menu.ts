@@ -181,6 +181,11 @@ export const menuGroupsModerators = [
       },
       {
         icon: Calendar,
+        label: "Manage allocations",
+        route: "/moderators/manage/allocations",
+      },
+      {
+        icon: Calendar,
         label: "Manage Appointments",
         route: "/moderators/manage/appointments",
       },
