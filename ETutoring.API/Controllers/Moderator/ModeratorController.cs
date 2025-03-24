@@ -101,7 +101,7 @@ namespace ETutoring.API.Controllers.Moderator
         }
 
         [HttpPost("students/unassigned")]
-        public async Task<IActionResult> GetUnassignedStudents([FromBody] object request)
+        public async Task<IActionResult> GetUnassignedStudents()
         {
             try
             {
