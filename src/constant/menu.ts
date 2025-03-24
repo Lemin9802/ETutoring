@@ -1,41 +1,49 @@
-import DashboardIcon from "public/icons/menu/dashboard.svg";
-import CalendarIcon from "public/icons/menu/calendar.svg";
-import ProfileIcon from "public/icons/menu/profile.svg";
-import FormsIcon from "public/icons/menu/form.svg";
-import TablesIcon from "public/icons/menu/table.svg";
-import SettingsIcon from "public/icons/menu/setting.svg";
-import ChartIcon from "public/icons/menu/chart.svg";
-import UIElementsIcon from "public/icons/menu/ui-element.svg";
-import AuthenticationIcon from "public/icons/menu/authentication.svg";
-import MessageIcon from "public/icons/menu/message.svg";
-import BlogIcon from "public/icons/menu/blogs.svg";
+import {
+  Home,
+  Calendar,
+  User,
+  FileText,
+  Table,
+  Settings,
+  BarChart,
+  Layers,
+  Lock,
+  MessageSquare,
+  FileEdit,
+  File,
+} from "lucide-react";
 
 export const menuGroupsStudents = [
   {
     name: "MENU",
     menuItems: [
       {
-        icon: DashboardIcon,
+        icon: Home,
         label: "Dashboard",
         route: "/students",
       },
       {
-        icon: MessageIcon,
+        icon: MessageSquare,
         label: "Chatting",
         route: "/students/chat/messages",
       },
       {
-        icon: CalendarIcon,
+        icon: Calendar,
         label: "Calendar",
         route: "/students/calendar",
       },
       {
-        icon: ProfileIcon,
+        icon: File,
+        label: "Documents",
+        route: "/documents/document-list",
+      },
+      {
+        icon: User,
         label: "Profile",
         route: "/students/profile",
       },
       {
-        icon: FormsIcon,
+        icon: FileText,
         label: "Forms",
         route: "#",
         children: [
@@ -44,12 +52,22 @@ export const menuGroupsStudents = [
         ],
       },
       {
-        icon: TablesIcon,
+        icon: Table,
         label: "Tables",
         route: "/tables",
       },
       {
-        icon: SettingsIcon,
+        icon: File,
+        label: "My Blogs",
+        route: "/students/blogs",
+      },
+      {
+        icon: Calendar,
+        label: "Meeting Calendar",
+        route: "/meeting",
+      },
+      {
+        icon: Settings,
         label: "Settings",
         route: "/settings",
       },
@@ -59,12 +77,12 @@ export const menuGroupsStudents = [
     name: "OTHERS",
     menuItems: [
       {
-        icon: ChartIcon,
+        icon: BarChart,
         label: "Chart",
         route: "/chart",
       },
       {
-        icon: UIElementsIcon,
+        icon: Layers,
         label: "UI Elements",
         route: "#",
         children: [
@@ -73,7 +91,7 @@ export const menuGroupsStudents = [
         ],
       },
       {
-        icon: AuthenticationIcon,
+        icon: Lock,
         label: "Authentication",
         route: "#",
         children: [
@@ -90,22 +108,22 @@ export const menuGroupsAdmin = [
     name: "ADMIN MENU",
     menuItems: [
       {
-        icon: DashboardIcon,
+        icon: Home,
         label: "Dashboard",
         route: "/admin",
       },
       {
-        icon: CalendarIcon,
+        icon: Calendar,
         label: "Calendar",
         route: "/admin/calendar",
       },
       {
-        icon: ProfileIcon,
+        icon: User,
         label: "Users",
         route: "/admin/users",
       },
       // {
-      //   icon: FormsIcon,
+      //   icon: FileText,
       //   label: "Forms",
       //   route: "#",
       //   children: [
@@ -114,17 +132,17 @@ export const menuGroupsAdmin = [
       //   ],
       // },
       {
-        icon: BlogIcon,
+        icon: FileEdit,
         label: "Blogs",
         route: "/blogs",
       },
       {
-        icon: TablesIcon,
+        icon: Table,
         label: "Tables",
         route: "/admin/tables",
       },
       {
-        icon: SettingsIcon,
+        icon: Settings,
         label: "Settings",
         route: "/settings",
       },
@@ -137,49 +155,107 @@ export const menuGroupsModerators = [
     name: "Moderators Menu",
     menuItems: [
       {
-        icon: DashboardIcon,
+        icon: Home,
         label: "Dashboard",
         route: "/moderators",
       },
       {
-        icon: CalendarIcon,
+        icon: Calendar,
+        label: "Calendar",
+        route: "/moderators/calendar",
+      },
+      {
+        icon: User,
         label: "Manage Students",
         route: "/moderators/manage/users/students",
       },
       {
-        icon: CalendarIcon,
+        icon: User,
         label: "Manage Tutors",
         route: "/moderators/manage/users/tutor",
       },
       {
-        icon: CalendarIcon,
+        icon: User,
         label: "Manage Users",
         route: "/moderators/manage/users",
       },
       {
-        icon: MessageIcon,
+        icon: Calendar,
         label: "Manage allocations",
         route: "/moderators/manage/allocations",
       },
       {
-        icon: CalendarIcon,
+        icon: Calendar,
         label: "Manage Appointments",
         route: "/moderators/manage/appointments",
       },
       {
-        icon: CalendarIcon,
+        icon: Layers,
         label: "Manage Relationships",
         route: "/moderators/manage/relationships",
       },
       {
-        icon: CalendarIcon,
+        icon: BarChart,
         label: "Statistics",
         route: "/moderators/manage/statistics",
       },
       {
-        icon: MessageIcon,
+        icon: MessageSquare,
         label: "Chat Management",
         route: "/moderators/manage/chat",
+      },
+    ],
+  },
+];
+
+export const menuGroupsTeachers = [
+  {
+    name: "TEACHER MENU",
+    menuItems: [
+      {
+        icon: Home,
+        label: "Dashboard",
+        route: "/tutors",
+      },
+      {
+        icon: Calendar,
+        label: "Calendar",
+        route: "/calendar",
+      },
+      {
+        icon: MessageSquare,
+        label: "Chatting",
+        route: "/messages",
+      },
+      {
+        icon: User,
+        label: "My Students",
+        route: "/tutors/students",
+      },
+      {
+        icon: File,
+        label: "Documents",
+        route: "/documents/document-list",
+      },
+      {
+        icon: BarChart,
+        label: "Performance",
+        route: "/tutors/performance",
+      },
+      {
+        icon: FileEdit,
+        label: "Resources",
+        route: "/tutors/resources",
+      },
+      {
+        icon: User,
+        label: "Profile",
+        route: "/profile",
+      },
+      {
+        icon: Settings,
+        label: "Settings",
+        route: "/tutors/settings",
       },
     ],
   },

@@ -93,7 +93,7 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
         onCancel={() => setIsModalVisible(false)}
       >
         <Select className="w-full mb-4" placeholder="Select a Tutor" onChange={setSelectedTutor}>
-          {tutors.map((tutor) => (
+          {tutors?.map((tutor) => (
             <Option key={tutor.id} value={tutor.id}>
               {tutor.email}
             </Option>

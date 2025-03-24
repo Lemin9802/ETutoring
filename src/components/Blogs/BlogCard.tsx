@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Card, Button, Modal, Input, message, Popconfirm } from "antd";
 import axios from "axios";
 import { BlogType } from "@/types/Blogs";
+import { useSession } from "next-auth/react";
 
 interface BlogCardProps {
   blog: BlogType;
   onBlogUpdated: (updatedBlog: BlogType) => void;
-  onBlogDeleted: (deletedBlogId: string) => void;
+  onBlogDeleted?: (deletedBlogId: string) => void; 
 }
 
 const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
@@ -15,39 +16,70 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
   const [content, setContent] = useState(blog.content);
   const [loading, setLoading] = useState(false);
 
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+
+  const { data: session } = useSession();
+
   const handleUpdateBlog = async () => {
-    if (!title.trim() || !content.trim()) {
-      message.warning("Title and content cannot be empty!");
+    if (!blog.id) {
+      message.error("❌ Error: Blog ID is missing.");
       return;
     }
+    if (!title.trim() || !content.trim()) {
+      message.warning("⚠ Title and content cannot be empty!");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.put(`/api/blogs/update/${blog.id}`, {
-        title,
-        content,
-      });
+      console.log(`📝 Updating Blog ID: ${blog.id}`);
+      const response = await axios.post(
+        "/api/blogs/update",
+        {
+          id: blog.id,
+          title,
+          content,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+
       if (response.status === 200) {
-        message.success("Blog updated successfully!");
-        onBlogUpdated(response.data.blog); // ✅ Truyền đúng tham số
+        message.success("✅ Blog updated successfully!");
+        if (onBlogUpdated) onBlogUpdated(response.data.data);
         setIsEditModalVisible(false);
       } else {
-        throw new Error("Failed to update blog");
+        throw new Error("⚠ Failed to update blog");
       }
     } catch (error) {
-      console.error("Error updating blog:", error);
-      message.error("Failed to update blog. Please try again.");
+      console.error("❌ API Error:", error);
+      message.error("❌ Failed to update blog. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   const handleDeleteBlog = async () => {
+    if (!blog.id) {
+      message.error("❌ Error: Blog ID is missing.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.delete(`/api/blogs/delete/${blog.id}`);
+      const response = await axios.post(
+        "/api/blogs/delete",
+        { id: blog.id },
+        {
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
+        }
+      );
+
       if (response.status === 200) {
-        message.success("Blog deleted successfully!");
-        onBlogDeleted(blog.id); // ✅ Truyền đúng tham số
+        message.success("🗑 Blog deleted successfully!");
+        if (onBlogDeleted) onBlogDeleted(blog.id);
       } else {
         throw new Error("Failed to delete blog");
       }
@@ -60,19 +92,40 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
   };
 
   return (
-    <Card title={blog.title} extra={<Button onClick={() => setIsEditModalVisible(true)}>Edit</Button>}>
-      <p>{blog.content}</p>
+    <Card
+      title={blog.title}
+      extra={
+        <Button type="link" onClick={() => setIsEditModalVisible(true)}>
+          ✏ Edit
+        </Button>
+      }
+      className="shadow-lg rounded-lg transition-transform hover:scale-105"
+    >
+      <p className="text-gray-700">
+        {blog.content.slice(0, 100)}...
+      </p>
+
+      {/* Footer actions */}
       <div className="flex justify-end gap-2 mt-4">
-        <Popconfirm
-          title="Are you sure you want to delete this blog? This action cannot be undone."
-          onConfirm={handleDeleteBlog}
-          okText="Yes, Delete"
-          cancelText="Cancel"
-        >
-          <Button danger loading={loading}>Delete</Button>
-        </Popconfirm>
+        {onBlogDeleted ? (
+          <Popconfirm
+            title="Are you sure you want to delete this blog? This action cannot be undone."
+            onConfirm={handleDeleteBlog}
+            okText="Yes, Delete"
+            cancelText="Cancel"
+          >
+            <Button danger loading={loading}>
+              🗑 Delete
+            </Button>
+          </Popconfirm>
+        ) : (
+          <Button onClick={() => setIsDetailModalVisible(true)}>
+            👀 View Detail
+          </Button>
+        )}
       </div>
-      {/* Edit Modal */}
+
+      {/* Modal Edit */}
       <Modal
         title="Edit Blog"
         visible={isEditModalVisible}
@@ -98,6 +151,16 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
             Update Blog
           </Button>
         </div>
+      </Modal>
+
+      <Modal
+        title="View Blog Detail"
+        visible={isDetailModalVisible}
+        onCancel={() => setIsDetailModalVisible(false)}
+        footer={null}
+      >
+        <h3 className="text-lg font-semibold mb-2">{blog.title}</h3>
+        <p>{blog.content}</p>
       </Modal>
     </Card>
   );

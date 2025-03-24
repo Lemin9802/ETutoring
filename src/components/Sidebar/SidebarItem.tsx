@@ -3,6 +3,12 @@ import SidebarDropdown from "@/components/Sidebar/SidebarDropdown";
 import { usePathname } from "next/navigation";
 import { SidebarItemType } from "@/types/SidebarItem";
 import Image from "next/image";
+import React from "react";
+import { ComponentType } from "react";
+
+interface IconProps {
+  size?: number;
+}
 
 type SidebarItemProps = {
   item: SidebarItemType;
@@ -39,21 +45,45 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         <Link
           href={item.route}
           onClick={handleClick}
-          className={`${
-            isItemActive ? "bg-graydark" : ""
-          } text-white group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium duration-300 ease-in-out hover:bg-graydark`}
+          className={`group relative flex items-center gap-3 rounded-md px-4 py-2.5 font-medium transition-all duration-200 ease-in-out ${
+            isItemActive
+              ? "bg-gray-800 text-white"
+              : "text-gray-300 hover:bg-gray-800/70 hover:text-white"
+          }`}
         >
-          {item.icon && (
-            <Image src={item.icon} alt={item.label} width={20} height={20} />
-          )}
-          {item.label}
+          {item.icon &&
+            (typeof item.icon === "string" ? (
+              <div className="flex items-center justify-center h-5 w-5 transition-all duration-200">
+                <Image
+                  src={item.icon}
+                  alt={item.label}
+                  width={20}
+                  height={20}
+                />
+              </div>
+            ) : (
+              <span
+                className={`text-${
+                  isItemActive ? "white" : "gray-400"
+                } group-hover:text-white transition-colors duration-200`}
+              >
+                {typeof item.icon !== "string" && "src" in item.icon
+                  ? null
+                  : React.createElement(item.icon as ComponentType<IconProps>, {
+                      size: 20,
+                    })}
+              </span>
+            ))}
+          <span className="transition-all duration-200">{item.label}</span>
           {item.children && (
             <svg
-              className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${
-                pageName === item.label.toLowerCase() && "rotate-180"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 fill-current text-gray-400 transition-transform duration-200 ${
+                pageName === item.label.toLowerCase()
+                  ? "rotate-180 text-white"
+                  : "group-hover:text-white"
               }`}
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -70,8 +100,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 
         {item.children && (
           <div
-            className={`translate transform overflow-hidden ${
-              pageName !== item.label.toLowerCase() && "hidden"
+            className={`overflow-hidden transition-all duration-300 ${
+              pageName === item.label.toLowerCase()
+                ? "max-h-screen opacity-100"
+                : "max-h-0 opacity-0"
             }`}
           >
             <SidebarDropdown item={item.children} />

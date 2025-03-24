@@ -77,7 +77,6 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
 
         try {
-          // Giải mã access_token để lấy role
           const decodedToken = jwtDecode<JWT>(user.accessToken);
           token.role = decodedToken.role || "student";
           token.id = decodedToken.sub!;
