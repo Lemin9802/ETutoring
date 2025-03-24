@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250318154235_UpdateStudentTutorManagementRelationship")]
+    partial class UpdateStudentTutorManagementRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,36 +24,6 @@ namespace ETutoring.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Allocation", b =>
-                {
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid>("TutorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tutor_id");
-
-                    b.Property<Guid>("AssignedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assigned_by");
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("assigned_at");
-
-                    b.HasKey("StudentId", "TutorId", "AssignedBy")
-                        .HasName("pk_allocations");
-
-                    b.HasIndex("AssignedBy")
-                        .HasDatabaseName("ix_allocations_assigned_by");
-
-                    b.HasIndex("TutorId")
-                        .HasDatabaseName("ix_allocations_tutor_id");
-
-                    b.ToTable("allocations", (string)null);
-                });
 
             modelBuilder.Entity("ETutoring.Core.Entities.ApplicationUser", b =>
                 {
@@ -858,36 +831,6 @@ namespace ETutoring.DataAccess.Migrations
                         .HasName("pk_user_tokens");
 
                     b.ToTable("user_tokens", (string)null);
-                });
-
-            modelBuilder.Entity("ETutoring.Core.Entities.Allocation", b =>
-                {
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "AssignedUser")
-                        .WithMany()
-                        .HasForeignKey("AssignedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_allocations_asp_net_users_assigned_by");
-
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_allocations_users_student_id");
-
-                    b.HasOne("ETutoring.Core.Entities.ApplicationUser", "Tutor")
-                        .WithMany()
-                        .HasForeignKey("TutorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_allocations_users_tutor_id");
-
-                    b.Navigation("AssignedUser");
-
-                    b.Navigation("Student");
-
-                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("ETutoring.Core.Entities.Blog", b =>

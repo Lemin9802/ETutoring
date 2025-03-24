@@ -12,36 +12,49 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     public DbSet<Blog> Blogs { get; set; }
-
     public DbSet<Comment> Comments { get; set; }
-
     public DbSet<BlogComment> BlogsComments { get; set; }
-
     public DbSet<EmailSent> EmailSent { get; set; }
-
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-
     public DbSet<Document> Documents { get; set; }
-
     public DbSet<DocumentComment> DocumentComments { get; set; }
-
     public DbSet<Meeting> Meetings { get; set; }
-
     public DbSet<StudentTutorManagement> StudentTutorManagements { get; set; }
-
     public DbSet<Message> Messages { get; set; }
-
     public DbSet<ChattingRoom> ChattingRooms { get; set; }
-
     public DbSet<StudentTutorManagementHistory> StudentTutorManagementHistories { get; set; }
+    public DbSet<Allocation> Allocations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.Entity<BlogComment>()
-        .HasKey(bc => new { bc.BlogId, bc.CommentId });
+            .HasKey(bc => new { bc.BlogId, bc.CommentId });
+        builder.Entity<StudentTutorManagementHistory>()
+            .HasOne(h => h.StudentTutorManagement)
+            .WithMany(m => m.Histories)
+            .HasForeignKey(h => h.StudentTutorManagementId);
 
-        base.OnModelCreating(builder);
+        builder.Entity<Allocation>()
+            .HasKey(a => new { a.StudentId, a.TutorId, a.AssignedBy });
+
+        builder.Entity<Allocation>()
+            .HasOne(a => a.Student)
+            .WithMany()
+            .HasForeignKey(a => a.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Allocation>()
+            .HasOne(a => a.Tutor)
+            .WithMany()
+            .HasForeignKey(a => a.TutorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Allocation>()
+            .HasOne(a => a.AssignedUser)
+            .WithMany()
+            .HasForeignKey(a => a.AssignedBy)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
@@ -56,5 +69,4 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         builder.Entity<IdentityRoleClaim<Guid>>(b => b.ToTable("role_claims"));
         builder.Entity<IdentityUserToken<Guid>>(b => b.ToTable("user_tokens"));
     }
-
 }

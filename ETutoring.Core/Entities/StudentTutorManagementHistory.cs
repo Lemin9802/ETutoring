@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,11 @@ namespace ETutoring.Core.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        public Guid StudentTutorManagementId { get; set; } // Liên kết với bảng chính
+        [Column("student_tutor_management_id")]
+        public Guid StudentTutorManagementId { get; set; }
+
+        // Navigation property to the principal
+        public StudentTutorManagement StudentTutorManagement { get; set; }
 
         [Required]
         public Guid StudentId { get; set; }

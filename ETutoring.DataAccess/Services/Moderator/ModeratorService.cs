@@ -66,8 +66,9 @@ namespace ETutoring.DataAccess.Services.Moderator
             return ApiResponse<List<UserDto>>.SuccessResponseWithMeta(tutors, metaData);
         }
 
-        public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(List<Guid> studentIds, Guid tutorId, Guid assignedBy)
+        public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(AssignTutorMultipleStudentsRequest request)
         {
+            // Lấy Role ID của Student và Tutor
             var studentRoleId = await _context.Roles
                 .Where(r => r.Name == "Student")
                 .Select(r => r.Id)
@@ -78,69 +79,50 @@ namespace ETutoring.DataAccess.Services.Moderator
                 .Select(r => r.Id)
                 .FirstOrDefaultAsync();
 
-            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == tutorId && ur.RoleId == tutorRoleId);
+            // Kiểm tra tutor có vai trò Tutor không
+            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
             if (!isTutor)
                 return ApiResponse<bool>.FailureResponse("Invalid Tutor.");
 
+            // Lấy danh sách student hợp lệ (có vai trò Student)
             var validStudents = await _context.Users
                 .Join(_context.UserRoles,
-                    user => user.Id,
-                    userRole => userRole.UserId,
-                    (user, userRole) => new { user, userRole })
-                .Where(joined => studentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
+                      user => user.Id,
+                      userRole => userRole.UserId,
+                      (user, userRole) => new { user, userRole })
+                .Where(joined => request.StudentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
                 .Select(joined => joined.user.Id)
                 .ToListAsync();
 
             if (!validStudents.Any())
                 return ApiResponse<bool>.FailureResponse("No valid students found.");
 
-            var existingAssignments = await _context.StudentTutorManagements
-                .Where(stm => validStudents.Contains(stm.StudentId))
+            var existingAllocations = await _context.Allocations
+                .Where(a => validStudents.Contains(a.StudentId))
                 .ToListAsync();
 
             foreach (var studentId in validStudents)
             {
-                var existingManagement = existingAssignments.FirstOrDefault(stm => stm.StudentId == studentId);
-                string action = existingManagement != null ? "Reassigned" : "Assigned";
+                var existingAllocation = existingAllocations.FirstOrDefault(a => a.StudentId == studentId);
 
-                if (existingManagement != null)
+                if (existingAllocation != null)
                 {
-                    _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-                    {
-                        StudentTutorManagementId = existingManagement.Id,
-                        StudentId = studentId,
-                        TutorId = existingManagement.TutorId,
-                        AssignedBy = assignedBy,
-                        AssignedAt = DateTime.UtcNow,
-                        Action = "Reassigned"
-                    });
-
-                    existingManagement.TutorId = tutorId;
-                    _context.StudentTutorManagements.Update(existingManagement);
+                    existingAllocation.TutorId = request.TutorId;
+                    existingAllocation.AssignedBy = request.AssignedBy;
+                    existingAllocation.AssignedAt = DateTime.UtcNow;
+                    _context.Allocations.Update(existingAllocation);
                 }
                 else
                 {
-                    var newManagement = new StudentTutorManagement
+                    var newAllocation = new Allocation
                     {
                         StudentId = studentId,
-                        TutorId = tutorId,
-                        AssignedBy = assignedBy,
-                        AssignedAt = DateTime.UtcNow,
-                        Action = "Assigned"
+                        TutorId = request.TutorId,
+                        AssignedBy = request.AssignedBy,
+                        AssignedAt = DateTime.UtcNow
                     };
-
-                    _context.StudentTutorManagements.Add(newManagement);
+                    _context.Allocations.Add(newAllocation);
                 }
-
-                _context.StudentTutorManagementHistories.Add(new StudentTutorManagementHistory
-                {
-                    StudentTutorManagementId = existingManagement?.Id ?? Guid.NewGuid(),
-                    StudentId = studentId,
-                    TutorId = tutorId,
-                    AssignedBy = assignedBy,
-                    AssignedAt = DateTime.UtcNow,
-                    Action = action
-                });
             }
 
             await _context.SaveChangesAsync();
@@ -308,5 +290,40 @@ namespace ETutoring.DataAccess.Services.Moderator
                 return ApiResponse<List<StudentDto>>.FailureResponse("An error occurred while retrieving students.", new List<string> { ex.Message });
             }
         }
+
+        public async Task<ApiResponse<bool>> RemoveTutorFromMultipleStudentsAsync(RemoveTutorMultipleStudentsRequest request)
+        {
+            // Lấy Role ID của Student
+            var studentRoleId = await _context.Roles
+                .Where(r => r.Name == "Student")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            // Lấy danh sách student hợp lệ (có vai trò Student)
+            var validStudents = await _context.Users
+                .Join(_context.UserRoles,
+                      user => user.Id,
+                      userRole => userRole.UserId,
+                      (user, userRole) => new { user, userRole })
+                .Where(joined => request.StudentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
+                .Select(joined => joined.user.Id)
+                .ToListAsync();
+
+            if (!validStudents.Any())
+                return ApiResponse<bool>.FailureResponse("No valid students found.");
+
+            var existingAllocations = await _context.Allocations
+                .Where(a => validStudents.Contains(a.StudentId) && a.TutorId == request.TutorId)
+                .ToListAsync();
+
+            if (!existingAllocations.Any())
+                return ApiResponse<bool>.FailureResponse("No allocations found for the provided tutor and students.");
+
+            _context.Allocations.RemoveRange(existingAllocations);
+            await _context.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResponse(true, "Tutor removed from multiple students successfully.");
+        }
+
     }
 }
