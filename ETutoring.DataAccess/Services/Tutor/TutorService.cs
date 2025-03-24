@@ -16,30 +16,33 @@ namespace ETutoring.DataAccess.Services.Tutor
             _context = context;
         }
 
-        public async Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, int page, int size)
+        public async Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, MetaDataResponse meta)
         {
-            var students = await _context.StudentTutorManagements
-                .Where(management => management.TutorId == tutorId)
-                .Join(_context.Users,
-                    management => management.StudentId,
-                    student => student.Id,
-                    (management, student) => new GetStudentsForTutorResponse
-                    {
-                        StudentId = student.Id,
-                        FullName = student.FullName,
-                        Address = student.Address,
-                        PhoneNumber = student.PhoneNumber,
-                        Email = student.Email
-                    })
-                .Skip((page - 1) * size)
-                .Take(size)
+            var studentsQuery = _context.Allocations
+                .Where(a => a.TutorId == tutorId)
+                .Include(a => a.Student)
+                .Select(a => new GetStudentsForTutorResponse
+                {
+                    StudentId = a.Student.Id,
+                    FullName = a.Student.FullName,
+                    Address = a.Student.Address,
+                    PhoneNumber = a.Student.PhoneNumber,
+                    Email = a.Student.Email
+                });
+
+            var totalItems = await studentsQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            var students = await studentsQuery
+                .Skip((meta.PageNumber - 1) * meta.PageSize)
+                .Take(meta.PageSize)
                 .ToListAsync();
 
             if (!students.Any())
-                throw new EntityNotYetHaveDataException("This tutor does not have any students assigned");
+                return ApiResponse<List<GetStudentsForTutorResponse>>.FailureResponse("This tutor does not have any students assigned");
 
-            return ApiResponse<List<GetStudentsForTutorResponse>>.SuccessResponse(students, "Students retrieved successfully.");
-
+            return ApiResponse<List<GetStudentsForTutorResponse>>.SuccessResponseWithMeta(students, metaData);
         }
     }
 }

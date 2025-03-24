@@ -1,9 +1,10 @@
-﻿namespace ETutoring.Business.Dtos.Request.Tutor
+﻿using ETutoring.Core.Common;
+
+namespace ETutoring.Business.Dtos.Request.Tutor
 {
     public class GetStudentsForTutorRequest
     {
-        public int Page { get; set; }
-
-        public int Size { get; set; }
+        public Guid TutorId { get; set; }
+        public MetaDataResponse Meta { get; set; }
     }
 }

@@ -12,6 +12,6 @@ namespace ETutoring.Business.Interfaces.Tutor
 {
     public interface ITutorService
     {
-        Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, int page, int size);
+        Task<ApiResponse<List<GetStudentsForTutorResponse>>> GetStudentsForTutorAsync(Guid tutorId, MetaDataResponse meta);
     }
 }
