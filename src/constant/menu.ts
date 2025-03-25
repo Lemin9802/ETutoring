@@ -57,9 +57,9 @@ export const menuGroupsStudents = [
         route: "/tables",
       },
       {
-        icon: File,
-        label: "My Blogs",
-        route: "/students/blogs",
+        icon: FileEdit,
+        label: "Blogs",
+        route: "/blogs",
       },
       {
         icon: Calendar,
