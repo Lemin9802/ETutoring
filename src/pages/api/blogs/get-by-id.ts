@@ -18,24 +18,15 @@ export default async function handler(
   try {
     const session = await getServerSession(req, res, authOptions);
 
-    if (!session) {
+    if (!session?.user?.accessToken) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const token = session.user.accessToken;
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
 
-    const { blogId } = req.body;
-    if (!blogId) {
-      return res.status(400).json({ message: "Blog ID is required" });
-    }
-
-    // Gửi request lấy thông tin blog theo ID từ backend
     const response = await axios.post<APIResponse>(
       `${process.env.BACKEND_URL}/api/blogs/get-by-id`,
-      { blogId },
+      {},
       {
         headers: {
           "Content-Type": "application/json",
@@ -44,19 +35,16 @@ export default async function handler(
       }
     );
 
-    // Trả về dữ liệu
     return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
         message:
           error.response?.data?.message ||
-          "An error occurred while fetching the blog",
+          "An error occurred while fetching the blogs",
       });
     }
 
-    return res
-      .status(500)
-      .json({ message: "An error occurred while fetching the blog" });
+    return res.status(500).json({ message: "An error occurred while fetching the blogs" });
   }
 }

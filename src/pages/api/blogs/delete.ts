@@ -10,32 +10,26 @@ export default async function handler(
 ) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res
-      .status(405)
-      .json({ message: `Method ${req.method} Not Allowed` });
+    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 
   try {
     const session = await getServerSession(req, res, authOptions);
 
-    if (!session) {
+    if (!session || !session.user.accessToken) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const token = session.user.accessToken;
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    const { id } = req.body;
 
-    const { blogId } = req.body;
-    if (!blogId) {
+    if (!id) {
       return res.status(400).json({ message: "Blog ID is required" });
     }
 
-    // Gửi request xóa blog lên backend
     const response = await axios.post<APIResponse>(
       `${process.env.BACKEND_URL}/api/blogs/delete`,
-      { blogId },
+      { id }, 
       {
         headers: {
           "Content-Type": "application/json",
@@ -44,19 +38,14 @@ export default async function handler(
       }
     );
 
-    // Trả về dữ liệu
     return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
-        message:
-          error.response?.data?.message ||
-          "An error occurred while deleting the blog",
+        message: error.response?.data?.message || "Error deleting blog",
       });
     }
 
-    return res
-      .status(500)
-      .json({ message: "An error occurred while deleting the blog" });
+    return res.status(500).json({ message: "Unknown error occurred" });
   }
 }

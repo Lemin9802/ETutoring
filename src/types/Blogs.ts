@@ -4,16 +4,18 @@ export type BlogType = {
   id: string;
   title: string;
   author: string;
-  createdAt: string;
+  created_at: string;
   updatedAt?: string;
   user?: { id: string; name: string };
   user_id: string;
   imageUrl?: string | StaticImageData;
   content: string;
+  userName?: string;
+  user_full_name: string;
 };
 
 export type CommentType = {
-  id: string; // Use string for GUID
+  id: string;
   user: string;
   text: string;
   replies?: CommentType[];
