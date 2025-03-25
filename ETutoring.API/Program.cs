@@ -10,6 +10,7 @@ using ETutoring.DataAccess.Services.Moderator;
 using ETutoring.DataAccess.Services.Students;
 using ETutoring.DataAccess.Services.Tutor;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 using IStudentService = ETutoring.Business.Interfaces.Students.IStudentService;
 
 namespace ETutoring.API
@@ -61,6 +62,12 @@ namespace ETutoring.API
 
                 // Enable Swagger annotations
                 options.EnableAnnotations();
+            });
+
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
 
             builder.AddDbContextAndIdentity();
