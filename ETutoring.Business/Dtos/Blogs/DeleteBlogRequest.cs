@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ETutoring.Business.Dtos.Blogs
 {
-    public class GetBlogByIdRequest
+    public record DeleteBlogRequest
     {
         public Guid Id { get; set; }
     }
-}
 
+}

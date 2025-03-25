@@ -18,21 +18,6 @@ namespace ETutoring.Business.Services
             _context = context;
         }
 
-        // ✅ Get all blogs (Admin: tất cả, Student: chỉ của mình)
-        public async Task<List<Blog>> GetAllBlogsAsync(Guid userId, bool isAdmin, CancellationToken cancellationToken)
-        {
-            return isAdmin
-                ? await _context.Blogs.ToListAsync(cancellationToken)
-                : await _context.Blogs.Where(b => b.UserId == userId).ToListAsync(cancellationToken);
-        }
-
-        // ✅ Get blog by ID (Search & View Detail)
-        public async Task<Blog?> GetBlogByIdAsync(Guid blogId, bool isAdmin, CancellationToken cancellationToken)
-        {
-            var blog = await _context.Blogs.FindAsync(new object[] { blogId }, cancellationToken);
-            return blog != null ? blog : null;
-        }
-
         // ✅ Create a new blog
         public async Task<Blog> CreateBlogAsync(CreateBlogRequest request, CancellationToken cancellationToken)
         {
@@ -49,6 +34,39 @@ namespace ETutoring.Business.Services
             _context.Blogs.Add(blog);
             await _context.SaveChangesAsync(cancellationToken);
             return blog;
+        }
+
+        public async Task<List<GetAllBlogRequest>> GetAllBlogsAsync(CancellationToken cancellationToken)
+        {
+            return await _context.Blogs
+                .Include(b => b.User)
+                .Select(b => new GetAllBlogRequest
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    UserId = b.UserId,
+                    UserFullName = b.User.FullName,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<GetAllBlogRequest>> GetBlogByIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return await _context.Blogs
+                .Include(b => b.User)
+                .Where(b => b.UserId == userId)
+                .Select(b => new GetAllBlogRequest
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    UserId = b.UserId,
+                    UserFullName = b.User.FullName,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<Blog?> UpdateBlogAsync(Guid blogId, UpdateBlogRequest request, bool isAdmin, CancellationToken cancellationToken)
