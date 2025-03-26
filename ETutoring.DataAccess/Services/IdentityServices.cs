@@ -51,6 +51,9 @@ public class IdentityServices : IIdentityServices
         // Add the new Refresh Token to the user's list of tokens
         await AddOrUpdateRefreshTokenAsync(user.Id, refreshToken, refreshTokenExpiryTime, CancellationToken.None);
 
+        // Update Last Login Time
+        user.LastLoginTime = DateTime.UtcNow;
+
         // Save changes to the database
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
