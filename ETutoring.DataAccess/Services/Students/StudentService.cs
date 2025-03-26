@@ -309,5 +309,307 @@ namespace ETutoring.DataAccess.Services.Students
             workbook.SaveAs(stream);
             return stream.ToArray();
         }
+
+        // Implementation for Students Without Interaction
+        public async Task<ApiResponse<List<StudentWithoutInteractionResponse>>> GetStudentsWithoutInteractionAsync(int days)
+        {
+            try
+            {
+                var cutoffDate = DateTime.UtcNow.AddDays(-days);
+
+                // Get all student IDs
+                var studentIds = await _context.UserRoles
+                    .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => new { ur.UserId, RoleName = r.Name })
+                    .Where(x => x.RoleName == "Student")
+                    .Select(x => x.UserId)
+                    .ToListAsync();
+
+                // Get all students with their assigned tutors
+                var studentsWithTutors = await _context.Users
+                    .Where(u => studentIds.Contains(u.Id))
+                    .Select(s => new
+                    {
+                        Student = s,
+                        AssignedTutors = _context.StudentTutorManagements
+                            .Where(stm => stm.StudentId == s.Id)
+                            .Join(_context.Users, stm => stm.TutorId, t => t.Id, (stm, t) => new { t.Id, t.FullName })
+                            .ToList() // Materialize tutor list per student
+                    })
+                    .ToListAsync();
+
+                var studentsWithoutRecentInteraction = new List<StudentWithoutInteractionResponse>();
+
+                foreach (var studentData in studentsWithTutors)
+                {
+                    var studentId = studentData.Student.Id;
+                    var studentIdString = studentId.ToString(); // Convert student Guid to string
+                    var tutorIdStrings = studentData.AssignedTutors.Select(t => t.Id.ToString()).ToList(); // Convert tutor Guids to strings
+
+                    // Find the last message time between the student and any of their tutors
+                    var lastMessageTime = await _context.Messages
+                        .Where(m => (m.SenderId == studentIdString && tutorIdStrings.Contains(m.ReceiverId)) ||
+                                    (tutorIdStrings.Contains(m.SenderId) && m.ReceiverId == studentIdString))
+                        .OrderByDescending(m => m.Timestamp) // Corrected property name
+                        .Select(m => (DateTime?)m.Timestamp) // Corrected property name & Cast to nullable DateTime
+                        .FirstOrDefaultAsync();
+
+                    // Add student if no interaction or last interaction is before cutoff date
+                    if (!lastMessageTime.HasValue || lastMessageTime.Value < cutoffDate)
+                    {
+                        studentsWithoutRecentInteraction.Add(new StudentWithoutInteractionResponse
+                        {
+                            Id = studentData.Student.Id.ToString(), // Convert Guid to string
+                            FullName = studentData.Student.FullName,
+                            Email = studentData.Student.Email,
+                            LastInteractionTime = lastMessageTime // Could be null if no interaction ever
+                        });
+                    }
+                }
+
+                return ApiResponse<List<StudentWithoutInteractionResponse>>.SuccessResponse(studentsWithoutRecentInteraction);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details (consider using a proper logging framework)
+                Console.WriteLine($"Error in GetStudentsWithoutInteractionAsync: {ex}");
+                return ApiResponse<List<StudentWithoutInteractionResponse>>.FailureResponse($"An error occurred while retrieving students without interaction: {ex.Message}");
+            }
+        }
+
+
+        public async Task<byte[]> GenerateStudentsWithoutInteractionPdfReportAsync(int days)
+        {
+            var response = await GetStudentsWithoutInteractionAsync(days);
+            if (!response.Success)
+            {
+                throw new Exception(response.Message);
+            }
+            var students = response.Data;
+
+            using var document = new PdfDocument();
+            var page = document.AddPage();
+            var gfx = XGraphics.FromPdfPage(page);
+            var font = new XFont("Arial", 10); // Smaller font for more data
+            var titleFont = new XFont("Arial", 16, XFontStyleEx.Bold);
+            var headerFont = new XFont("Arial", 12, XFontStyleEx.Bold); // Smaller header
+
+            gfx.DrawString($"Students Without Tutor Interaction Report (Last {days} Days)", titleFont,
+                XBrushes.Black, new XRect(50, 50, page.Width - 100, 30), XStringFormats.TopCenter);
+
+            double currentY = 100;
+            double leftMargin = 40;
+            double col1X = leftMargin;
+            double col2X = leftMargin + 150;
+            // double col3X = leftMargin + 300; // Removed
+            double col3X = leftMargin + 300; // Renamed col4X to col3X
+
+            // Draw Headers
+            gfx.DrawString("Student Name", headerFont, XBrushes.Black, col1X, currentY);
+            gfx.DrawString("Email", headerFont, XBrushes.Black, col2X, currentY);
+            // gfx.DrawString("Assigned Tutors", headerFont, XBrushes.Black, col3X, currentY); // Removed
+            gfx.DrawString("Last Interaction", headerFont, XBrushes.Black, col3X, currentY); // Use new col3X
+            currentY += 25; // Space after header
+
+            foreach (var student in students)
+            {
+                // Check page height
+                if (currentY > page.Height - 80) // Need space for footer and next item
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    currentY = 50; // Reset Y for new page
+                    // Redraw headers on new page if needed (optional)
+                    gfx.DrawString("Student Name", headerFont, XBrushes.Black, col1X, currentY);
+                    gfx.DrawString("Email", headerFont, XBrushes.Black, col2X, currentY);
+                    // gfx.DrawString("Assigned Tutors", headerFont, XBrushes.Black, col3X, currentY); // Removed
+                    gfx.DrawString("Last Interaction", headerFont, XBrushes.Black, col3X, currentY); // Use new col3X
+                    currentY += 25;
+                }
+
+                gfx.DrawString(student.FullName ?? "-", font, XBrushes.Black, col1X, currentY);
+                gfx.DrawString(student.Email ?? "-", font, XBrushes.Black, col2X, currentY);
+                // gfx.DrawString(string.Join(", ", student.AssignedTutorNames), font, XBrushes.Black, col3X, currentY); // Removed
+                gfx.DrawString(student.LastInteractionTime?.ToString("yyyy-MM-dd HH:mm") ?? "Never", font, XBrushes.Black, col3X, currentY); // Use new col3X
+                currentY += 20;
+            }
+
+            // Footer
+            gfx.DrawString($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", font, XBrushes.Gray, leftMargin, page.Height - 40);
+
+            using var stream = new MemoryStream();
+            document.Save(stream, false); // 'false' = don't close stream
+            return stream.ToArray();
+        }
+
+
+        public async Task<byte[]> GenerateStudentsWithoutInteractionExcelReportAsync(int days)
+        {
+            var response = await GetStudentsWithoutInteractionAsync(days);
+            if (!response.Success)
+            {
+                throw new Exception(response.Message);
+            }
+            var students = response.Data;
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("No Interaction Students");
+
+            worksheet.Cell(1, 1).Value = $"Students Without Tutor Interaction Report (Last {days} Days)";
+            worksheet.Cell(1, 1).Style.Font.Bold = true;
+            worksheet.Cell(1, 1).Style.Font.FontSize = 16;
+            worksheet.Range(1, 1, 1, 3).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // Adjusted range
+
+
+            worksheet.Cell(3, 1).Value = "Student Name";
+            worksheet.Cell(3, 2).Value = "Email";
+            // worksheet.Cell(3, 3).Value = "Assigned Tutors"; // Removed
+            worksheet.Cell(3, 3).Value = "Last Interaction"; // Moved to col 3
+            worksheet.Range(3, 1, 3, 3).Style.Font.Bold = true; // Adjusted range
+
+            var row = 4;
+            foreach (var student in students)
+            {
+                worksheet.Cell(row, 1).Value = student.FullName;
+                worksheet.Cell(row, 2).Value = student.Email;
+                // worksheet.Cell(row, 3).Value = string.Join(", ", student.AssignedTutorNames); // Removed
+                worksheet.Cell(row, 3).Value = student.LastInteractionTime; // Moved to col 3
+                if (student.LastInteractionTime.HasValue)
+                {
+                    worksheet.Cell(row, 3).Style.DateFormat.Format = "yyyy-MM-dd HH:mm"; // Adjusted col index
+                }
+                else
+                {
+                    worksheet.Cell(row, 3).Value = "Never"; // Adjusted col index
+                }
+                row++;
+            }
+
+            worksheet.Cell(row + 1, 1).Value = $"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            worksheet.Cell(row + 1, 1).Style.Font.Italic = true;
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
+
+        // Implementation for Unconfirmed Email Students
+        public async Task<ApiResponse<List<UnconfirmedEmailStudentResponse>>> GetUnconfirmedEmailStudentsAsync()
+        {
+            try
+            {
+                var unconfirmedStudents = await _context.Users
+                    .Join(_context.UserRoles, u => u.Id, ur => ur.UserId, (u, ur) => new { User = u, ur.RoleId })
+                    .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => new { ur.User, RoleName = r.Name })
+                    .Where(x => x.RoleName == "Student" && !x.User.EmailConfirmed)
+                    .Select(x => new UnconfirmedEmailStudentResponse
+                    {
+                        Id = x.User.Id.ToString(), // Convert Guid to string
+                        FullName = x.User.FullName,
+                        Email = x.User.Email
+                    })
+                    .Distinct() // Ensure uniqueness if a user somehow has multiple student roles (unlikely but safe)
+                    .ToListAsync();
+
+                return ApiResponse<List<UnconfirmedEmailStudentResponse>>.SuccessResponse(unconfirmedStudents);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUnconfirmedEmailStudentsAsync: {ex}");
+                return ApiResponse<List<UnconfirmedEmailStudentResponse>>.FailureResponse($"An error occurred: {ex.Message}");
+            }
+        }
+
+        public async Task<byte[]> GenerateUnconfirmedEmailStudentsPdfReportAsync()
+        {
+            var response = await GetUnconfirmedEmailStudentsAsync();
+            if (!response.Success)
+            {
+                throw new Exception(response.Message);
+            }
+            var students = response.Data;
+
+            using var document = new PdfDocument();
+            var page = document.AddPage();
+            var gfx = XGraphics.FromPdfPage(page);
+            var font = new XFont("Arial", 12);
+            var titleFont = new XFont("Arial", 16, XFontStyleEx.Bold);
+            var headerFont = new XFont("Arial", 14, XFontStyleEx.Bold);
+
+            gfx.DrawString("Students with Unconfirmed Emails Report", titleFont,
+                XBrushes.Black, new XRect(50, 50, page.Width - 100, 30), XStringFormats.TopCenter);
+
+            double currentY = 100;
+            double leftMargin = 50;
+            double col1X = leftMargin;
+            double col2X = leftMargin + 200;
+
+            gfx.DrawString("Student Name", headerFont, XBrushes.Black, col1X, currentY);
+            gfx.DrawString("Email", headerFont, XBrushes.Black, col2X, currentY);
+            currentY += 25;
+
+            foreach (var student in students)
+            {
+                if (currentY > page.Height - 80)
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    currentY = 50;
+                    gfx.DrawString("Student Name", headerFont, XBrushes.Black, col1X, currentY);
+                    gfx.DrawString("Email", headerFont, XBrushes.Black, col2X, currentY);
+                    currentY += 25;
+                }
+                gfx.DrawString(student.FullName ?? "-", font, XBrushes.Black, col1X, currentY);
+                gfx.DrawString(student.Email ?? "-", font, XBrushes.Black, col2X, currentY);
+                currentY += 20;
+            }
+
+            gfx.DrawString($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", font, XBrushes.Gray, leftMargin, page.Height - 40);
+
+            using var stream = new MemoryStream();
+            document.Save(stream, false);
+            return stream.ToArray();
+        }
+
+        public async Task<byte[]> GenerateUnconfirmedEmailStudentsExcelReportAsync()
+        {
+            var response = await GetUnconfirmedEmailStudentsAsync();
+            if (!response.Success)
+            {
+                throw new Exception(response.Message);
+            }
+            var students = response.Data;
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Unconfirmed Emails");
+
+            worksheet.Cell(1, 1).Value = "Students with Unconfirmed Emails Report";
+            worksheet.Cell(1, 1).Style.Font.Bold = true;
+            worksheet.Cell(1, 1).Style.Font.FontSize = 16;
+            worksheet.Range(1, 1, 1, 2).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            worksheet.Cell(3, 1).Value = "Student Name";
+            worksheet.Cell(3, 2).Value = "Email";
+            worksheet.Range(3, 1, 3, 2).Style.Font.Bold = true;
+
+            var row = 4;
+            foreach (var student in students)
+            {
+                worksheet.Cell(row, 1).Value = student.FullName;
+                worksheet.Cell(row, 2).Value = student.Email;
+                row++;
+            }
+
+            worksheet.Cell(row + 1, 1).Value = $"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            worksheet.Cell(row + 1, 1).Style.Font.Italic = true;
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
     }
 }

@@ -161,5 +161,102 @@ namespace ETutoring.API.Controllers.Report
                 return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
             }
         }
+
+        // --- Students Without Interaction ---
+
+        [HttpPost("students/no-interaction")]
+        public async Task<IActionResult> GetStudentsWithoutInteraction([FromBody] InactiveStudentsRequest request) // Reusing InactiveStudentsRequest for Days parameter
+        {
+            try
+            {
+                var days = request?.Days ?? 7; // Default to 7 days if not provided
+                var response = await _studentService.GetStudentsWithoutInteractionAsync(days);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetStudentsWithoutInteraction: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
+
+        [HttpPost("students/no-interaction/pdf")]
+        public async Task<IActionResult> GetStudentsWithoutInteractionPdfReport([FromBody] InactiveStudentsRequest request)
+        {
+            try
+            {
+                var days = request?.Days ?? 7;
+                var pdfBytes = await _studentService.GenerateStudentsWithoutInteractionPdfReportAsync(days);
+                return File(pdfBytes, "application/pdf", "StudentsWithoutInteractionReport.pdf");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetStudentsWithoutInteractionPdfReport: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
+
+        [HttpPost("students/no-interaction/excel")]
+        public async Task<IActionResult> GetStudentsWithoutInteractionExcelReport([FromBody] InactiveStudentsRequest request)
+        {
+            try
+            {
+                var days = request?.Days ?? 7;
+                var excelBytes = await _studentService.GenerateStudentsWithoutInteractionExcelReportAsync(days);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StudentsWithoutInteractionReport.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetStudentsWithoutInteractionExcelReport: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
+
+        // --- Unconfirmed Email Students ---
+
+        [HttpPost("students/unconfirmed-email")]
+        public async Task<IActionResult> GetUnconfirmedEmailStudents()
+        {
+            try
+            {
+                var response = await _studentService.GetUnconfirmedEmailStudentsAsync();
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUnconfirmedEmailStudents: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
+
+        [HttpPost("students/unconfirmed-email/pdf")]
+        public async Task<IActionResult> GetUnconfirmedEmailStudentsPdfReport()
+        {
+            try
+            {
+                var pdfBytes = await _studentService.GenerateUnconfirmedEmailStudentsPdfReportAsync();
+                return File(pdfBytes, "application/pdf", "UnconfirmedEmailStudentsReport.pdf");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUnconfirmedEmailStudentsPdfReport: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
+
+        [HttpPost("students/unconfirmed-email/excel")]
+        public async Task<IActionResult> GetUnconfirmedEmailStudentsExcelReport()
+        {
+            try
+            {
+                var excelBytes = await _studentService.GenerateUnconfirmedEmailStudentsExcelReportAsync();
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "UnconfirmedEmailStudentsReport.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUnconfirmedEmailStudentsExcelReport: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message });
+            }
+        }
     }
 }
