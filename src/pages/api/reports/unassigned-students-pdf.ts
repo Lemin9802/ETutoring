@@ -13,13 +13,17 @@ export default async function handler(
 
   const session = await getServerSession(req, res, authOptions);
 
-  // Check if session exists and if the user roles includes 'Moderator'
-  const isModerator = session?.user?.roles?.includes("Moderator");
+  // Check if session exists and if the user has the required role
+  const roles = session?.user?.roles;
+  const isAuthorized = roles?.includes("Moderator") || roles?.includes("Admin");
 
-  if (!session || !isModerator) {
+  if (!session || !isAuthorized) {
     return res
       .status(401)
-      .json({ error: "Unauthorized: Access is restricted to Moderators." });
+      .json({
+        error:
+          "Unauthorized: Access is restricted to Moderators and Administrators.",
+      });
   }
 
   const token = session.user.accessToken;
@@ -40,11 +44,9 @@ export default async function handler(
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
       console.error("Backend PDF error:", errorText);
-      return res
-        .status(backendResponse.status)
-        .json({
-          error: `Failed to fetch unassigned students PDF report. Status: ${backendResponse.status}`,
-        });
+      return res.status(backendResponse.status).json({
+        error: `Failed to fetch unassigned students PDF report. Status: ${backendResponse.status}`,
+      });
     }
 
     // Check if the response body is available
@@ -73,11 +75,9 @@ export default async function handler(
     res.end();
   } catch (error) {
     console.error("Failed to fetch unassigned students PDF report", error);
-    return res
-      .status(500)
-      .json({
-        error:
-          "Internal Server Error while fetching unassigned students PDF report.",
-      });
+    return res.status(500).json({
+      error:
+        "Internal Server Error while fetching unassigned students PDF report.",
+    });
   }
 }

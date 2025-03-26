@@ -14,13 +14,17 @@ export default async function handler(
 
   const session = await getServerSession(req, res, authOptions);
 
-  // Check if session exists and if the user roles (assuming it's a string or array) includes 'Moderator'
-  const isModerator = session?.user?.roles?.includes("Moderator");
+  // Check if session exists and if the user has the required role
+  const roles = session?.user?.roles;
+  const isAuthorized = roles?.includes("Moderator") || roles?.includes("Admin");
 
-  if (!session || !isModerator) {
+  if (!session || !isAuthorized) {
     return res
       .status(401)
-      .json({ error: "Unauthorized: Access is restricted to Moderators." });
+      .json({
+        error:
+          "Unauthorized: Access is restricted to Moderators and Administrators.",
+      });
   }
 
   const token = session.user.accessToken;

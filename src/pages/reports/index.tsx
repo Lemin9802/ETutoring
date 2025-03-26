@@ -21,7 +21,10 @@ const ReportsPage: React.FC = () => {
 
   if (
     status === "unauthenticated" ||
-    !session?.user?.roles?.includes("Moderator")
+    !(
+      session?.user?.roles?.includes("Moderator") ||
+      session?.user?.roles?.includes("Admin")
+    )
   ) {
     return (
       <Card>
@@ -30,7 +33,7 @@ const ReportsPage: React.FC = () => {
         </Title>
         <p>
           You do not have permission to view this page. Access is restricted to
-          Moderators.
+          Moderators and Administrators.
         </p>
       </Card>
     );
