@@ -1,6 +1,7 @@
 ﻿using ETutoring.Business.Dtos.Request.Tutor;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Tutor;
+using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -20,13 +21,15 @@ namespace ETutoring.API.Controllers.Tutor
         }
 
         [HttpPost("get-students")]
-        public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest model)
+        public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest request)
         {
-            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? throw new AuthErrorException("Cannot find credentials"));
+             var response = await _tutorService.GetStudentsForTutorAsync(request.TutorId, request.Meta);
 
-            var response = await _tutorService.GetStudentsForTutorAsync(userId, model.Page, model.Size);
+            if (response.Success)
+                return Ok(response);
 
-            return Ok(response);
+            return BadRequest(response);
         }
+
     }
 }

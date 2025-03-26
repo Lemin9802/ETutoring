@@ -15,6 +15,7 @@ using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Documents;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -323,6 +324,56 @@ namespace ETutoring.DataAccess.Services.Moderator
             await _context.SaveChangesAsync();
 
             return ApiResponse<bool>.SuccessResponse(true, "Tutor removed from multiple students successfully.");
+        }
+
+        public async Task<ApiResponse<List<AllocationResponse>>> GetAllAllocationsAsync(MetaDataResponse meta)
+        {
+            var allocations = await _context.Allocations
+                .Include(a => a.Student)
+                .Include(a => a.Tutor)
+                .Include(a => a.AssignedUser)
+                .OrderByDescending(a => a.AssignedAt)
+                .Select(a => new AllocationResponse
+                {
+                    StudentId = a.StudentId,
+                    StudentName = a.Student.Email,
+                    TutorId = a.TutorId,
+                    TutorName = a.Tutor.Email,
+                    AssignedBy = a.AssignedBy,
+                    AssignedByName = a.AssignedUser.Email,
+                    AssignedAt = a.AssignedAt
+                })
+                .ToListAsync();
+
+            var totalItems = allocations.Count;
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+
+            return ApiResponse<List<AllocationResponse>>.SuccessResponseWithMeta(allocations, metaData);
+        }
+
+        public async Task<ApiResponse<bool>> RemoveAllocationsAsync(List<RemoveAllocation> allocations)
+        {
+            if (allocations == null || !allocations.Any())
+                return ApiResponse<bool>.FailureResponse("No allocations provided.");
+
+            var allocationPairs = allocations
+                .Select(a => new { a.TutorId, a.StudentId })
+                .ToList();
+            
+            var allAllocations = await _context.Allocations.ToListAsync();
+
+            var allocationEntities = allAllocations
+                .Where(a => allocationPairs.Any(req => req.TutorId == a.TutorId && req.StudentId == a.StudentId))
+                .ToList();
+
+            if (!allocationEntities.Any())
+                return ApiResponse<bool>.FailureResponse("No matching allocations found.");
+
+            _context.Allocations.RemoveRange(allocationEntities);
+            await _context.SaveChangesAsync();
+
+            return ApiResponse<bool>.SuccessResponse(true);
         }
 
     }

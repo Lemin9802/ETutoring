@@ -18,6 +18,7 @@ namespace ETutoring.Business.Services
             _context = context;
         }
 
+        // ✅ Create a new blog
         public async Task<Blog> CreateBlogAsync(CreateBlogRequest request, CancellationToken cancellationToken)
         {
             var blog = new Blog
@@ -35,23 +36,43 @@ namespace ETutoring.Business.Services
             return blog;
         }
 
-        public async Task<List<Blog>> GetAllBlogsAsync(Guid userId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<List<GetAllBlogRequest>> GetAllBlogsAsync(CancellationToken cancellationToken)
         {
-            return isAdmin
-                ? await _context.Blogs.ToListAsync(cancellationToken)
-                : await _context.Blogs.Where(b => b.UserId == userId).ToListAsync(cancellationToken);
+            return await _context.Blogs
+                .Include(b => b.User)
+                .Select(b => new GetAllBlogRequest
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    UserId = b.UserId,
+                    UserFullName = b.User.FullName,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<Blog?> GetBlogByIdAsync(Guid blogId, Guid userId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<List<GetAllBlogRequest>> GetBlogByIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-            var blog = await _context.Blogs.FindAsync(new object[] { blogId }, cancellationToken);
-            return (blog != null && (isAdmin || blog.UserId == userId)) ? blog : null;
+            return await _context.Blogs
+                .Include(b => b.User)
+                .Where(b => b.UserId == userId)
+                .Select(b => new GetAllBlogRequest
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    UserId = b.UserId,
+                    UserFullName = b.User.FullName,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<Blog?> UpdateBlogAsync(Guid blogId, UpdateBlogRequest request, Guid userId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<Blog?> UpdateBlogAsync(Guid blogId, UpdateBlogRequest request, bool isAdmin, CancellationToken cancellationToken)
         {
             var blog = await _context.Blogs.FindAsync(new object[] { blogId }, cancellationToken);
-            if (blog == null || (!isAdmin && blog.UserId != userId))
+            if (blog == null)
                 return null;
 
             blog.Title = request.Title;
@@ -61,16 +82,18 @@ namespace ETutoring.Business.Services
             await _context.SaveChangesAsync(cancellationToken);
             return blog;
         }
-
-        public async Task<bool> DeleteBlogAsync(Guid blogId, Guid userId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> DeleteBlogAsync(Guid blogId, bool isAdmin, CancellationToken cancellationToken)
         {
             var blog = await _context.Blogs.FindAsync(new object[] { blogId }, cancellationToken);
-            if (blog == null || (!isAdmin && blog.UserId != userId))
+            if (blog == null)
                 return false;
 
             _context.Blogs.Remove(blog);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
+
+
     }
+
 }

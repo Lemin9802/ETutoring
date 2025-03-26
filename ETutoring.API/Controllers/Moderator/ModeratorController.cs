@@ -106,6 +106,16 @@ namespace ETutoring.API.Controllers.Moderator
             return await _messageService.DeleteAssignChatroomAsync(request);
         }
 
+        [HttpPost("get-list-assign")]
+        public async Task<ApiResponse<List<AllocationResponse>>> GetListAssign([FromBody] MetaDataResponse meta)
+        {
+            return await _moderatorService.GetAllAllocationsAsync(meta);
+        }
 
+        [HttpPost("remove-allocations")]
+        public async Task<ApiResponse<bool>> RemoveAllocations([FromBody] List<RemoveAllocation> allocations)
+        {
+            return await _moderatorService.RemoveAllocationsAsync(allocations);
+        }
     }
 }
