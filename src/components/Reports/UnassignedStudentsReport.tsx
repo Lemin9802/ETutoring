@@ -8,7 +8,7 @@ interface UnassignedStudentData {
   id: string; // Guid from backend
   fullName: string;
   email: string;
-  registrationDate?: string | null; // DateTime? from backend
+  // registrationDate removed
 }
 
 // Backend ApiResponse structure
@@ -125,21 +125,7 @@ const UnassignedStudentsReport: React.FC = () => {
       dataIndex: "email",
       key: "email",
     },
-    {
-      title: "Registration Date",
-      dataIndex: "registrationDate",
-      key: "registrationDate",
-      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
-      sorter: (a, b) =>
-        a.registrationDate && b.registrationDate
-          ? new Date(a.registrationDate).getTime() -
-            new Date(b.registrationDate).getTime()
-          : a.registrationDate
-          ? -1
-          : b.registrationDate
-          ? 1
-          : 0,
-    },
+    // Removed Registration Date column
   ];
 
   return (
