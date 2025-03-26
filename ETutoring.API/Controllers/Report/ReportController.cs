@@ -12,7 +12,7 @@ namespace ETutoring.API.Controllers.Report
 {
     [Route("api/reports")]
     [ApiController]
-    [Authorize(Roles = "Moderator")]
+    [Authorize(Roles = "Moderator,Admin")]
     public class ReportController : ControllerBase
     {
         private readonly IMessageService _messageService;
