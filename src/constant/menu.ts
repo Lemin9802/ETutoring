@@ -142,6 +142,11 @@ export const menuGroupsAdmin = [
         route: "/admin/tables",
       },
       {
+        icon: BarChart,
+        label: "Reports",
+        route: "/reports",
+      },
+      {
         icon: Settings,
         label: "Settings",
         route: "/settings",
@@ -203,6 +208,11 @@ export const menuGroupsModerators = [
         icon: MessageSquare,
         label: "Chat Management",
         route: "/moderators/manage/chat",
+      },
+      {
+        icon: BarChart,
+        label: "Reports",
+        route: "/reports",
       },
     ],
   },
