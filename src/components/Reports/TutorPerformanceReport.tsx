@@ -9,11 +9,6 @@ interface TutorPerformanceData {
   messageCount: number;
 }
 
-interface AverageMessagesResponse {
-  averageMessages: number;
-  tutorPerformances: TutorPerformanceData[];
-}
-
 interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -44,12 +39,27 @@ const TutorPerformanceReport: React.FC = () => {
           errorData.error || "Failed to fetch tutor performance data"
         );
       }
-      const result: ApiResponse<AverageMessagesResponse> =
-        await response.json();
+      // The API response uses snake_case, adjust access and transform data
+      const result: ApiResponse<{
+        average_messages: number;
+        tutor_performances: {
+          tutor_id: string;
+          tutor_name: string;
+          message_count: number;
+        }[];
+      }> = await response.json();
+
       if (result.success && result.data) {
-        setData(result.data.tutorPerformances || []);
-        setAverageMessages(result.data.averageMessages);
-        if ((result.data.tutorPerformances || []).length === 0) {
+        const transformedData = (result.data.tutor_performances || []).map(
+          (tutor) => ({
+            tutorId: tutor.tutor_id,
+            tutorName: tutor.tutor_name,
+            messageCount: tutor.message_count,
+          })
+        );
+        setData(transformedData);
+        setAverageMessages(result.data.average_messages);
+        if (transformedData.length === 0) {
           message.info("No tutor performance data found.");
         }
       } else {
