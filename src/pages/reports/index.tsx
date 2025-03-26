@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs, Typography, Card } from "antd";
+import { Tabs, Typography, Card, Spin } from "antd"; // Import Spin
 import { useSession } from "next-auth/react";
 import TutorPerformanceReport from "@/components/Reports/TutorPerformanceReport";
 import UnassignedStudentsReport from "@/components/Reports/UnassignedStudentsReport";
@@ -16,7 +16,19 @@ const ReportsPage: React.FC = () => {
 
   // Basic check for moderator role - ideally use middleware or layout protection
   if (status === "loading") {
-    return <p>Loading session...</p>; // Or a spinner component
+    // Replace paragraph with a centered Spin component
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (
