@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { MoreOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import BlogModal from "./BlogModal";
 dayjs.extend(relativeTime);
 
 interface BlogCardProps {
@@ -28,8 +29,7 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
   const [title, setTitle] = useState(blog.title);
   const [content, setContent] = useState(blog.content);
   const [loading, setLoading] = useState(false);
-  const [comments, setComments] = useState<string[]>([]);
-  const [newComment, setNewComment] = useState("");
+  const [isBlogModalVisible, setIsBlogModalVisible] = useState(false);
 
   const { data: session } = useSession();
 
@@ -37,9 +37,9 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
     session?.user?.roles === "Admin" || session?.user?.id === blog.user_id;
 
   const handleUpdateBlog = async () => {
-    if (!blog.id) return message.error("❌ Error: Blog ID is missing.");
+    if (!blog.id) return message.error("Error: Blog ID is missing.");
     if (!title.trim() || !content.trim()) {
-      return message.warning("⚠ Title and content cannot be empty!");
+      return message.warning("Title and content cannot be empty!");
     }
 
     setLoading(true);
@@ -51,22 +51,22 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
       );
 
       if (response.status === 200) {
-        message.success("✅ Blog updated successfully!");
+        message.success("Blog updated successfully!");
         onBlogUpdated(response.data.data);
         setIsEditModalVisible(false);
       } else {
-        throw new Error("⚠ Failed to update blog");
+        throw new Error("Failed to update blog");
       }
     } catch (error) {
-      console.error("❌ API Error:", error);
-      message.error("❌ Failed to update blog. Please try again.");
+      console.error("API Error:", error);
+      message.error("Failed to update blog. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteBlog = async () => {
-    if (!blog.id) return message.error("❌ Error: Blog ID is missing.");
+    if (!blog.id) return message.error("Error: Blog ID is missing.");
 
     setLoading(true);
     try {
@@ -90,16 +90,14 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
     }
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    setComments((prev) => [...prev, newComment]);
-    setNewComment("");
+  const handleShowBlogModal = () => {
+    setIsBlogModalVisible(true);
   };
 
   const menu = (
     <Menu>
       <Menu.Item key="edit" onClick={() => setIsEditModalVisible(true)}>
-        ✏ Edit
+        Edit
       </Menu.Item>
       <Menu.Item key="delete">
         <Popconfirm
@@ -108,7 +106,7 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
           okText="Yes"
           cancelText="No"
         >
-          <span className="text-red-500">🗑 Delete</span>
+          <span className="text-red-500">Delete</span>
         </Popconfirm>
       </Menu.Item>
     </Menu>
@@ -130,49 +128,39 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
             </p>
           </div>
         </div>
-
+  
         {canEditOrDelete && (
           <Dropdown overlay={menu} placement="bottomRight" trigger={["click"]}>
             <Button type="text" icon={<MoreOutlined />} />
           </Dropdown>
         )}
       </div>
-
+  
       <h2 className="text-lg font-semibold mb-1">{blog.title}</h2>
       <p className="text-gray-700 mb-4">{blog.content.slice(0, 120)}...</p>
-
-      {/* Comment Box */}
+  
+      {/* Comment Button */}
       <div className="border-t pt-3">
-        <Input.TextArea
-          rows={2}
-          placeholder="Write a comment..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="mb-2"
-        />
         <div className="flex justify-end">
           <Button
-            type="primary"
+            type="text"
             icon={<span className="mr-1">💬</span>}
-            onClick={handleAddComment}
+            onClick={handleShowBlogModal}
           >
             Comment
           </Button>
         </div>
-        {comments.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {comments.map((comment, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-50 border border-gray-200 p-2 rounded text-sm"
-              >
-                <span className="text-gray-600">🗨 {comment}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-
+  
+      {/* Blog Modal */}
+      <BlogModal
+        blogTitle={blog.title}
+        blogContent={blog.content}
+        blogId={blog.id}
+        isVisible={isBlogModalVisible}
+        onClose={() => setIsBlogModalVisible(false)}
+      />
+  
       {/* Modal Edit */}
       <Modal
         title="Edit Blog"
@@ -202,6 +190,7 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
       </Modal>
     </Card>
   );
+  
 };
 
 export default BlogCard;
