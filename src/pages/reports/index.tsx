@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import TutorPerformanceReport from "@/components/Reports/TutorPerformanceReport";
 import UnassignedStudentsReport from "@/components/Reports/UnassignedStudentsReport";
 import InactiveStudentsReport from "@/components/Reports/InactiveStudentsReport";
+import StudentsWithoutInteractionReport from "@/components/Reports/StudentsWithoutInteractionReport"; // Added import
+import UnconfirmedEmailStudentsReport from "@/components/Reports/UnconfirmedEmailStudentsReport"; // Added import
 import Head from "next/head";
 // Re-add TabsProps import if needed for typing, but it wasn't used directly
 // import type { TabsProps } from "antd";
@@ -78,6 +80,16 @@ const ReportsPage: React.FC = () => {
               label: "Inactive Students",
               key: "inactive-students",
               children: <InactiveStudentsReport />,
+            },
+            {
+              label: "Students Without Interaction", // New Tab
+              key: "students-no-interaction",
+              children: <StudentsWithoutInteractionReport />,
+            },
+            {
+              label: "Unconfirmed Email Students", // New Tab
+              key: "unconfirmed-email-students",
+              children: <UnconfirmedEmailStudentsReport />,
             },
           ]}
           // Ensure no TabPane components are used below
