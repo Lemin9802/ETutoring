@@ -1,4 +1,4 @@
-﻿using ETutoring.Business.Dtos.Response.Moderator;
+﻿﻿using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
 using Microsoft.EntityFrameworkCore;
@@ -150,14 +150,14 @@ namespace ETutoring.DataAccess.Services.Students
 
             gfx.DrawString("Student Name", headerFont, XBrushes.Black, 50, 100);
             gfx.DrawString("Email", headerFont, XBrushes.Black, 250, 100);
-            gfx.DrawString("Registration Date", headerFont, XBrushes.Black, 450, 100);
+            // Removed Registration Date header
 
             var yPos = 130;
             foreach (var student in unassignedStudents)
             {
                 gfx.DrawString(student.FullName, font, XBrushes.Black, 50, yPos);
                 gfx.DrawString(student.Email, font, XBrushes.Black, 250, yPos);
-                gfx.DrawString(student.RegistrationDate?.ToString("yyyy-MM-dd") ?? "N/A", font, XBrushes.Black, 450, yPos);
+                // Removed Registration Date data
                 yPos += 20;
 
                 if (yPos > page.Height - 50)
@@ -194,19 +194,15 @@ namespace ETutoring.DataAccess.Services.Students
 
             worksheet.Cell(3, 1).Value = "Student Name";
             worksheet.Cell(3, 2).Value = "Email";
-            worksheet.Cell(3, 3).Value = "Registration Date";
-            worksheet.Range(3, 1, 3, 3).Style.Font.Bold = true;
+            // Removed Registration Date header
+            worksheet.Range(3, 1, 3, 2).Style.Font.Bold = true; // Adjusted range
 
             var row = 4;
             foreach (var student in unassignedStudents)
             {
                 worksheet.Cell(row, 1).Value = student.FullName;
                 worksheet.Cell(row, 2).Value = student.Email;
-                worksheet.Cell(row, 3).Value = student.RegistrationDate;
-                if (student.RegistrationDate.HasValue)
-                {
-                    worksheet.Cell(row, 3).Style.DateFormat.Format = "yyyy-MM-dd";
-                }
+                // Removed Registration Date data and formatting
                 row++;
             }
 
