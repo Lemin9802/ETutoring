@@ -10,34 +10,29 @@ export default async function handler(
 ) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res
-      .status(405)
-      .json({ message: `Method ${req.method} Not Allowed` });
+    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 
   try {
     const session = await getServerSession(req, res, authOptions);
 
-    if (!session) {
+    if (!session || !session.user.accessToken) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const token = session.user.accessToken;
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
 
-    const { blogId, title, content } = req.body;
-    if (!blogId || !title || !content) {
+    const { id, title, content } = req.body;
+
+    if (!id || !title || !content) {
       return res
         .status(400)
         .json({ message: "Blog ID, title, and content are required" });
     }
 
-    // Gửi request cập nhật blog lên backend
     const response = await axios.post<APIResponse>(
       `${process.env.BACKEND_URL}/api/blogs/update`,
-      { blogId, title, content },
+      { id, title, content },
       {
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +41,6 @@ export default async function handler(
       }
     );
 
-    // Trả về dữ liệu
     return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {

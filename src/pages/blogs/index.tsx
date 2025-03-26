@@ -5,7 +5,7 @@ import Banner from "@/components/Banner";
 import BlogWriteModal from "@/components/Blogs/BlogWriteModal";
 import { BlogType } from "@/types/Blogs";
 import axios from "axios";
-import BlogCard from "@/components/Blogs/BlogCard";
+import BlogList from "@/components/Blogs/BlogList";
 
 interface User {
   id: string;
@@ -17,68 +17,56 @@ const BlogIndex = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [blogs, setBlogs] = useState<BlogType[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users] = useState<User[]>([]);
   const [search, setSearch] = useState("");
 
-  // ✅ Bọc fetchBlogs bằng useCallback
   const fetchBlogs = useCallback(async () => {
+    if (!session?.user?.accessToken) return;
+  
     try {
-      const response = await axios.post("/api/blogs/get-all", {}, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
-
-      console.log("Fetched blogs:", response.data.data); // ✅ Debug API response
-      setBlogs(response.data.data || []);
+      let url = "/api/blogs/get-all"; 
+      if (activeTab === "my-blogs") {
+        url = "/api/blogs/get-by-id";
+      }
+  
+      const response = await axios.post(
+        url,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${session.user.accessToken}`,
+          },
+        }
+      );
+  
+      const sortedBlogs = (response.data.data as BlogType[]).sort(
+        (a, b) => new Date(b.created_at || b.created_at).getTime() - new Date(a.created_at || a.created_at).getTime()
+      );
+      setBlogs(sortedBlogs);
+  
     } catch (error) {
       console.error("Error fetching blogs:", error);
     }
-  }, [session]);
+  }, [session, activeTab]);
+  
 
-  // ✅ Bọc fetchUsers bằng useCallback
-  const fetchUsers = useCallback(async () => {
-    try {
-      const response = await axios.post("/api/users/get-all", {}, {
-        headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
-      });
-
-      console.log("Fetched users:", response.data.data); // ✅ Debug API response
-      setUsers(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  }, [session]);
-
-  // ✅ Thêm fetchBlogs và fetchUsers vào dependency array
   useEffect(() => {
     if (session?.user?.accessToken) {
       fetchBlogs();
-      fetchUsers();
     }
-  }, [session, fetchBlogs, fetchUsers]);
-
-  const getUserName = (userId: string) => {
-    const user = users.find((u) => u.id === userId);
-    return user ? user.name : "Unknown User"; // ✅ Fix hiển thị Unknown User
-  };
-
-  const groupedBlogs = blogs.reduce<{ [userId: string]: BlogType[] }>((acc, blog) => {
-    const userId = blog.user_id ?? "unknown";
-    if (!acc[userId]) acc[userId] = [];
-    acc[userId].push(blog);
-    return acc;
-  }, {});
+  }, [session, fetchBlogs]);
 
   return (
     <>
       <Banner
-        title="Blog List"
+        title="Blogs Page"
         description="Welcome to the blog list page!"
         bgColor="bg-green-600"
       />
 
       <Tabs
         activeKey={activeTab}
-        onChange={setActiveTab}
+        onChange={(key) => setActiveTab(key)}
         size="large"
         className="mb-4"
         items={[
@@ -104,35 +92,15 @@ const BlogIndex = () => {
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onBlogCreated={(newBlog: BlogType) => setBlogs((prev) => [newBlog, ...prev])}
-        onBlogUpdated={(updatedBlog: BlogType) => setBlogs((prev) =>
-          prev.map((b) => (b.id === updatedBlog.id ? updatedBlog : b))
-        )}
-        onBlogDeleted={(deletedBlogId: string) => setBlogs((prev) =>
-          prev.filter((b) => b.id !== deletedBlogId)
-        )}
+        onBlogUpdated={(updatedBlog: BlogType) =>
+          setBlogs((prev) => prev.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)))
+        }
+        onBlogDeleted={(deletedBlogId: string) =>
+          setBlogs((prev) => prev.filter((b) => b.id !== deletedBlogId))
+        }
       />
 
-      {Object.entries(groupedBlogs).map(([userId, userBlogs]) => (
-        <div key={userId} className="border p-4 rounded-lg mb-4 bg-gray-100">
-          <h2 className="text-lg font-bold text-blue-700">{getUserName(userId)}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-            {userBlogs.map((blog) => (
-              <BlogCard 
-                key={blog.id} 
-                blog={blog}
-                onBlogUpdated={(updatedBlog: BlogType) => {
-                  setBlogs((prev) =>
-                    prev.map((b) => (b.id === updatedBlog.id ? updatedBlog : b))
-                  );
-                }}
-                onBlogDeleted={(deletedBlogId: string) => {
-                  setBlogs((prev) => prev.filter((b) => b.id !== deletedBlogId));
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+      <BlogList filter={activeTab} userId={session?.user?.id} users={users} blogs={blogs} />
     </>
   );
 };
