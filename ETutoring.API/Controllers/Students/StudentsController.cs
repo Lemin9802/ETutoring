@@ -4,18 +4,17 @@ using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+using System;
+using System.Threading.Tasks;
 using ETutoring.Business.Dtos.Response;
-using System.Net;
 using ETutoring.Business.Dtos.Response.Students;
-using ETutoring.Core.Common;
 
 namespace ETutoring.API.Controllers.Students
 {
     [Route("api/students")]
     [ApiController]
     [Authorize(Roles = "Student")]
-    public class StudentController : ControllerBase
+    public partial class StudentController : ControllerBase
     {
         private readonly IStudentService _studentService;
 
@@ -29,5 +28,7 @@ namespace ETutoring.API.Controllers.Students
         {
             return await _studentService.GetTutorsForStudentAsync(model.StudentId);            
         }
+
+
     }
 }

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageReference Include="MailKit" Version="4.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.12" />
@@ -26,6 +27,7 @@
     <PackageReference Include="MimeKit" Version="4.10.0" />
     <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
+    <PackageReference Include="PDFsharp" Version="6.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ETutoring.Business\ETutoring.Business.csproj" />
