@@ -16,16 +16,20 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Documents;
 using Microsoft.AspNetCore.Mvc;
+using ETutoring.Business.Interfaces.Services;
+using ETutoring.Core.EmailTemplate;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
     public class ModeratorService : IModeratorService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public ModeratorService(ApplicationDbContext context)
+        public ModeratorService(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta)
@@ -69,64 +73,102 @@ namespace ETutoring.DataAccess.Services.Moderator
 
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(AssignTutorMultipleStudentsRequest request)
         {
-            // Lấy Role ID của Student và Tutor
-            var studentRoleId = await _context.Roles
-                .Where(r => r.Name == "Student")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
+            var roles = await _context.Roles
+                .Where(r => r.Name == "Student" || r.Name == "Tutor")
+                .ToDictionaryAsync(r => r.Name, r => r.Id);
 
-            var tutorRoleId = await _context.Roles
-                .Where(r => r.Name == "Tutor")
-                .Select(r => r.Id)
-                .FirstOrDefaultAsync();
+            if (!roles.ContainsKey("Student") || !roles.ContainsKey("Tutor"))
+                return ApiResponse<bool>.FailureResponse("Roles not found.");
 
-            // Kiểm tra tutor có vai trò Tutor không
-            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
+            var studentRoleId = roles["Student"];
+            var tutorRoleId = roles["Tutor"];
+
+            var isTutor = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
             if (!isTutor)
                 return ApiResponse<bool>.FailureResponse("Invalid Tutor.");
 
-            // Lấy danh sách student hợp lệ (có vai trò Student)
             var validStudents = await _context.Users
-                .Join(_context.UserRoles,
+                .Where(u => request.StudentIds.Contains(u.Id))
+                .Join(_context.UserRoles.Where(ur => ur.RoleId == studentRoleId),
                       user => user.Id,
                       userRole => userRole.UserId,
-                      (user, userRole) => new { user, userRole })
-                .Where(joined => request.StudentIds.Contains(joined.user.Id) && joined.userRole.RoleId == studentRoleId)
-                .Select(joined => joined.user.Id)
+                      (user, userRole) => user)
                 .ToListAsync();
 
             if (!validStudents.Any())
                 return ApiResponse<bool>.FailureResponse("No valid students found.");
 
+            var tutor = await _context.Users
+                .Where(u => u.Id == request.TutorId)
+                .FirstOrDefaultAsync();
+
+            if (tutor == null)
+                return ApiResponse<bool>.FailureResponse("Tutor not found.");
+
             var existingAllocations = await _context.Allocations
-                .Where(a => validStudents.Contains(a.StudentId))
-                .ToListAsync();
+                .Where(a => validStudents.Select(s => s.Id).Contains(a.StudentId))
+                .ToDictionaryAsync(a => a.StudentId);
 
-            foreach (var studentId in validStudents)
+            var newAllocations = new List<Allocation>();
+
+            // Danh sách học sinh để gửi email tổng hợp
+            var studentDetails = new List<string>();
+
+            foreach (var student in validStudents)
             {
-                var existingAllocation = existingAllocations.FirstOrDefault(a => a.StudentId == studentId);
-
-                if (existingAllocation != null)
+                if (existingAllocations.TryGetValue(student.Id, out var existingAllocation))
                 {
                     existingAllocation.TutorId = request.TutorId;
                     existingAllocation.AssignedBy = request.AssignedBy;
                     existingAllocation.AssignedAt = DateTime.UtcNow;
-                    _context.Allocations.Update(existingAllocation);
                 }
                 else
                 {
-                    var newAllocation = new Allocation
+                    newAllocations.Add(new Allocation
                     {
-                        StudentId = studentId,
+                        StudentId = student.Id,
                         TutorId = request.TutorId,
                         AssignedBy = request.AssignedBy,
                         AssignedAt = DateTime.UtcNow
-                    };
-                    _context.Allocations.Add(newAllocation);
+                    });
                 }
+
+                // Gửi email cho từng Student
+                var studentEmailRequest = new EmailTemplateRequest(
+                    student.Id,
+                    student.Email,
+                    "You have been assigned a new tutor!",
+                    EmailTemplateType.StudentReceiveNewTutor,
+                    new Dictionary<string, string>
+                    {
+                        { "{{studentName}}", student.Email },
+                        { "{{TutorName}}", tutor.Email }
+                    }
+                );
+                await _emailService.SendEmailAsync(studentEmailRequest);
+
+                // Thêm học sinh vào danh sách để gửi email cho tutor
+                studentDetails.Add($"- {student.Email}");
             }
 
+            _context.Allocations.UpdateRange(existingAllocations.Values);
+            _context.Allocations.AddRange(newAllocations);
             await _context.SaveChangesAsync();
+
+            // Gửi email tổng hợp danh sách học sinh cho Tutor
+            var tutorEmailRequest = new EmailTemplateRequest(
+                tutor.Id,
+                tutor.Email,
+                "You have been assigned new students!",
+                EmailTemplateType.TutorAssignedToStudent,
+                new Dictionary<string, string>
+                {
+                    { "{{TutorName}}", tutor.Email },
+                    { "{{StudentList}}", string.Join("\n", studentDetails) }
+                }
+            );
+            await _emailService.SendEmailAsync(tutorEmailRequest);
 
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
