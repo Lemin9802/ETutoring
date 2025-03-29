@@ -88,16 +88,22 @@ namespace ETutoring.API.Controllers
             [FromBody] DeleteBlogRequest request,
             CancellationToken cancellationToken = default)
         {
+            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             var isAdmin = User.IsAdmin();
-            if (!isAdmin)
-                return Forbid();
 
-            var result = await _blogService.DeleteBlogAsync(request.Id, isAdmin, cancellationToken);
+            var result = await _blogService.DeleteBlogAsync(
+                request.Id,
+                Guid.Parse(userId!),
+                isAdmin,
+                cancellationToken
+            );
+
             if (!result)
-                return NotFound(ApiResponseHandler.FailureResponse<bool>("Blog not found or not authorized to delete"));
+                return Forbid(); 
 
             return Ok(ApiResponseHandler.SuccessResponse(true, "Blog Deleted Successfully"));
         }
+
 
     }
 }

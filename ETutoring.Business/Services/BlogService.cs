@@ -82,17 +82,19 @@ namespace ETutoring.Business.Services
             await _context.SaveChangesAsync(cancellationToken);
             return blog;
         }
-        public async Task<bool> DeleteBlogAsync(Guid blogId, bool isAdmin, CancellationToken cancellationToken)
+        public async Task<bool> DeleteBlogAsync(Guid blogId, Guid userId, bool isAdmin, CancellationToken cancellationToken)
         {
             var blog = await _context.Blogs.FindAsync(new object[] { blogId }, cancellationToken);
             if (blog == null)
+                return false;
+
+            if (!isAdmin && blog.UserId != userId)
                 return false;
 
             _context.Blogs.Remove(blog);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
 
     }
 
