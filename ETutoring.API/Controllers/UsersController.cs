@@ -1,15 +1,9 @@
 ﻿using ETutoring.Business.Dtos.Auth;
 using ETutoring.Business.Interfaces;
-using ETutoring.Business.Interfaces.Services;
-using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
-using ETutoring.Core.Entities;
 using ETutoring.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ETutoring.API.Controllers
 {
@@ -19,7 +13,7 @@ namespace ETutoring.API.Controllers
     {
         private readonly IIdentityServices _identityServices;
 
-        public UsersController( IIdentityServices identityServices)
+        public UsersController(IIdentityServices identityServices)
         {
             _identityServices = identityServices;
         }

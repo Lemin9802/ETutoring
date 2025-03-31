@@ -1,7 +1,6 @@
 ﻿using ETutoring.Business.Dtos.Auth;
-using ETutoring.Core.Utilities;
-using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
+using ETutoring.Core.Utilities;
 
 namespace ETutoring.Business.Interfaces;
 

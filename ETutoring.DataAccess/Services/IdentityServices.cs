@@ -41,6 +41,8 @@ public class IdentityServices : IIdentityServices
             return AuthResult<TokenResponse>.Failure("Invalid username or password.");
         }
 
+        user.LastLoginTime = DateTime.UtcNow;
+
         // Generate Access Token
         var accessToken = await _tokenService.GenerateToken(user);
 
