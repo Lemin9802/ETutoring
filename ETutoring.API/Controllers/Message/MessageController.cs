@@ -10,7 +10,7 @@ namespace ETutoring.API.Controllers.Message
 {
     [Route("api/messages")]
     [ApiController]
-    public class MessageController : ControllerBase
+    public partial class MessageController : ControllerBase
     {
         private readonly IMessageService _messageService;
 
@@ -18,6 +18,8 @@ namespace ETutoring.API.Controllers.Message
         {
             _messageService = messageService;
         }
+
+
 
         [HttpPost("get-all")]
         public async Task<IActionResult> GetUserConversations([FromBody] GetConversationsRequest request)

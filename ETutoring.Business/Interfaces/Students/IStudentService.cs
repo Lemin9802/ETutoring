@@ -14,5 +14,21 @@ namespace ETutoring.Business.Interfaces.Students
     public interface IStudentService
     {
         Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(Guid studentId);
+        Task<ApiResponse<List<UnassignedStudentResponse>>> GetUnassignedStudentsAsync();
+        Task<ApiResponse<List<InactiveStudentResponse>>> GetInactiveStudentsAsync(int days);
+        Task<byte[]> GenerateUnassignedStudentsPdfReportAsync();
+        Task<byte[]> GenerateUnassignedStudentsExcelReportAsync();
+        Task<byte[]> GenerateInactiveStudentsPdfReportAsync(int days);
+        Task<byte[]> GenerateInactiveStudentsExcelReportAsync(int days);
+
+        // New methods for students without interaction
+        Task<ApiResponse<List<StudentWithoutInteractionResponse>>> GetStudentsWithoutInteractionAsync(int days);
+        Task<byte[]> GenerateStudentsWithoutInteractionPdfReportAsync(int days);
+        Task<byte[]> GenerateStudentsWithoutInteractionExcelReportAsync(int days);
+
+        // New methods for unconfirmed email students
+        Task<ApiResponse<List<UnconfirmedEmailStudentResponse>>> GetUnconfirmedEmailStudentsAsync();
+        Task<byte[]> GenerateUnconfirmedEmailStudentsPdfReportAsync();
+        Task<byte[]> GenerateUnconfirmedEmailStudentsExcelReportAsync();
     }
 }
