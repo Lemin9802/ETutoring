@@ -12,7 +12,7 @@ export type UserRole = "student" | "tutor" | "moderator";
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
-  const userRole = session?.user?.roles as UserRole | undefined;
+  // const userRole = session?.user?.roles as UserRole | undefined;
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">

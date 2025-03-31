@@ -15,20 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log("📌 Sending request to BACKEND_URL:", process.env.BACKEND_URL);
-    console.log("📌 Access Token:", session.user.accessToken);
-
     const token = session.user.accessToken;
-    const response = await axios.post(
-      `${process.env.BACKEND_URL}/api/blogs/get-all`,
-      req.body,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/get-all`, req.body, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return res.status(200).json(response.data);
   } catch (error: unknown) {

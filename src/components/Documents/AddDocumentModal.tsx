@@ -34,7 +34,6 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   tutorList,
 }) => {
   const [form] = Form.useForm();
-  console.log("tutorList", tutorList);
   const handleCancel = () => {
     form.resetFields();
     onCancel();

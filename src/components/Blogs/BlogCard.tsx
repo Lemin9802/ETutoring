@@ -1,12 +1,27 @@
 import { useState } from "react";
-import { Card, Button, Modal, Input, message, Popconfirm } from "antd";
+import {
+  Card,
+  Button,
+  Modal,
+  Input,
+  message,
+  Popconfirm,
+  Dropdown,
+  Menu,
+} from "antd";
 import axios from "axios";
 import { BlogType } from "@/types/Blogs";
+import { useSession } from "next-auth/react";
+import { MoreOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import BlogModal from "./BlogModal";
+dayjs.extend(relativeTime);
 
 interface BlogCardProps {
-  blog: BlogType;
+  blog: BlogType & { userName?: string };
   onBlogUpdated: (updatedBlog: BlogType) => void;
-  onBlogDeleted: (deletedBlogId: string) => void;
+  onBlogDeleted?: (deletedBlogId: string) => void;
 }
 
 const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
@@ -14,27 +29,36 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
   const [title, setTitle] = useState(blog.title);
   const [content, setContent] = useState(blog.content);
   const [loading, setLoading] = useState(false);
+  const [isBlogModalVisible, setIsBlogModalVisible] = useState(false);
+
+  const { data: session } = useSession();
+
+  const canEditOrDelete =
+    session?.user?.roles === "Admin" || session?.user?.id === blog.user_id;
 
   const handleUpdateBlog = async () => {
+    if (!blog.id) return message.error("Error: Blog ID is missing.");
     if (!title.trim() || !content.trim()) {
-      message.warning("Title and content cannot be empty!");
-      return;
+      return message.warning("Title and content cannot be empty!");
     }
+
     setLoading(true);
     try {
-      const response = await axios.put(`/api/blogs/update/${blog.id}`, {
-        title,
-        content,
-      });
+      const response = await axios.post(
+        "/api/blogs/update",
+        { id: blog.id, title, content },
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+
       if (response.status === 200) {
         message.success("Blog updated successfully!");
-        onBlogUpdated(response.data.blog); // ✅ Truyền đúng tham số
+        onBlogUpdated(response.data.data);
         setIsEditModalVisible(false);
       } else {
         throw new Error("Failed to update blog");
       }
     } catch (error) {
-      console.error("Error updating blog:", error);
+      console.error("API Error:", error);
       message.error("Failed to update blog. Please try again.");
     } finally {
       setLoading(false);
@@ -42,12 +66,19 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
   };
 
   const handleDeleteBlog = async () => {
+    if (!blog.id) return message.error("Error: Blog ID is missing.");
+
     setLoading(true);
     try {
-      const response = await axios.delete(`/api/blogs/delete/${blog.id}`);
+      const response = await axios.post(
+        "/api/blogs/delete",
+        { id: blog.id },
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+
       if (response.status === 200) {
-        message.success("Blog deleted successfully!");
-        onBlogDeleted(blog.id); // ✅ Truyền đúng tham số
+        message.success("🗑 Blog deleted successfully!");
+        onBlogDeleted?.(blog.id);
       } else {
         throw new Error("Failed to delete blog");
       }
@@ -59,23 +90,81 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
     }
   };
 
-  return (
-    <Card title={blog.title} extra={<Button onClick={() => setIsEditModalVisible(true)}>Edit</Button>}>
-      <p>{blog.content}</p>
-      <div className="flex justify-end gap-2 mt-4">
+  const handleShowBlogModal = () => {
+    setIsBlogModalVisible(true);
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="edit" onClick={() => setIsEditModalVisible(true)}>
+        Edit
+      </Menu.Item>
+      <Menu.Item key="delete">
         <Popconfirm
-          title="Are you sure you want to delete this blog? This action cannot be undone."
+          title="Are you sure to delete this blog?"
           onConfirm={handleDeleteBlog}
-          okText="Yes, Delete"
-          cancelText="Cancel"
+          okText="Yes"
+          cancelText="No"
         >
-          <Button danger loading={loading}>Delete</Button>
+          <span className="text-red-500">Delete</span>
         </Popconfirm>
+      </Menu.Item>
+    </Menu>
+  );
+
+  return (
+    <Card className="shadow rounded-xl p-4 bg-white border border-gray-200 transition-transform hover:scale-105 duration-300">
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm">
+            👤
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700">
+              {blog.userName || "Unknown User"}
+            </p>
+            <p className="text-xs text-gray-500">
+              {dayjs(blog.created_at).format("HH:mm DD-MM-YYYY")}
+            </p>
+          </div>
+        </div>
+  
+        {canEditOrDelete && (
+          <Dropdown overlay={menu} placement="bottomRight" trigger={["click"]}>
+            <Button type="text" icon={<MoreOutlined />} />
+          </Dropdown>
+        )}
       </div>
-      {/* Edit Modal */}
+  
+      <h2 className="text-lg font-semibold mb-1">{blog.title}</h2>
+      <p className="text-gray-700 mb-4">{blog.content.slice(0, 120)}...</p>
+  
+      {/* Comment Button */}
+      <div className="border-t pt-3">
+        <div className="flex justify-end">
+          <Button
+            type="text"
+            icon={<span className="mr-1">💬</span>}
+            onClick={handleShowBlogModal}
+          >
+            Comment
+          </Button>
+        </div>
+      </div>
+  
+      {/* Blog Modal */}
+      <BlogModal
+        blogTitle={blog.title}
+        blogContent={blog.content}
+        blogId={blog.id}
+        isVisible={isBlogModalVisible}
+        onClose={() => setIsBlogModalVisible(false)}
+      />
+  
+      {/* Modal Edit */}
       <Modal
         title="Edit Blog"
-        visible={isEditModalVisible}
+        open={isEditModalVisible}
         onCancel={() => setIsEditModalVisible(false)}
         footer={null}
       >
@@ -101,6 +190,7 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
       </Modal>
     </Card>
   );
+  
 };
 
 export default BlogCard;

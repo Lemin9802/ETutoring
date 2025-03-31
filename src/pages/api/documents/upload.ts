@@ -6,7 +6,6 @@ import { authOptions } from "../auth/[...nextauth]";
 import formidable from "formidable";
 import fs from "fs";
 import FormData from "form-data";
-import path from "path";
 
 // Disable the default body parser to handle form data
 export const config = {
@@ -15,10 +14,7 @@ export const config = {
   },
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -70,7 +66,7 @@ export default async function handler(
 
     // Send to backend
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/documents/upload`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/documents/upload`,
       formData,
       {
         headers: {

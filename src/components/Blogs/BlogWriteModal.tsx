@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Input, Button, message, Popconfirm } from "antd";
+import { Modal, Input, Button, message} from "antd";
 import axios from "axios";
 import { BlogType } from "@/types/Blogs";
 
@@ -11,7 +11,11 @@ interface BlogWriteModalProps {
   onBlogDeleted?: (deletedBlogId: string) => void;
 }
 
-const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlogDeleted }: BlogWriteModalProps) => {
+const BlogWriteModal = ({
+  visible,
+  onClose,
+  onBlogCreated,
+}: BlogWriteModalProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +35,9 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
 
       if (response.status === 200) {
         message.success("Blog created successfully!");
-        onBlogCreated(response.data.blog);
+
+        const createdBlog: BlogType = response.data.data;
+        onBlogCreated(createdBlog);
         setTitle("");
         setContent("");
         onClose();
@@ -45,59 +51,7 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
       setLoading(false);
     }
   };
-
-  const handleUpdateBlog = async (id: string) => {
-    if (!title.trim() || !content.trim()) {
-      message.warning("Title and content cannot be empty!");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await axios.put(`/api/blogs/update/${id}`, {
-        title,
-        content,
-      });
-
-      if (response.status === 200) {
-        message.success("Blog updated successfully!");
-        if (onBlogUpdated) {
-          onBlogUpdated(response.data.blog);
-        }
-        onClose();
-      } else {
-        throw new Error("Failed to update blog");
-      }
-    } catch (error) {
-      console.error("Error updating blog:", error);
-      message.error("Failed to update blog. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteBlog = async (id: string) => {
-    setLoading(true);
-    try {
-      const response = await axios.delete(`/api/blogs/delete/${id}`);
-
-      if (response.status === 200) {
-        message.success("Blog deleted successfully!");
-        if (onBlogDeleted) {
-          onBlogDeleted(id);
-        }
-        onClose();
-      } else {
-        throw new Error("Failed to delete blog");
-      }
-    } catch (error) {
-      console.error("Error deleting blog:", error);
-      message.error("Failed to delete blog. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   return (
     <Modal title="Write a Blog" visible={visible} onCancel={onClose} footer={null}>
       <Input
@@ -118,20 +72,9 @@ const BlogWriteModal = ({ visible, onClose, onBlogCreated, onBlogUpdated, onBlog
         <Button type="primary" loading={loading} onClick={handleCreateBlog}>
           Create Blog
         </Button>
-        <Button type="default" loading={loading} onClick={() => handleUpdateBlog("blog-id")}>
-          Update Blog
-        </Button>
-        <Popconfirm
-          title="Are you sure you want to delete this blog? This action cannot be undone."
-          onConfirm={() => handleDeleteBlog("blog-id")}
-          okText="Yes, Delete"
-          cancelText="Cancel"
-        >
-          <Button danger loading={loading}>Delete Blog</Button>
-        </Popconfirm>
       </div>
     </Modal>
   );
 };
 
-export default BlogWriteModal;
+export default BlogWriteModal; 

@@ -48,11 +48,6 @@ const DocumentListPage: React.FC = () => {
   const [data, setData] = useState<DataType[]>([]);
 
   const [tutorList, setTutorList] = useState<Tutor[]>([]);
-
-  useEffect(() => {
-    fetchDocuments();
-  }, [currentPage, pageSize]);
-
   const fetchDocuments = async () => {
     try {
       const response = await axios.post<APIResponse>("/api/documents/user", {
@@ -71,11 +66,13 @@ const DocumentListPage: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchDocuments();
+  }, [currentPage, pageSize, fetchDocuments]);
+
+  useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.post<APIResponse>(
-          "/api/students/get-tutors"
-        );
+        const response = await axios.post<APIResponse>("/api/students/get-tutors");
 
         const resData = response.data.data as Tutor[];
 
@@ -103,8 +100,7 @@ const DocumentListPage: React.FC = () => {
     try {
       const senderId = session?.user?.id;
       const tutorId: string = values.tutor;
-      const uploadedFile: File | undefined =
-        values.file?.fileList?.[0]?.originFileObj;
+      const uploadedFile: File | undefined = values.file?.fileList?.[0]?.originFileObj;
 
       if (!uploadedFile || !senderId || !tutorId) {
         message.error("Missing required information!");
@@ -138,9 +134,9 @@ const DocumentListPage: React.FC = () => {
     }
   };
 
-  const handleTableChange = (pagination: any) => {
-    setCurrentPage(pagination.current);
-    setPageSize(pagination.pageSize);
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
+    setCurrentPage(pagination.current || 1);
+    setPageSize(pagination.pageSize || 10);
   };
   const columns: ColumnsType<DataType> = [
     {
@@ -162,10 +158,7 @@ const DocumentListPage: React.FC = () => {
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-        <Badge
-          color={convertDocumentStatusColor(status)}
-          text={convertDocumentStatusName(status)}
-        />
+        <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
       ),
     },
     {
@@ -186,9 +179,7 @@ const DocumentListPage: React.FC = () => {
       ),
       dataIndex: "updated_at",
       key: "updated_at",
-      render: (updatedAt: string) => (
-        <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>
-      ),
+      render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
     },
     {
       title: "Action",

@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    const response = await fetch(`${process.env.BACKEND_URL}/api/users/update-profile`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/update-profile`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,4 +41,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: "An error occurred" });
   }
 }
-

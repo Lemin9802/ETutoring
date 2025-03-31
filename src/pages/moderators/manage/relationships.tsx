@@ -11,7 +11,6 @@ import {
   message,
   Spin,
 } from "antd";
-
 const { Title } = Typography;
 import { useSession } from "next-auth/react";
 
@@ -20,25 +19,28 @@ import { useSession } from "next-auth/react";
 interface Tutor {
   id: string;
   name: string;
+  email?: string;
 }
 
 interface Student {
   id: string;
   name: string;
+  email?: string;
 }
 
 interface Assignment {
-  id: number;
+  id: string;
   tutor: string;
   student: string;
   tutorId?: string;
   studentId?: string;
+  tutorEmail?: string;
+  studentEmail?: string;
 }
 
 // API service functions
 const api = {
   // Fetch all tutors
-  // TODO: Replace with actual API call
   getTutors: async (page: number, size: number): Promise<Tutor[]> => {
     try {
       const response = await fetch("/api/moderators/users/get-all-tutors", {
@@ -48,13 +50,13 @@ const api = {
         },
         body: JSON.stringify({ page, size }),
       });
-
       const result = await response.json();
       if (response.ok) {
         const users = result.data;
-        const data = users.map((user: { full_name: string, id: string, email: string }) => ({
+        const data = users.map((user: { full_name: string; id: string; email: string }) => ({
           id: user.id,
           name: user.full_name || user.email,
+          email: user.email,
         }));
         return data;
       } else {
@@ -77,17 +79,17 @@ const api = {
         },
         body: JSON.stringify({ page, size }),
       });
-
       const result = await response.json();
       if (response.ok) {
         const users = result.data;
-        const data = users.map((user: { full_name: string, id: string, email: string }) => ({
+        const data = users.map((user: { full_name: string; id: string; email: string }) => ({
           id: user.id,
           name: user.full_name || user.email,
+          email: user.email,
         }));
         return data;
       } else {
-        console.error("Error fetching tutors:", result.error);
+        console.error("Error fetching students:", result.error);
         return [];
       }
     } catch (error) {
@@ -97,29 +99,28 @@ const api = {
   },
 
   // Fetch all assignments
-  getAssignments: async (userId: string): Promise<Assignment[]> => {
+  getAssignments: async (page_number: number, page_size: number): Promise<Assignment[]> => {
     try {
-      const response = await fetch("/api/moderators/users/assigned-chatrooms", {
+      const response = await fetch("/api/moderators/users/get-all-chatrooms", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id: userId }), // Sending user_id as required
+        body: JSON.stringify({ page_number, page_size }),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         console.error("Error fetching assignments:", result.message);
         return [];
       }
-
-      return result.data.map((assignment: { id: number, tutor_id: string, student_id: string, tutor_name: string, student_name: string }) => ({
-        id: assignment.id,
+      return result.data.map((assignment: { room_id: number; tutor_id: string; student_id: string; tutor_name: string; student_name: string; tutor_email?: string; student_email?: string }) => ({
+        id: assignment.room_id,
         tutorId: assignment.tutor_id,
         studentId: assignment.student_id,
-        tutor: assignment.tutor_name, // Assuming API returns tutor name
-        student: assignment.student_name, // Assuming API returns student name
+        tutor: assignment.tutor_name,
+        student: assignment.student_name,
+        tutorEmail: assignment.tutor_email,
+        studentEmail: assignment.student_email,
       }));
     } catch (error) {
       console.error("Network error:", error);
@@ -137,9 +138,10 @@ const api = {
         },
         body: JSON.stringify(assignment),
       });
-
       const result = await response.json();
-      return response.ok ? { id: result.id, ...assignment, tutor: "", student: "" } : null;
+      return response.ok
+        ? { id: result.id, ...assignment, tutor: "", student: "" }
+        : null;
     } catch (error) {
       console.error("Network error:", error);
       return null;
@@ -148,25 +150,57 @@ const api = {
 
   // Update an existing assignment
   updateAssignment: async (assignment: Assignment): Promise<Assignment> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch(`/api/assignments/${assignment.id}`, { method: 'PUT', body: JSON.stringify(assignment) }).then(res => res.json());
-    return assignment;
+    try {
+      const response = await fetch("/api/moderators/users/update-assignment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          room_id: assignment.id,
+          new_tutor_id: assignment.tutorId,
+          new_student_id: assignment.studentId,
+        }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        return {
+          ...assignment,
+          tutorId: result.data.TutorId,
+          studentId: result.data.StudentId,
+        };
+      } else {
+        throw new Error(result.message || "Failed to update assignment");
+      }
+    } catch (error) {
+      console.error("Update assignment error:", error);
+      throw error;
+    }
   },
 
   // Delete an assignment
-  //deleteAssignment: async (id: number): Promise<void> => {     //also uncomment line 173
-  deleteAssignment: async (): Promise<void> => {
-    // TODO: Replace with actual API call
-    // Example: return await fetch(`/api/assignments/${id}`, { method: 'DELETE' }).then(res => res.json());
-    return Promise.resolve();
+  deleteAssignment: async (room_id: string): Promise<void> => {
+    try {
+      const response = await fetch("/api/moderators/users/delete-assignment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to delete assignment");
+      }
+    } catch (error) {
+      console.error("Delete assignment error:", error);
+      throw error;
+    }
   },
 };
 
 const RelationshipManagement: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] =
-    useState<Assignment | null>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [form] = Form.useForm();
   const { data: session } = useSession();
 
@@ -189,10 +223,11 @@ const RelationshipManagement: React.FC = () => {
 
   // Handle edit assignment
   const handleEdit = (record: Assignment) => {
+    console.log("Clicked record:", record);  
     setSelectedAssignment(record);
     form.setFieldsValue({
-      tutor: tutors.find((t) => t.name === record.tutor)?.id,
-      student: students.find((s) => s.name === record.student)?.id,
+      tutor: tutors.find((t) => t.id === record.tutorId)?.id,
+      student: students.find((s) => s.id === record.studentId)?.id,
     });
     setEditModalVisible(true);
   };
@@ -206,9 +241,8 @@ const RelationshipManagement: React.FC = () => {
         const [tutorsData, studentsData, assignmentsData] = await Promise.all([
           api.getTutors(1, 100),
           api.getStudents(1, 100),
-          api.getAssignments(session.user.id),
+          api.getAssignments(1, 10),
         ]);
-
         setTutors(tutorsData);
         setStudents(studentsData);
         setAssignments(assignmentsData);
@@ -219,9 +253,8 @@ const RelationshipManagement: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, []);
+  }, [session]);
 
   // Handle remove assignment
   const handleRemove = (record: Assignment) => {
@@ -233,7 +266,7 @@ const RelationshipManagement: React.FC = () => {
       cancelText: "No",
       onOk: async () => {
         try {
-          // await api.deleteAssignment(record.id);
+          await api.deleteAssignment(record.id);
           setAssignments((prev) =>
             prev.filter((item) => item.id !== record.id)
           );
@@ -253,14 +286,12 @@ const RelationshipManagement: React.FC = () => {
       const studentName = students.find((s) => s.id === values.student)?.name;
 
       if (!tutorName || !studentName || !selectedAssignment) {
-        message.error(
-          "Failed to update assignment: Missing required information"
-        );
+        message.error("Failed to update assignment: Missing required information");
         return;
       }
 
       try {
-        const updatedAssignment = {
+        const updatedAssignment: Assignment = {
           ...selectedAssignment,
           tutor: tutorName,
           student: studentName,
@@ -268,14 +299,12 @@ const RelationshipManagement: React.FC = () => {
           studentId: values.student,
         };
 
-        await api.updateAssignment(updatedAssignment);
-
+        const response = await api.updateAssignment(updatedAssignment);
         setAssignments((prev) =>
           prev.map((item) =>
-            item.id === selectedAssignment.id ? updatedAssignment : item
+            item.id === selectedAssignment.id ? response : item
           )
         );
-
         setEditModalVisible(false);
         setSelectedAssignment(null);
         message.success("Assignment updated successfully!");
@@ -332,8 +361,16 @@ const RelationshipManagement: React.FC = () => {
           dataSource={assignments}
           rowKey="id"
           columns={[
-            { title: "Tutor", dataIndex: "tutor", key: "tutor" },
-            { title: "Student", dataIndex: "student", key: "student" },
+            {
+              title: "Tutor",
+              key: "tutor",
+              render: (_, record) => record.tutor || record.tutorEmail || "N/A",
+            },
+            {
+              title: "Student",
+              key: "student",
+              render: (_, record) => record.student || record.studentEmail || "N/A",
+            },
             {
               title: "Actions",
               key: "actions",
@@ -342,11 +379,7 @@ const RelationshipManagement: React.FC = () => {
                   <Button type="link" onClick={() => handleEdit(record)}>
                     Edit
                   </Button>
-                  <Button
-                    type="link"
-                    danger
-                    onClick={() => handleRemove(record)}
-                  >
+                  <Button type="link" danger onClick={() => handleRemove(record)}>
                     Remove
                   </Button>
                 </Space>
@@ -394,7 +427,7 @@ const RelationshipManagement: React.FC = () => {
             <Select placeholder="Select a tutor">
               {tutors.map((tutor) => (
                 <Select.Option key={tutor.id} value={tutor.id}>
-                  {tutor.name}
+                  {tutor.name || tutor.email}
                 </Select.Option>
               ))}
             </Select>
@@ -408,7 +441,7 @@ const RelationshipManagement: React.FC = () => {
             <Select placeholder="Select a student">
               {students.map((student) => (
                 <Select.Option key={student.id} value={student.id}>
-                  {student.name}
+                  {student.name || student.email}
                 </Select.Option>
               ))}
             </Select>
@@ -439,7 +472,7 @@ const RelationshipManagement: React.FC = () => {
             <Select placeholder="Select a tutor">
               {tutors.map((tutor) => (
                 <Select.Option key={tutor.id} value={tutor.id}>
-                  {tutor.name}
+                  {tutor.name || tutor.email}
                 </Select.Option>
               ))}
             </Select>
@@ -453,7 +486,7 @@ const RelationshipManagement: React.FC = () => {
             <Select placeholder="Select a student">
               {students.map((student) => (
                 <Select.Option key={student.id} value={student.id}>
-                  {student.name}
+                  {student.name || student.email}
                 </Select.Option>
               ))}
             </Select>

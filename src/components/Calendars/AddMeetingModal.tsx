@@ -1,28 +1,25 @@
-import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  Form,
-  Input,
+  ArrowLeftOutlined,
+  MinusCircleOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import {
   Button,
   DatePicker,
-  TimePicker,
+  Form,
+  Input,
+  Modal,
   Space,
-  Typography,
-  Select,
   Steps,
+  TimePicker,
+  Typography
 } from "antd";
-import {
-  PlusOutlined,
-  MinusCircleOutlined,
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { Meeting, Attendee } from "./types";
+import React, { useEffect, useState } from "react";
+import { Meeting } from "./types";
 
 const { TextArea } = Input;
-const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 interface AddMeetingModalProps {
   visible: boolean;

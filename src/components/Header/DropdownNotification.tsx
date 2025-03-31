@@ -21,16 +21,13 @@ const DropdownNotification = () => {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error message
   const [showAll, setShowAll] = useState(false); // Toggle for showing all notifications
-  const [selectedNotification, setSelectedNotification] =
-    useState<Notification | null>(null); // Stores selected notification for detail view
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null); // Stores selected notification for detail view
 
   // Fetch notifications from API on component mount
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const response = await axios.post("/api/email/email"); // API call
-        console.log("📩 Raw API response:", response.data);
-
         // Format API response into Notification type
         if (Array.isArray(response.data)) {
           const formattedData = response.data.map((email) => ({
@@ -60,17 +57,11 @@ const DropdownNotification = () => {
 
   // Display initial count or all notifications
   const initialDisplayCount = 2;
-  const displayedNotifications = showAll
-    ? notifications
-    : notifications.slice(0, initialDisplayCount);
+  const displayedNotifications = showAll ? notifications : notifications.slice(0, initialDisplayCount);
 
   // Mark notification as read
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif)));
   }, []);
 
   // Handle click to view notification details
@@ -113,9 +104,7 @@ const DropdownNotification = () => {
           <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-1 sm:left-auto sm:right-0 mt-2 w-80 max-w-xs md:max-w-sm lg:max-w-md rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <h1 className="text-lg font-semibold text-gray-900">
-                  Notifications
-                </h1>
+                <h1 className="text-lg font-semibold text-gray-900">Notifications</h1>
                 {unreadCount > 0 && (
                   <span className="px-2 py-1 text-xs font-medium text-primary bg-primary/10 rounded-full">
                     {unreadCount} new
@@ -132,12 +121,7 @@ const DropdownNotification = () => {
             ) : error ? (
               <div className="p-4 text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-50 mb-2">
-                  <svg
-                    className="w-6 h-6 text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -165,9 +149,7 @@ const DropdownNotification = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-gray-500 text-sm">
-                  No notifications available.
-                </p>
+                <p className="text-gray-500 text-sm">No notifications available.</p>
               </div>
             ) : (
               <>
@@ -187,12 +169,7 @@ const DropdownNotification = () => {
                               notif.isRead ? "text-gray-400" : "text-primary"
                             }`}
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -209,9 +186,7 @@ const DropdownNotification = () => {
                             >
                               {notif.subject}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {notif.createdAt}
-                            </p>
+                            <p className="text-xs text-gray-400 mt-1">{notif.createdAt}</p>
                           </div>
                         </div>
                       </button>
@@ -242,9 +217,7 @@ const DropdownNotification = () => {
           <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-xl transition-all duration-300">
             {/* Modal header */}
             <div className="flex items-center justify-between bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-4 rounded-t-xl">
-              <h2 className="text-lg font-bold text-white">
-                Notification Details
-              </h2>
+              <h2 className="text-lg font-bold text-white">Notification Details</h2>
               <button
                 onClick={() => setSelectedNotification(null)}
                 className="text-white hover:text-gray-200 focus:outline-none"
@@ -275,9 +248,7 @@ const DropdownNotification = () => {
                 }}
               ></div>
 
-              <p className="mt-3 text-sm text-gray-500">
-                {selectedNotification.createdAt}
-              </p>
+              <p className="mt-3 text-sm text-gray-500">{selectedNotification.createdAt}</p>
             </div>
 
             {/* Modal footer */}
