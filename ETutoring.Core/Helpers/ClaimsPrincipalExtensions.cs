@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
 namespace ETutoring.Core.Helpers
 {
@@ -11,7 +6,7 @@ namespace ETutoring.Core.Helpers
     {
         public static Guid GetUserId(this ClaimsPrincipal user)
         {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = user.FindFirst("sub")?.Value;
             return userIdClaim != null ? Guid.Parse(userIdClaim) : Guid.Empty;
         }
         public static bool IsAdmin(this ClaimsPrincipal user)

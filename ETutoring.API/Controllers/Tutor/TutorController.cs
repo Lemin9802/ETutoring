@@ -1,10 +1,8 @@
 ﻿using ETutoring.Business.Dtos.Request.Tutor;
-using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Tutor;
-using ETutoring.Core.Common;
+using ETutoring.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace ETutoring.API.Controllers.Tutor
 {
@@ -23,12 +21,13 @@ namespace ETutoring.API.Controllers.Tutor
         [HttpPost("get-students")]
         public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest request)
         {
-             var response = await _tutorService.GetStudentsForTutorAsync(request.TutorId, request.Meta);
+            var userId = User.GetUserId();
 
-            if (response.Success)
-                return Ok(response);
+            request.TutorId = userId;
 
-            return BadRequest(response);
+            var response = await _tutorService.GetStudentsForTutorAsync(request.TutorId, request.Meta, request.Search, request.Filters);
+
+            return Ok(response);
         }
 
     }

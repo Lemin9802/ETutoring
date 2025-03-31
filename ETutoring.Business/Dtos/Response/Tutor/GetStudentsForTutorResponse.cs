@@ -7,6 +7,8 @@
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Email { get; set; } = string.Empty;
+        public DateTime? LastLogin { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 
 }
