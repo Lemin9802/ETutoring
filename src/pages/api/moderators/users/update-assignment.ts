@@ -19,17 +19,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { room_id, new_tutor_id, new_student_id } = req.body;
     const bodyData = { room_id, new_tutor_id, new_student_id };
 
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/api/moderator/update-assign-chatroom`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(bodyData),
-      }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/moderator/update-assign-chatroom`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(bodyData),
+    });
 
     const data = await response.json();
     if (!response.ok) {

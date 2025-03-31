@@ -53,11 +53,9 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     newConnection
       .start()
       .then(() => {
-        console.log("SignalR connection established");
         connectionRef.current = newConnection;
         if (!isListenerRegistered.current) {
           newConnection.on("ReceiveMessage", (senderId: string, receiverId: string, message: string) => {
-            console.log("[SignalR] ReceiveMessage:", { senderId, receiverId, message });
             // Nếu tin nhắn đến từ chính mình, FE đã dùng optimistic UI → bỏ qua
             if (senderId === userId) {
               console.log("Skipping event because I'm sender");

@@ -2,7 +2,6 @@ import {
   Home,
   Calendar,
   User,
-  FileText,
   Table,
   Settings,
   BarChart,
@@ -24,13 +23,13 @@ export const menuGroupsStudents = [
       },
       {
         icon: MessageSquare,
-        label: "Chatting",
+        label: "Message",
         route: "/messages",
       },
       {
         icon: Calendar,
         label: "Calendar",
-        route: "/students/calendar",
+        route: "/calendar",
       },
       {
         icon: File,
@@ -41,25 +40,6 @@ export const menuGroupsStudents = [
         icon: User,
         label: "Profile",
         route: "/profile",
-      },
-      {
-        icon: User,
-        label: "My tutors",
-        route: "/students/tutors",
-      },
-      {
-        icon: FileText,
-        label: "Forms",
-        route: "#",
-        children: [
-          { label: "Form Elements", route: "/forms/form-elements" },
-          { label: "Form Layout", route: "/forms/form-layout" },
-        ],
-      },
-      {
-        icon: Table,
-        label: "Tables",
-        route: "/tables",
       },
       {
         icon: FileEdit,
@@ -171,16 +151,6 @@ export const menuGroupsModerators = [
       },
       {
         icon: User,
-        label: "Manage Students",
-        route: "/moderators/manage/users/students",
-      },
-      {
-        icon: User,
-        label: "Manage Tutors",
-        route: "/moderators/manage/users/tutor",
-      },
-      {
-        icon: User,
         label: "Manage Users",
         route: "/moderators/manage/users",
       },
@@ -189,11 +159,7 @@ export const menuGroupsModerators = [
         label: "Manage allocations",
         route: "/moderators/manage/allocations",
       },
-      {
-        icon: Calendar,
-        label: "Manage Appointments",
-        route: "/moderators/manage/appointments",
-      },
+
       {
         icon: Layers,
         label: "Manage Relationships",

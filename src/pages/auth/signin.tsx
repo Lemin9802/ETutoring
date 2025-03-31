@@ -1,9 +1,4 @@
-import {
-  ClientSafeProvider,
-  getProviders,
-  LiteralUnion,
-  signIn,
-} from "next-auth/react";
+import { ClientSafeProvider, getProviders, LiteralUnion, signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,19 +8,13 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleIcon from "public/icons/google.svg";
 const LoginSchema = z.object({
-  email: z
-    .string()
-    .email("Invalid email address")
-    .nonempty("Email is required"),
+  email: z.string().email("Invalid email address").nonempty("Email is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type LoginForm = z.infer<typeof LoginSchema>;
 interface LoginPageProps {
-  providers: Record<
-    LiteralUnion<BuiltInProviderType, string>,
-    ClientSafeProvider
-  > | null;
+  providers: Record<LiteralUnion<BuiltInProviderType, string>, ClientSafeProvider> | null;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
@@ -44,16 +33,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await signIn("credentials", {
+      await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: true,
         callbackUrl: "/",
       });
-
-      if (!res?.ok) {
-        setError("Invalid email or password. Please try again.");
-      }
     } catch (error) {
       console.error("An unexpected error occurred:", error);
       setError("An unexpected error occurred. Please try again.");
@@ -82,12 +67,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center mb-8"
         >
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-neutral-600">
-            Sign in to your account to continue
-          </p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Welcome Back</h1>
+          <p className="text-neutral-600">Sign in to your account to continue</p>
         </motion.div>
 
         {/* Google Button */}
@@ -147,10 +128,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-neutral-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1">
               Email address
             </label>
             <div className="relative">
@@ -201,10 +179,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
           >
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-neutral-700 mb-1"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1">
               Password
             </label>
             <div className="relative">
@@ -263,17 +238,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ providers }) => {
                 type="checkbox"
                 className="h-4 w-4 text-primary focus:ring-primary border-neutral-300 rounded"
               />
-              <label
-                htmlFor="remember-me"
-                className="select-none ml-2 block text-sm text-neutral-700"
-              >
+              <label htmlFor="remember-me" className="select-none ml-2 block text-sm text-neutral-700">
                 Remember me
               </label>
             </div>
-            <a
-              href="#"
-              className="text-sm font-medium text-primary hover:text-primary/80"
-            >
+            <a href="#" className="text-sm font-medium text-primary hover:text-primary/80">
               Forgot password?
             </a>
           </motion.div>

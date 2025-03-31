@@ -318,8 +318,6 @@ const Feedback: React.FC = () => {
   }, [
     newComment,
     id,
-    session?.user?.name,
-    session?.user?.id,
     canComment,
     comments,
     submitting,

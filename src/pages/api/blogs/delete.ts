@@ -4,10 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { APIResponse } from "@/types/APIResponse";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
@@ -28,8 +25,8 @@ export default async function handler(
     }
 
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/blogs/delete`,
-      { id }, 
+      `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/delete`,
+      { id },
       {
         headers: {
           "Content-Type": "application/json",

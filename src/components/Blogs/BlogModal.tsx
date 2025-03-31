@@ -36,58 +36,51 @@ interface ApiResponse {
   meta: null | string;
 }
 
-const BlogModal: React.FC<BlogModalProps> = ({
-  blogTitle,
-  blogContent,
-  blogId,
-  isVisible,
-  onClose,
-}) => {
+const BlogModal: React.FC<BlogModalProps> = ({ blogTitle, blogContent, blogId, isVisible, onClose }) => {
   const [comments, setComments] = useState<CommentType[]>([]);
 
   // Fetch comments when modal opens
   useEffect(() => {
     if (isVisible) {
+      const fetchComments = async () => {
+        try {
+          const response = await fetch("/api/blogs/comments/get-by-blog", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ blog_id: blogId }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data: ApiResponse = await response.json();
+
+          if (!data.success) {
+            throw new Error(data.message || "Failed to fetch comments.");
+          }
+
+          const fetchedComments: CommentType[] = data.data.map((comment) => ({
+            id: comment.id,
+            userId: comment.user_id,
+            user: comment.user,
+            text: comment.content,
+            createdAt: comment.created_at,
+            updatedAt: comment.updated_at,
+            replies: [],
+          }));
+
+          setComments(fetchedComments);
+        } catch (error) {
+          console.error("Error fetching comments:", error);
+          message.error("Failed to load comments.");
+        }
+      };
       fetchComments();
     }
   }, [isVisible]);
-
-  const fetchComments = async () => {
-    try {
-      const response = await fetch("/api/blogs/comments/get-by-blog", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ blog_id: blogId }),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const data: ApiResponse = await response.json();
-  
-      if (!data.success) {
-        throw new Error(data.message || "Failed to fetch comments.");
-      }
-  
-      const fetchedComments: CommentType[] = data.data.map((comment) => ({
-        id: comment.id,
-        userId: comment.user_id,
-        user: comment.user,
-        text: comment.content,
-        createdAt: comment.created_at,
-        updatedAt: comment.updated_at,
-        replies: [],
-      }));
-  
-      setComments(fetchedComments);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      message.error("Failed to load comments.");
-    }
-  };  
 
   const handleAddComment = async (text: string, parentId?: string) => {
     try {
@@ -96,11 +89,11 @@ const BlogModal: React.FC<BlogModalProps> = ({
         content: text,
         parent_id: parentId || null,
       });
-  
+
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to add comment.");
       }
-  
+
       const newComment: CommentType = {
         id: response.data.data.id,
         userId: response.data.data.user_id,
@@ -110,7 +103,7 @@ const BlogModal: React.FC<BlogModalProps> = ({
         updatedAt: response.data.data.updated_at,
         replies: [],
       };
-  
+
       setComments((prevComments) =>
         parentId
           ? prevComments.map((comment) =>
@@ -120,25 +113,24 @@ const BlogModal: React.FC<BlogModalProps> = ({
             )
           : [...prevComments, newComment]
       );
-  
+
       message.success("Comment added!");
     } catch (error) {
       console.error("Error adding comment:", error);
       message.error("Failed to add comment.");
     }
   };
-    
 
   const handleDeleteComment = async (commentId: string) => {
     try {
       const response = await axios.post("/api/blogs/comments/delete", {
         comment_id: commentId,
       });
-  
+
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to delete comment.");
       }
-  
+
       setComments((prevComments) =>
         prevComments
           .filter((comment) => comment.id !== commentId)
@@ -147,14 +139,13 @@ const BlogModal: React.FC<BlogModalProps> = ({
             replies: comment.replies?.filter((reply) => reply.id !== commentId) || [],
           }))
       );
-  
+
       message.success("Comment deleted.");
     } catch (error) {
       console.error("Error deleting comment:", error);
       message.error("Failed to delete comment.");
     }
   };
-  
 
   return (
     <Modal open={isVisible} onOk={onClose} onCancel={onClose} footer={null}>

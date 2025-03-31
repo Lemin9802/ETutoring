@@ -4,10 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     // Handle any other HTTP method
     res.setHeader("Allow", ["POST"]);
@@ -26,7 +23,7 @@ export default async function handler(
   const { page_number, page_size } = req.body;
 
   const response = await axios.post<APIResponse>(
-    `${process.env.BACKEND_URL}/api/students/get-tutors`,
+    `${process.env.NEXT_PUBLIC_API_URL}/api/students/get-tutors`,
     {
       student_id: session.user.id,
       page_number: page_number,

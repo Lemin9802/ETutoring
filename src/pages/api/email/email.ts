@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/documents/comments/get`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/documents/comments/get`,
       { documentId },
       {
         headers: {
