@@ -1,16 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Badge,
-  Table,
-  Typography,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Upload,
-  Select,
-  message,
-} from "antd";
+import { Badge, Table, Typography, Button, Modal, Form, Input, Upload, Select, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { ColumnsType } from "antd/es/table";
 import { useSession } from "next-auth/react";
@@ -77,9 +66,7 @@ const DocumentUploadedListPage: React.FC = () => {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.post<APIResponse>(
-          "/api/students/get-tutors"
-        );
+        const response = await axios.post<APIResponse>("/api/students/get-tutors");
 
         const resData = response.data.data as string[];
 
@@ -107,12 +94,7 @@ const DocumentUploadedListPage: React.FC = () => {
   const handleSubmit = (values: SubmitValues) => {
     const senderId = session?.user?.id;
     const tutorId: string = values.tutor;
-    const uploadedFile: File | undefined =
-      values.file?.fileList?.[0]?.originFileObj;
-
-    console.log("Sender ID:", senderId);
-    console.log("Tutor ID:", tutorId);
-    console.log("Uploaded File:", uploadedFile);
+    const uploadedFile: File | undefined = values.file?.fileList?.[0]?.originFileObj;
 
     message.success("Document submitted successfully!");
     setIsModalOpen(false);
@@ -150,10 +132,7 @@ const DocumentUploadedListPage: React.FC = () => {
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-        <Badge
-          color={convertDocumentStatusColor(status)}
-          text={convertDocumentStatusName(status)}
-        />
+        <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
       ),
     },
     {
@@ -174,21 +153,19 @@ const DocumentUploadedListPage: React.FC = () => {
       ),
       dataIndex: "updated_at",
       key: "updated_at",
-      render: (updatedAt: string) => (
-        <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>
-      ),
+      render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
     },
     {
-        title: "Action",
-        key: "action",
-        render: (record: DataType) => (
-          <Link href={`/students/upload-document-detail/detail?id=${record.id}`}>
-            <Button type="primary" ghost>
-              Detail
-            </Button>
-          </Link>
-        ),
-      },
+      title: "Action",
+      key: "action",
+      render: (record: DataType) => (
+        <Link href={`/students/upload-document-detail/detail?id=${record.id}`}>
+          <Button type="primary" ghost>
+            Detail
+          </Button>
+        </Link>
+      ),
+    },
   ];
 
   return (
@@ -219,26 +196,15 @@ const DocumentUploadedListPage: React.FC = () => {
         bordered={false}
         showHeader
       />
-      <Modal
-        title="Add Document"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        footer={null}
-      >
+      <Modal title="Add Document" open={isModalOpen} onCancel={handleCancel} footer={null}>
         <Form layout="vertical" form={form} onFinish={handleSubmit}>
-          <Form.Item
-            label="Title"
-            name="title"
-            rules={[{ required: true, message: "Title is required!" }]}
-          >
+          <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required!" }]}>
             <Input placeholder="Enter document title" />
           </Form.Item>
           <Form.Item
             label="Select Tutor"
             name="tutor"
-            rules={[
-              { required: true, message: "Tutor selection is required!" },
-            ]}
+            rules={[{ required: true, message: "Tutor selection is required!" }]}
           >
             <Select placeholder="Choose tutor">
               {tutorList.map((tutor) => (
@@ -248,11 +214,7 @@ const DocumentUploadedListPage: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            label="Upload File"
-            name="file"
-            rules={[{ required: true, message: "File upload is required!" }]}
-          >
+          <Form.Item label="Upload File" name="file" rules={[{ required: true, message: "File upload is required!" }]}>
             <Dragger {...uploadProps}>
               <UploadOutlined /> Click or drag file to this area to upload
             </Dragger>

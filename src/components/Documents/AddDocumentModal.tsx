@@ -4,6 +4,14 @@ import { UploadOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
+interface Tutor {
+  tutor_id: string;
+  full_name: string;
+  address?: string;
+  phone_number?: string;
+  email?: string;
+}
+
 interface SubmitValues {
   tutor: string;
   title: string;
@@ -16,7 +24,7 @@ interface AddDocumentModalProps {
   isOpen: boolean;
   onCancel: () => void;
   onSubmit: (values: SubmitValues) => void;
-  tutorList: string[];
+  tutorList: Tutor[];
 }
 
 const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
@@ -26,7 +34,7 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   tutorList,
 }) => {
   const [form] = Form.useForm();
-
+  console.log("tutorList", tutorList);
   const handleCancel = () => {
     form.resetFields();
     onCancel();
@@ -68,8 +76,8 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
         >
           <Select placeholder="Choose recipient">
             {tutorList.map((tutor) => (
-              <Option key={tutor} value={tutor}>
-                {tutor}
+              <Option key={tutor.tutor_id} value={tutor.tutor_id}>
+                {tutor.full_name || tutor.email}
               </Option>
             ))}
           </Select>
