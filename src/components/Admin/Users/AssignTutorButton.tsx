@@ -17,15 +17,14 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedTutor, setSelectedTutor] = useState<string | null>(null);
   const [tutors, setTutors] = useState<{ id: string; email: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchTutors = async () => {
       try {
         const response = await fetch("/api/moderators/users/get-all-tutors", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ page: 1, size: 10 }),
         });
 
@@ -36,7 +35,7 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
           message.error("Failed to fetch tutors.");
         }
       } catch (error) {
-        console.error("Network error while assigning tutor:", error);
+        console.error("Network error while fetching tutors:", error);
         message.error("Network error while fetching tutors.");
       }
     };
@@ -50,19 +49,16 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
       return;
     }
 
-    const studentIds = selectedUsers.map((user) => user.id);
-    const assignedBy = session?.user?.id; // ID của moderator
+    setIsLoading(true); // Bắt đầu loading
 
     try {
       const response = await fetch("/api/moderators/users/assign-multi", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          student_ids: studentIds,
+          student_ids: selectedUsers.map((user) => user.id),
           tutor_id: selectedTutor,
-          assigned_by: assignedBy,
+          assigned_by: session?.user?.id,
         }),
       });
 
@@ -77,12 +73,18 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
       message.error("Network error while assigning tutor.");
     }
 
+    setIsLoading(false); // Kết thúc loading
     setIsModalVisible(false);
   };
 
   return (
     <>
-      <Button type="primary" icon={<FaUserPlus />} onClick={() => setIsModalVisible(true)}>
+      <Button
+        type="primary"
+        icon={<FaUserPlus />}
+        onClick={() => setIsModalVisible(true)}
+        loading={isLoading} // Hiển thị trạng thái loading
+      >
         Assign Tutor
       </Button>
 
@@ -91,9 +93,17 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
         open={isModalVisible}
         onOk={handleAssign}
         onCancel={() => setIsModalVisible(false)}
+        confirmLoading={isLoading} // Loading trên nút OK
+        okButtonProps={{ disabled: isLoading }} // Disable khi loading
+        cancelButtonProps={{ disabled: isLoading }} // Disable khi loading
       >
-        <Select className="w-full mb-4" placeholder="Select a Tutor" onChange={setSelectedTutor}>
-          {tutors?.map((tutor) => (
+        <Select
+          className="w-full mb-4"
+          placeholder="Select a Tutor"
+          onChange={setSelectedTutor}
+          disabled={isLoading} // Disable select khi loading
+        >
+          {tutors.map((tutor) => (
             <Option key={tutor.id} value={tutor.id}>
               {tutor.email}
             </Option>
