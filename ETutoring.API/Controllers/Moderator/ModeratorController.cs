@@ -117,5 +117,37 @@ namespace ETutoring.API.Controllers.Moderator
         {
             return await _moderatorService.RemoveAllocationsAsync(allocations);
         }
+
+        // POST: api/moderator/chatrooms/get-all
+        [HttpPost("chatrooms/get-all")]
+        public async Task<IActionResult> GetAllChatrooms([FromBody] MetaResponse request)
+        {
+            var response = await _moderatorService.GetAllChatroomsAsync(request);
+            return Ok(response);
+        }
+
+        // POST: api/moderator/chatrooms/get-by-id
+        [HttpPost("chatrooms/get-by-id")]
+        public async Task<IActionResult> GetChatroomById([FromBody] GetChatroomByIdRequest request)
+        {
+            var response = await _moderatorService.GetChatroomByIdAsync(request.ChatroomId);
+            return Ok(response);
+        }
+
+        // POST: api/moderator/chatrooms/update-status
+        [HttpPost("chatrooms/update-status")]
+        public async Task<IActionResult> UpdateChatroomStatus([FromBody] UpdateChatroomStatusRequest request)
+        {
+            var response = await _moderatorService.UpdateChatroomStatusAsync(request.ChatroomId, request.IsActive);
+            return Ok(response);
+        }
+
+        // POST: api/moderator/chatrooms/delete
+        [HttpPost("chatrooms/delete")]
+        public async Task<IActionResult> DeleteChatroom([FromBody] DeleteChatroomRequest request)
+        {
+            var response = await _moderatorService.DeleteChatroomAsync(request.ChatroomId);
+            return Ok(response);
+        }
     }
 }

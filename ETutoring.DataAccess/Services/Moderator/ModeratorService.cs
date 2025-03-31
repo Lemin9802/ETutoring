@@ -417,6 +417,122 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             return ApiResponse<bool>.SuccessResponse(true);
         }
+        public async Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaResponse meta)
+        {
+            try
+            {
+                var query = _context.ChattingRooms
+                    .Select(cr => new ChatRoomDto
+                    {
+                        Id = cr.Id,
+                        StudentId = cr.StudentId,
+                        TutorId = cr.TutorId,
+                        CreatedAt = cr.CreatedAt,
+                        StudentName = _context.Users
+                            .Where(u => u.Id == cr.StudentId)
+                            .Select(u => u.FullName)
+                            .FirstOrDefault(),
+                        TutorName = _context.Users
+                            .Where(u => u.Id == cr.TutorId)
+                            .Select(u => u.FullName)
+                            .FirstOrDefault(),
+                        NumberOfMessages = _context.Messages
+                            .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
+                        LastActivity = _context.Messages
+                            .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
+                            .Max(m => (DateTime?)m.Timestamp),
+                        NumberOfReports = 0 // Gán cố định vì không có dữ liệu report
+                    });
 
+                var totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+
+                var chatrooms = await query
+                    .OrderByDescending(c => c.LastActivity)
+                    .Skip((meta.PageNumber - 1) * meta.PageSize)
+                    .Take(meta.PageSize)
+                    .ToListAsync();
+
+                var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+                return ApiResponse<List<ChatRoomDto>>.SuccessResponseWithMeta(chatrooms, metaData);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<ChatRoomDto>>.FailureResponse(
+                    "Lỗi khi lấy danh sách phòng chat.",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+        public async Task<ApiResponse<ChatRoomDto>> GetChatroomByIdAsync(Guid chatroomId)
+        {
+            try
+            {
+                var chatRoomDto = await _context.ChattingRooms
+                    .Where(cr => cr.Id == chatroomId)
+                    .Select(cr => new ChatRoomDto
+                    {
+                        Id = cr.Id,
+                        StudentId = cr.StudentId,
+                        TutorId = cr.TutorId,
+                        CreatedAt = cr.CreatedAt,
+                        StudentName = _context.Users
+                            .Where(u => u.Id == cr.StudentId)
+                            .Select(u => u.FullName)
+                            .FirstOrDefault(),
+                        TutorName = _context.Users
+                            .Where(u => u.Id == cr.TutorId)
+                            .Select(u => u.FullName)
+                            .FirstOrDefault(),
+                        NumberOfMessages = _context.Messages
+                            .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
+                        LastActivity = _context.Messages
+                            .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
+                            .Max(m => (DateTime?)m.Timestamp),
+                        NumberOfReports = 0
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (chatRoomDto == null)
+                    return ApiResponse<ChatRoomDto>.FailureResponse("Không tìm thấy phòng chat.");
+
+                return ApiResponse<ChatRoomDto>.SuccessResponse(chatRoomDto);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<ChatRoomDto>.FailureResponse(
+                    "Lỗi khi lấy chi tiết phòng chat.",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+        public async Task<ApiResponse<bool>> UpdateChatroomStatusAsync(Guid chatroomId, bool isActive)
+        {
+            return ApiResponse<bool>.FailureResponse("Không hỗ trợ cập nhật trạng thái phòng chat (ChattingRoom không có cột trạng thái).");
+        }
+        public async Task<ApiResponse<bool>> DeleteChatroomAsync(Guid chatroomId)
+        {
+            try
+            {
+                var chatRoom = await _context.ChattingRooms
+                    .FirstOrDefaultAsync(cr => cr.Id == chatroomId);
+
+                if (chatRoom == null)
+                    return ApiResponse<bool>.FailureResponse("Không tìm thấy phòng chat.");
+
+                _context.ChattingRooms.Remove(chatRoom);
+                await _context.SaveChangesAsync();
+
+                return ApiResponse<bool>.SuccessResponse(true, "Xoá phòng chat thành công.");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.FailureResponse(
+                    "Lỗi khi xoá phòng chat.",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
     }
 }

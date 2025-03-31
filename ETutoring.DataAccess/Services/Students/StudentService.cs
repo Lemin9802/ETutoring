@@ -28,28 +28,33 @@ namespace ETutoring.DataAccess.Services.Students
         {
             try
             {
-                var tutors = await (
-                    from management in _context.StudentTutorManagements
-                    join tutor in _context.Users on management.TutorId equals tutor.Id
-                    where management.StudentId == studentId
-                    select new GetTutorForStudentResponse
-                    {
-                        TutorId = tutor.Id,
-                        FullName = tutor.FullName,
-                        Address = tutor.Address,
-                        PhoneNumber = tutor.PhoneNumber,
-                        Email = tutor.Email
-                    }
-                ).ToListAsync();
+                var tutors = await _context.Allocations
+                    .Where(a => a.StudentId == studentId)
+                    .Join(
+                        _context.Users,
+                        allocation => allocation.TutorId,
+                        user => user.Id,
+                        (allocation, tutor) => new GetTutorForStudentResponse
+                        {
+                            TutorId = tutor.Id,
+                            FullName = tutor.FullName,
+                            Address = tutor.Address,
+                            PhoneNumber = tutor.PhoneNumber,
+                            Email = tutor.Email
+                        }
+                    )
+                    .ToListAsync();
 
                 if (!tutors.Any())
-                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("This student does not have any tutors assigned.");
+                {
+                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("Sinh viên này chưa được phân tutor.");
+                }
 
-                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Tutors retrieved successfully.");
+                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Lấy danh sách tutor thành công.");
             }
             catch (Exception ex)
             {
-                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"An error occurred while retrieving tutors: {ex.Message}");
+                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"Đã có lỗi khi lấy danh sách tutor: {ex.Message}");
             }
         }
 
