@@ -179,13 +179,18 @@ const Profile: React.FC = () => {
 
           <Row gutter={[16, 16]} align="middle">
             <Col>
-              <Image
-                src={userDetails?.profile_picture || session?.user?.image || ""}
-                alt="Avatar"
-                width={100}
-                height={100}
-                className="rounded-full"
-              />
+            {userDetails?.profile_picture && (
+  <Image
+    src={userDetails.profile_picture.startsWith('/') || userDetails.profile_picture.startsWith('http')
+      ? userDetails.profile_picture
+      : `/${userDetails.profile_picture}`}
+    alt="Avatar"
+    width={100}
+    height={100}
+    className="rounded-full"
+  />
+)}
+
             </Col>
             <Col>
               <Title level={3}>

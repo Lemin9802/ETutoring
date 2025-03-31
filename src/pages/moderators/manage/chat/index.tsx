@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-//import { useSession } from 'next-auth/react';
 import {
   Card,
   Table,
@@ -20,13 +19,24 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import ChatBox from "@/components/Chat/ChatBox";
-import { ChatRoom } from "@/types/Chat";
+
+// Kiểu ChatRoom tương ứng với response của API
+export type ChatRoom = {
+  id: string;
+  student_id: string;
+  student_name: string;
+  tutor_id: string;
+  tutor_name: string;
+  created_at: string;
+  number_of_messages: number;
+  last_activity: string | null;
+  number_of_reports: number;
+  // Bạn có thể bổ sung các trường khác nếu cần
+};
 
 const ChatManagementPage = () => {
-  //const { data: session } = useSession();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedChats, setSelectedChats] = useState<ChatRoom[]>([]);
   const [activeChat, setActiveChat] = useState<ChatRoom | null>(null);
   const [viewChatModalVisible, setViewChatModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,43 +46,28 @@ const ChatManagementPage = () => {
     total: 0,
   });
 
+  // Lấy danh sách chatroom từ API get-all
   const fetchChatRooms = async () => {
     setLoading(true);
     try {
-      // Mock data for testing
-      setChatRooms([
-        {
-          id: "1",
-          studentId: "student1",
-          studentName: "John Student",
-          studentAvatar: undefined,
-          tutorId: "tutor1",
-          tutorName: "Jane Tutor",
-          tutorAvatar: undefined,
-          lastMessageTime: new Date(),
-          status: "active",
-          reportCount: 0,
-          messageCount: 25,
-          createdAt: new Date(Date.now() - 86400000),
-          updatedAt: new Date(),
-        },
-        {
-          id: "2",
-          studentId: "student2",
-          studentName: "Alice Student",
-          studentAvatar: undefined,
-          tutorId: "tutor2",
-          tutorName: "Bob Tutor",
-          tutorAvatar: undefined,
-          lastMessageTime: new Date(Date.now() - 3600000),
-          status: "active",
-          reportCount: 2,
-          messageCount: 15,
-          createdAt: new Date(Date.now() - 172800000),
-          updatedAt: new Date(Date.now() - 3600000),
-        },
-      ]);
-      setPagination((prev) => ({ ...prev, total: 2 }));
+      const res = await fetch("/api/moderators/chatrooms/get-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          page_number: pagination.current,
+          page_size: pagination.pageSize,
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setChatRooms(result.data);
+        setPagination((prev) => ({
+          ...prev,
+          total: result.meta.total_items,
+        }));
+      } else {
+        message.error(result.message || "Failed to fetch chat rooms");
+      }
     } catch (error) {
       console.error("Error fetching chat rooms:", error);
       message.error("Failed to fetch chat rooms");
@@ -83,13 +78,14 @@ const ChatManagementPage = () => {
 
   useEffect(() => {
     fetchChatRooms();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.current, pagination.pageSize]);
 
   const handleTableChange = (newPagination: TablePaginationConfig) => {
     setPagination(newPagination);
-    fetchChatRooms();
   };
 
+  // Xoá chatroom: gọi API delete với { chatroom_id }
   const handleDeleteChat = (chatId: string) => {
     Modal.confirm({
       title: "Are you sure you want to delete this chat?",
@@ -100,12 +96,18 @@ const ChatManagementPage = () => {
       cancelText: "No",
       onOk: async () => {
         try {
-          // TODO: Replace with actual API call
-          // await fetch(`/api/moderators/chat-rooms/${chatId}`, {
-          //   method: 'DELETE',
-          // });
-          setChatRooms(chatRooms.filter((room) => room.id !== chatId));
-          message.success("Chat deleted successfully");
+          const res = await fetch("/api/moderators/chatrooms/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chatroom_id: chatId }),
+          });
+          const result = await res.json();
+          if (result.success) {
+            setChatRooms(chatRooms.filter((room) => room.id !== chatId));
+            message.success("Chat deleted successfully");
+          } else {
+            message.error(result.message || "Failed to delete chat");
+          }
         } catch (error) {
           console.error("Error deleting chat:", error);
           message.error("Failed to delete chat");
@@ -114,6 +116,7 @@ const ChatManagementPage = () => {
     });
   };
 
+  // Suspend chat: gọi API update-status với { chatroom_id, is_active: false }
   const handleSuspendChat = (chatId: string) => {
     Modal.confirm({
       title: "Are you sure you want to suspend this chat?",
@@ -124,18 +127,18 @@ const ChatManagementPage = () => {
       cancelText: "No",
       onOk: async () => {
         try {
-          // TODO: Replace with actual API call
-          // await fetch(`/api/moderators/chat-rooms/${chatId}/suspend`, {
-          //   method: 'POST',
-          // });
-          setChatRooms(
-            chatRooms.map((room) =>
-              room.id === chatId
-                ? { ...room, status: "suspended" as const }
-                : room
-            )
-          );
-          message.success("Chat suspended successfully");
+          const res = await fetch("/api/moderators/chatrooms/update-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chatroom_id: chatId,
+              is_active: false,
+            }),
+          });
+          const result = await res.json();
+          if (!result.success) {
+            message.error(result.message || "Failed to suspend chat");
+          }
         } catch (error) {
           console.error("Error suspending chat:", error);
           message.error("Failed to suspend chat");
@@ -144,83 +147,64 @@ const ChatManagementPage = () => {
     });
   };
 
-  const handleViewChat = (chat: ChatRoom) => {
-    if (!selectedChats.find((c) => c.id === chat.id)) {
-      setSelectedChats([...selectedChats, chat]);
+  // Lấy chi tiết chatroom: gọi API get-by-id với { chatroom_id }
+  const handleViewChat = async (chatId: string) => {
+    try {
+      const res = await fetch("/api/moderators/chatrooms/get-by-id", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatroom_id: chatId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setActiveChat(result.data);
+        setViewChatModalVisible(true);
+      } else {
+        message.error(result.message || "Failed to fetch chat details");
+      }
+    } catch (error) {
+      console.error("Error fetching chat details:", error);
+      message.error("Failed to fetch chat details");
     }
-    setActiveChat(chat);
-    setViewChatModalVisible(true);
   };
 
   const columns: TableColumnsType<ChatRoom> = [
     {
       title: "Student",
-      dataIndex: "studentName",
-      key: "studentName",
-      filterSearch: true,
-      filters: [],
-      onFilter: (value, record) =>
-        record.studentName
-          .toLowerCase()
-          .includes(value.toString().toLowerCase()),
+      dataIndex: "student_name",
+      key: "student_name",
     },
     {
       title: "Tutor",
-      dataIndex: "tutorName",
-      key: "tutorName",
-      filterSearch: true,
-      filters: [],
-      onFilter: (value, record) =>
-        record.tutorName.toLowerCase().includes(value.toString().toLowerCase()),
+      dataIndex: "tutor_name",
+      key: "tutor_name",
     },
     {
       title: "Messages",
-      dataIndex: "messageCount",
-      key: "messageCount",
+      dataIndex: "number_of_messages",
+      key: "number_of_messages",
       render: (count: number) => (
         <Badge count={count} style={{ backgroundColor: "#52c41a" }} />
       ),
     },
     {
       title: "Last Activity",
-      dataIndex: "lastMessageTime",
-      key: "lastMessageTime",
-      render: (date: Date) => new Date(date).toLocaleString(),
+      dataIndex: "last_activity",
+      key: "last_activity",
+      render: (date: string | null) =>
+        date ? new Date(date).toLocaleString() : "",
       sorter: (a, b) =>
-        a.lastMessageTime.getTime() - b.lastMessageTime.getTime(),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => (
-        <Tag
-          color={
-            status === "active"
-              ? "green"
-              : status === "suspended"
-              ? "red"
-              : "default"
-          }
-        >
-          {status.toUpperCase()}
-        </Tag>
-      ),
-      filters: [
-        { text: "Active", value: "active" },
-        { text: "Suspended", value: "suspended" },
-        { text: "Closed", value: "closed" },
-      ],
-      onFilter: (value, record) => record.status === value,
+        new Date(a.last_activity || "").getTime() -
+        new Date(b.last_activity || "").getTime(),
     },
     {
       title: "Reports",
-      dataIndex: "reportCount",
-      key: "reportCount",
+      dataIndex: "number_of_reports",
+      key: "number_of_reports",
       render: (count: number) => (
         <Tag color={count > 0 ? "red" : "default"}>{count}</Tag>
       ),
-      sorter: (a, b) => a.reportCount - b.reportCount,
+      sorter: (a, b) => a.number_of_reports - b.number_of_reports,
     },
     {
       title: "Action",
@@ -230,27 +214,31 @@ const ChatManagementPage = () => {
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => handleViewChat(record)}
-            className="hover:bg-blue-50 hover:text-blue-600 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
+            onClick={() => handleViewChat(record.id)}
           />
           <Button
             type="text"
             danger
             icon={<StopOutlined />}
             onClick={() => handleSuspendChat(record.id)}
-            className="hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
           />
           <Button
             type="text"
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteChat(record.id)}
-            className="hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
           />
         </Space>
       ),
     },
   ];
+
+  // Lọc chatrooms theo search query
+  const filteredChatRooms = chatRooms.filter(
+    (room) =>
+      room.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      room.tutor_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -272,15 +260,7 @@ const ChatManagementPage = () => {
               children: (
                 <Table
                   columns={columns}
-                  dataSource={chatRooms.filter(
-                    (room) =>
-                      room.studentName
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      room.tutorName
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-                  )}
+                  dataSource={filteredChatRooms}
                   loading={loading}
                   rowKey="id"
                   pagination={pagination}
@@ -295,7 +275,9 @@ const ChatManagementPage = () => {
                   Reported{" "}
                   <Badge
                     count={
-                      chatRooms.filter((room) => room.reportCount > 0).length
+                      chatRooms.filter(
+                        (room) => room.number_of_reports > 0
+                      ).length
                     }
                     style={{ backgroundColor: "#ff4d4f" }}
                   />
@@ -304,7 +286,9 @@ const ChatManagementPage = () => {
               children: (
                 <Table
                   columns={columns}
-                  dataSource={chatRooms.filter((room) => room.reportCount > 0)}
+                  dataSource={chatRooms.filter(
+                    (room) => room.number_of_reports > 0
+                  )}
                   loading={loading}
                   rowKey="id"
                   pagination={pagination}
@@ -316,83 +300,21 @@ const ChatManagementPage = () => {
         />
 
         <Modal
-          title={
-            <div className="flex items-center justify-between">
-              <span>Chat Details</span>
-              {activeChat?.status === "suspended" && (
-                <Tag color="red">SUSPENDED</Tag>
-              )}
-            </div>
-          }
+          title="Chat Details"
           open={viewChatModalVisible}
           onCancel={() => setViewChatModalVisible(false)}
           width={1000}
-          footer={
-            <div className="flex justify-between items-center p-3 bg-gray-50 border-t border-gray-200">
-              <div className="flex space-x-2">
-                <Tag
-                  color="blue"
-                  className="px-3 py-1 flex items-center rounded-full"
-                >
-                  <span className="mr-1">📅</span> Created:{" "}
-                  {activeChat?.createdAt.toLocaleString()}
-                </Tag>
-                <Tag
-                  color="green"
-                  className="px-3 py-1 flex items-center rounded-full"
-                >
-                  <span className="mr-1">💬</span> Messages:{" "}
-                  {activeChat?.messageCount}
-                </Tag>
-                <Tag
-                  color={activeChat?.reportCount ? "red" : "default"}
-                  className="px-3 py-1 flex items-center rounded-full"
-                >
-                  <span className="mr-1">
-                    {activeChat?.reportCount ? "⚠️" : "✓"}
-                  </span>{" "}
-                  Reports: {activeChat?.reportCount}
-                </Tag>
-              </div>
-              <Space>
-                <Button
-                  danger
-                  type="primary"
-                  icon={<StopOutlined />}
-                  onClick={() => {
-                    setViewChatModalVisible(false);
-                    handleSuspendChat(activeChat?.id || "");
-                  }}
-                  disabled={activeChat?.status === "suspended"}
-                  className="rounded-md shadow-sm hover:shadow-md transition-all duration-200"
-                >
-                  Suspend Chat
-                </Button>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => {
-                    setViewChatModalVisible(false);
-                    handleDeleteChat(activeChat?.id || "");
-                  }}
-                  className="rounded-md shadow-sm hover:shadow-md transition-all duration-200"
-                >
-                  Delete Chat
-                </Button>
-              </Space>
-            </div>
-          }
-          className="chat-modal"
-          styles={{ body: { padding: 0 } }}
+          footer={null}
         >
-          {activeChat && selectedChats.length > 0 && (
+          {activeChat && (
             <div className="flex h-[70vh] bg-white rounded-lg overflow-hidden">
+              {/* Sidebar danh sách chat */}
               <div className="w-72 border-r border-gray-200 overflow-y-auto bg-gray-50">
-                {selectedChats.map((chat) => (
+                {chatRooms.map((chat) => (
                   <div
                     key={chat.id}
                     className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gray-100 border-l-4 ${
-                      chat.id === activeChat?.id
+                      chat.id === activeChat.id
                         ? "border-blue-500 bg-blue-50"
                         : "border-transparent"
                     }`}
@@ -400,28 +322,23 @@ const ChatManagementPage = () => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold text-gray-800">
-                        {chat.studentName}
+                        {chat.student_name}
                       </div>
-                      {chat.status === "suspended" && (
-                        <Tag
-                          color="red"
-                          className="uppercase text-xs font-bold"
-                        >
-                          Suspended
-                        </Tag>
-                      )}
                     </div>
                     <div className="text-sm text-gray-600 mb-1">
-                      Tutor: {chat.tutorName}
+                      Tutor: {chat.tutor_name}
                     </div>
                     <div className="text-xs text-gray-400 flex items-center">
                       <span className="mr-2">🕒</span>
-                      {new Date(chat.lastMessageTime).toLocaleString()}
+                      {chat.last_activity
+                        ? new Date(chat.last_activity).toLocaleString()
+                        : ""}
                     </div>
                   </div>
                 ))}
               </div>
 
+              {/* Nội dung chat */}
               <div className="flex-1 flex flex-col bg-white">
                 <div className="flex justify-between items-center p-6 bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
                   <div className="flex items-center space-x-6">
@@ -430,7 +347,7 @@ const ChatManagementPage = () => {
                         Student
                       </div>
                       <div className="font-medium text-gray-800">
-                        {activeChat.studentName}
+                        {activeChat.student_name}
                       </div>
                     </div>
                     <div className="h-10 border-l border-gray-200" />
@@ -439,7 +356,7 @@ const ChatManagementPage = () => {
                         Tutor
                       </div>
                       <div className="font-medium text-gray-800">
-                        {activeChat.tutorName}
+                        {activeChat.tutor_name}
                       </div>
                     </div>
                   </div>
@@ -448,7 +365,9 @@ const ChatManagementPage = () => {
                       Last Activity
                     </div>
                     <div className="font-medium text-gray-800">
-                      {activeChat.lastMessageTime.toLocaleString()}
+                      {activeChat.last_activity
+                        ? new Date(activeChat.last_activity).toLocaleString()
+                        : ""}
                     </div>
                   </div>
                 </div>
@@ -456,9 +375,9 @@ const ChatManagementPage = () => {
                 <div className="flex-1 border-t flex overflow-hidden">
                   <ChatBox
                     chatId={activeChat.id}
-                    recipientId={activeChat.studentId}
-                    recipientName={activeChat.studentName}
-                    recipientAvatar={activeChat.studentAvatar}
+                    recipientId={activeChat.student_id}
+                    recipientName={activeChat.student_name}
+                    recipientAvatar={undefined}
                     isFullPage={false}
                   />
                 </div>

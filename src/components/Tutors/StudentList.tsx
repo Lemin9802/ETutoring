@@ -47,12 +47,10 @@ interface FilterOptions {
 const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // -- We keep these for local usage only (search, filters),
+  //    but we no longer pass them to the backend request. --
   const [search, setSearch] = useState<string>("");
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize,
-    total: 0,
-  });
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -62,56 +60,49 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     gender: null,
     nationality: null,
   });
+
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize,
+    total: 0,
+  });
+
+  // Internal fetch parameters
   const [fetchParams, setFetchParams] = useState({
     page: 1,
     size: pageSize,
-    searchTerm: "",
-    currentFilters: {
-      loginDateRange: null,
-      status: "all",
-      gender: null,
-      nationality: null,
-    } as FilterOptions,
   });
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const { page, size, searchTerm, currentFilters } = fetchParams;
-
-      const response = await axios.post("/api/tutors/get-students", {
-        headers: {
-          "Content-Type": "application/json",
+      // We only send { page, size } to the Next.js API route
+      const { data } = await axios.post<APIResponse>(
+        "/api/tutors/get-students",
+        {
+          page: fetchParams.page,
+          size: fetchParams.size,
         },
-        body: JSON.stringify({
-          page,
-          size,
-          search: searchTerm,
-          filters: {
-            loginDateRange: currentFilters.loginDateRange
-              ? [
-                  currentFilters.loginDateRange[0]?.toISOString(),
-                  currentFilters.loginDateRange[1]?.toISOString(),
-                ]
-              : null,
-            status: currentFilters.status,
-            gender: currentFilters.gender,
-            nationality: currentFilters.nationality,
+        {
+          headers: {
+            "Content-Type": "application/json",
           },
-        }),
-      });
-      console.log("response.stat", response.status);
-      if (response.status !== 200) {
-        message.error({
-          content: response.data.message,
-          key: "students-fetch-error",
-          duration: 3,
-        });
-        return;
-      }
+        }
+      );
 
-      const data: APIResponse = await response.data;
+      // The response should have the shape:
+      // {
+      //   data: Student[],
+      //   meta: {
+      //     page_number: number,
+      //     page_size: number,
+      //     total_pages: number,
+      //     total_items: number
+      //   }
+      // }
       setStudents(data.data);
+
       setPagination({
         current: data.meta.page_number,
         pageSize: data.meta.page_size,
@@ -138,26 +129,27 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     }
   };
 
-  // Initial fetch on component mount
+  // Fetch whenever fetchParams changes
   useEffect(() => {
     fetchStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchParams]);
 
-  // Debounced search and filters handling
+  // Below is local logic for search & filters,
+  // but we do NOT send them to the backend anymore.
   useEffect(() => {
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-
     const timeout = setTimeout(() => {
+      // If you wanted to do local filtering, you'd do it here.
+      // Currently, we do not pass 'search' to the server anymore
+      // to keep the request structure as required.
       setFetchParams((prev) => ({
         ...prev,
-        page: 1, // Reset to first page on search/filter change
-        searchTerm: search,
-        currentFilters: filters,
+        page: 1, // reset to first page
       }));
     }, 500);
-
     setSearchTimeout(timeout);
 
     return () => {
@@ -175,23 +167,22 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     }));
   };
 
-  const handleFilterChange = (name: keyof FilterOptions, value: string | [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
+  const handleFilterChange = (
+    name: keyof FilterOptions,
+    value: string | [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+  ) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
-    // No need to call fetchStudents here as the useEffect will handle it
   };
 
   const handleClearFilters = () => {
-    const resetFilters: FilterOptions = {
+    setFilters({
       loginDateRange: null,
       status: "all",
       gender: null,
       nationality: null,
-    };
-    setFilters(resetFilters);
-    // No need to call fetchStudents here as the useEffect will handle it
+    });
   };
 
-  // Disallow selecting future dates for the login date filter
   const disabledDate: RangePickerProps["disabledDate"] = (current) => {
     return current && current > dayjs().endOf("day");
   };
@@ -239,12 +230,10 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
       title: "Status",
       key: "status",
       render: (_: unknown, record: Student) => {
-        // Determine status based on last login (active if logged in within the last 7 days)
         const lastLogin = record.last_login_time
           ? dayjs(record.last_login_time)
           : null;
         const isActive = lastLogin && dayjs().diff(lastLogin, "day") < 7;
-
         return (
           <Tag color={isActive ? "green" : "volcano"}>
             {isActive ? "Active" : "Inactive"}
@@ -306,7 +295,11 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
                 <div className="mb-1 font-medium">Last Login Period</div>
                 <RangePicker
                   style={{ width: "100%" }}
-                  value={filters.loginDateRange as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null}
+                  value={
+                    filters.loginDateRange as
+                      | [dayjs.Dayjs | null, dayjs.Dayjs | null]
+                      | null
+                  }
                   onChange={(dates) =>
                     handleFilterChange("loginDateRange", dates)
                   }
@@ -361,7 +354,8 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
                 closable
                 onClose={() => handleFilterChange("loginDateRange", null)}
               >
-                Login: {dayjs(filters.loginDateRange[0]).format("MMM D")} -{" "}
+                Login:{" "}
+                {dayjs(filters.loginDateRange[0]).format("MMM D")} -{" "}
                 {dayjs(filters.loginDateRange[1]).format("MMM D")}
               </Tag>
             )}
@@ -403,6 +397,7 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
             <div className="flex justify-between items-center mt-4">
               {students.length > 0 && (
                 <div className="text-gray-500">
+                  {/* If you want to show how many are filtered vs. total, do it here */}
                   {(filters.loginDateRange ||
                     filters.status !== "all" ||
                     filters.gender ||

@@ -25,7 +25,7 @@ export const menuGroupsStudents = [
       {
         icon: MessageSquare,
         label: "Chatting",
-        route: "/students/chat/messages",
+        route: "/messages",
       },
       {
         icon: Calendar,
@@ -40,7 +40,12 @@ export const menuGroupsStudents = [
       {
         icon: User,
         label: "Profile",
-        route: "/students/profile",
+        route: "/profile",
+      },
+      {
+        icon: User,
+        label: "My tutors",
+        route: "/students/tutors",
       },
       {
         icon: FileText,
