@@ -154,6 +154,12 @@ public class IdentityServices : IIdentityServices
 
         if (user != null)
         {
+            // Check if user's name has changed in Google
+            if (!string.IsNullOrEmpty(request.Name) && user.FullName != request.Name)
+            {
+                user.FullName = request.Name;
+            }
+
             // Generate Access Token
             var accessToken = await _tokenService.GenerateToken(user);
 
@@ -183,7 +189,8 @@ public class IdentityServices : IIdentityServices
             UserName = request.Email,
             Email = request.Email,
             EmailConfirmed = true,
-            ProfilePicture = request.Image
+            ProfilePicture = request.Image,
+            FullName = request.Name
         };
 
         var createResult = await _userManager.CreateAsync(user);
