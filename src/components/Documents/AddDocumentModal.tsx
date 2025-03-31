@@ -16,7 +16,7 @@ interface AddDocumentModalProps {
   isOpen: boolean;
   onCancel: () => void;
   onSubmit: (values: SubmitValues) => void;
-  tutorList: string[];
+  tutorList: { tutor_id: string; full_name: string }[];
 }
 
 const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
@@ -68,8 +68,8 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
         >
           <Select placeholder="Choose recipient">
             {tutorList.map((tutor) => (
-              <Option key={tutor} value={tutor}>
-                {tutor}
+              <Option key={tutor.tutor_id} value={tutor.tutor_id}>
+                {tutor.full_name}
               </Option>
             ))}
           </Select>

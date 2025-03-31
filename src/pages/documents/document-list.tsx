@@ -38,7 +38,7 @@ const DocumentListPage: React.FC = () => {
 
   const [data, setData] = useState<DataType[]>([]);
 
-  const [tutorList, setTutorList] = useState<string[]>([]);
+  const [tutorList, setTutorList] = useState<{ tutor_id: string; full_name: string }[]>([]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -72,7 +72,11 @@ const DocumentListPage: React.FC = () => {
         const resData = response.data.data as string[];
 
         if (response.data.success) {
-          setTutorList(resData);
+          const formattedTutors = resData.map((tutor) => ({
+            tutor_id: tutor,
+            full_name: tutor, // Assuming the string represents both ID and name
+          }));
+          setTutorList(formattedTutors);
         }
         console.log("Tutors:", resData);
       } catch (error) {
