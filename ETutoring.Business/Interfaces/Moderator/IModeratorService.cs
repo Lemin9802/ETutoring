@@ -21,5 +21,9 @@ namespace ETutoring.Business.Interfaces.Moderator
         Task<ApiResponse<bool>> RemoveTutorFromMultipleStudentsAsync(RemoveTutorMultipleStudentsRequest request);
         Task<ApiResponse<List<AllocationResponse>>> GetAllAllocationsAsync(MetaDataResponse meta);
         Task<ApiResponse<bool>> RemoveAllocationsAsync(List<RemoveAllocation> allocations);
+        Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaResponse meta);
+        Task<ApiResponse<ChatRoomDto>> GetChatroomByIdAsync(Guid chatroomId);
+        Task<ApiResponse<bool>> UpdateChatroomStatusAsync(Guid chatroomId, bool isActive);
+        Task<ApiResponse<bool>> DeleteChatroomAsync(Guid chatroomId);
     }
 }
