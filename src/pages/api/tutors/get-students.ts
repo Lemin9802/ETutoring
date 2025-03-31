@@ -7,16 +7,16 @@ import { authOptions } from "../auth/[...nextauth]";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
+  // Get session
   const session = await getServerSession(req, res, authOptions);
-
   if (!session) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Lấy accessToken từ session
   const token = session.user.accessToken;
 
   const { page, size, search, filters } = req.body;
@@ -44,7 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       }
     );
-    res.status(200).json(response.data);
+
+    return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({

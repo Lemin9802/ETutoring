@@ -77,7 +77,12 @@ const DocumentListPage: React.FC = () => {
         const resData = response.data.data as Tutor[];
 
         if (response.data.success) {
-          setTutorList(resData);
+          const formattedTutors = resData.map((tutor) => ({
+            tutor_id: tutor,
+            full_name: tutor, // Assuming the string represents both ID and name
+          })) as unknown as Tutor[];
+
+          setTutorList(formattedTutors);
         }
         console.log("Tutors:", resData);
       } catch (error) {
