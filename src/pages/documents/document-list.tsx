@@ -12,6 +12,15 @@ import AddDocumentModal from "@/components/Documents/AddDocumentModal";
 
 const { Title, Text } = Typography;
 
+// Define the Tutor interface
+interface Tutor {
+  tutor_id: string;
+  full_name: string;
+  address?: string;
+  phone_number?: string;
+  email?: string;
+}
+
 interface DataType {
   id: string;
   title: string;
@@ -38,41 +47,42 @@ const DocumentListPage: React.FC = () => {
 
   const [data, setData] = useState<DataType[]>([]);
 
-  const [tutorList, setTutorList] = useState<string[]>([]);
+  const [tutorList, setTutorList] = useState<Tutor[]>([]);
+  const fetchDocuments = async () => {
+    try {
+      const response = await axios.post<APIResponse>("/api/documents/user", {
+        page_number: currentPage,
+        page_size: pageSize,
+      });
+
+      const resData = response.data.data as unknown as DataType[];
+
+      if (response.data.success) {
+        setData(resData);
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const response = await axios.post<APIResponse>("/api/documents/user", {
-          page_number: currentPage,
-          page_size: pageSize,
-        });
-
-        const resData = response.data.data as unknown as DataType[];
-
-        if (response.data.success) {
-          setData(resData);
-        }
-        console.log("Documents:", resData);
-      } catch (error) {
-        console.error("Unexpected error:", error);
-      }
-    };
-
     fetchDocuments();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, fetchDocuments]);
 
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.post<APIResponse>(
-          "/api/students/get-tutors"
-        );
+        const response = await axios.post<APIResponse>("/api/students/get-tutors");
 
-        const resData = response.data.data as string[];
+        const resData = response.data.data as Tutor[];
 
         if (response.data.success) {
-          setTutorList(resData);
+          const formattedTutors = resData.map((tutor) => ({
+            tutor_id: tutor,
+            full_name: tutor, // Assuming the string represents both ID and name
+          })) as unknown as Tutor[];
+
+          setTutorList(formattedTutors);
         }
         console.log("Tutors:", resData);
       } catch (error) {
@@ -91,24 +101,47 @@ const DocumentListPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = (values: SubmitValues) => {
-    const senderId = session?.user?.id;
-    const tutorId: string = values.tutor;
-    const uploadedFile: File | undefined =
-      values.file?.fileList?.[0]?.originFileObj;
+  const handleSubmit = async (values: SubmitValues) => {
+    try {
+      const senderId = session?.user?.id;
+      const tutorId: string = values.tutor;
+      const uploadedFile: File | undefined = values.file?.fileList?.[0]?.originFileObj;
 
-    console.log("Sender ID:", senderId);
-    console.log("Tutor ID:", tutorId);
-    console.log("Uploaded File:", uploadedFile);
-    console.log("Document Title:", values.title);
+      if (!uploadedFile || !senderId || !tutorId) {
+        message.error("Missing required information!");
+        return;
+      }
 
-    message.success("Document submitted successfully!");
-    setIsModalOpen(false);
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("uploaderId", senderId);
+      formData.append("tutorId", tutorId);
+      formData.append("title", values.title);
+
+      const response = await axios.post("/api/documents/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        message.success("Document uploaded successfully!");
+        // Refresh the documents list
+        fetchDocuments();
+      } else {
+        message.error(response.data.message || "Failed to upload document");
+      }
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      message.error("Failed to upload document. Please try again.");
+    }
   };
 
-  const handleTableChange = (pagination: any) => {
-    setCurrentPage(pagination.current);
-    setPageSize(pagination.pageSize);
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
+    setCurrentPage(pagination.current || 1);
+    setPageSize(pagination.pageSize || 10);
   };
   const columns: ColumnsType<DataType> = [
     {
@@ -130,10 +163,7 @@ const DocumentListPage: React.FC = () => {
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-        <Badge
-          color={convertDocumentStatusColor(status)}
-          text={convertDocumentStatusName(status)}
-        />
+        <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
       ),
     },
     {
@@ -154,9 +184,7 @@ const DocumentListPage: React.FC = () => {
       ),
       dataIndex: "updated_at",
       key: "updated_at",
-      render: (updatedAt: string) => (
-        <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>
-      ),
+      render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
     },
     {
       title: "Action",

@@ -4,15 +4,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { APIResponse } from "@/types/APIResponse";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res
-      .status(405)
-      .json({ message: `Method ${req.method} Not Allowed` });
+    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 
   try {
@@ -36,7 +31,7 @@ export default async function handler(
     };
     // Axios API Request
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/blogs/create`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/create`,
       bodyData,
       {
         headers: {
@@ -51,14 +46,10 @@ export default async function handler(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
-        message:
-          error.response?.data?.message ||
-          "An error occurred while creating the blog",
+        message: error.response?.data?.message || "An error occurred while creating the blog",
       });
     }
 
-    return res
-      .status(500)
-      .json({ message: "An error occurred while creating the blog" });
+    return res.status(500).json({ message: "An error occurred while creating the blog" });
   }
 }

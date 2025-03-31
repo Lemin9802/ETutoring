@@ -4,52 +4,39 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
+  // Get session
   const session = await getServerSession(req, res, authOptions);
-
   if (!session) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Lấy accessToken từ session
   const token = session.user.accessToken;
 
   const { page, size, search, filters } = req.body;
 
-  // For development, use mock data
-  // TODO: Replace with actual API call in production
-  // if (process.env.NODE_ENV === "development") {
-  //   const mockData = await getTutorStudents(page, size, search, filters);
-  //   return res.status(200).json({
-  //     data: mockData.data,
-  //     total_count: mockData.total_count,
-  //     page: mockData.page,
-  //     size: mockData.size,
-  //     has_next: mockData.has_next,
-  //     has_previous: mockData.has_previous,
-  //     message: "Success",
-  //   });
-  // }
+  const bodyData = {
+    tutor_id: session.user.id,
+    search: search,
+    filters: filters,
+    meta: {
+      page_number: page,
+      page_size: size,
+      total_pages: 0,
+      total_items: 0,
+    },
+  };
 
-  // For production
   try {
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/tutor/get-students`,
-      {
-        tutor_id: session.user.id,
-        page,
-        size,
-        search,
-        filters,
-      },
+      `${process.env.NEXT_PUBLIC_API_URL}/api/tutor/get-students`,
+      bodyData,
       {
         headers: {
           Authorization: "Bearer " + token,
@@ -57,13 +44,12 @@ export default async function handler(
         },
       }
     );
-    res.status(200).json(response.data);
+
+    return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
-        message:
-          error.response?.data?.message ||
-          "An error occurred while fetching students",
+        message: error.response?.data?.message || "An error occurred while fetching students",
       });
     }
     return res.status(500).json({ message: "An error occurred" });

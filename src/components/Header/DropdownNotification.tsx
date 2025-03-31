@@ -38,8 +38,6 @@ const DropdownNotification = () => {
           userId: session.user.id, 
         });
 
-        console.log("📩 Raw API response:", response.data);
-
         if (Array.isArray(response.data)) {
           const filteredEmails = response.data.filter((email) => {
             const emailUserId = email.userId || email.UserId || email.user_id;
@@ -122,9 +120,16 @@ const DropdownNotification = () => {
 
         {/* Notification dropdown */}
         {dropdownOpen && (
-          <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-1 sm:left-auto sm:right-0 mt-2 w-80 max-w-xs md:max-w-sm lg:max-w-md rounded-lg border border-gray-300 bg-white shadow-lg">
-            <div className="p-4 border-b">
-              <h1 className="text-lg sm:text-xl font-medium">Notifications</h1>
+          <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-1 sm:left-auto sm:right-0 mt-2 w-80 max-w-xs md:max-w-sm lg:max-w-md rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-semibold text-gray-900">Notifications</h1>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium text-primary bg-primary/10 rounded-full">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Loading, error, or notifications */}

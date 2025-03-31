@@ -18,10 +18,17 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing email or password");
         }
 
-        const response = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
+        const { email, password } = credentials;
+
+        const bodyData = {
+          email,
+          password,
+        };
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(credentials),
+          body: JSON.stringify(bodyData),
         });
 
         const result = await response.json();
@@ -46,7 +53,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        const response = await fetch(`${process.env.BACKEND_URL}/api/auth/sync-google-user`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sync-google-user`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -95,7 +102,7 @@ export const authOptions: NextAuthOptions = {
         roles: token.role ?? "student",
         id: token.id ?? "",
       };
-    
+
       return session;
     },
     async redirect({ baseUrl }) {

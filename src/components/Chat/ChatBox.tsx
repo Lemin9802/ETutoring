@@ -37,56 +37,58 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const connectionRef = useRef<HubConnection | null>(null);
+  const isListenerRegistered = useRef(false);
 
-  // Kết nối SignalR
   useEffect(() => {
-    if (!session?.user?.id || connectionRef.current) return;
-
+    if (!session?.user?.id) return;
+    // Nếu connectionRef.current đã có, tức là listener đã được đăng ký
+    if (connectionRef.current) return;
+  
+    const userId = session.user.id;
     const newConnection = new HubConnectionBuilder()
-      .withUrl(`http://localhost:5142/messageHub?userId=${session.user.id}`)
+      .withUrl(`http://localhost:5142/messageHub?userId=${userId}`)
       .withAutomaticReconnect()
       .build();
-
+  
     newConnection
       .start()
       .then(() => {
-        console.log("SignalR connection established");
         connectionRef.current = newConnection;
-
-        // Lắng nghe sự kiện ReceiveMessage (tham số theo thứ tự: sender, receiver, message)
-        newConnection.on("ReceiveMessage", (senderId: string, receiverId: string, message: string) => {
-          console.log("Received message via SignalR:", { senderId, receiverId, message });
-
-          // Nếu tin nhắn đến từ sender mà session.user là sender thì bỏ qua
-          if (senderId === session.user.id) {
-            console.log("Skipping event since I'm the sender (optimistic UI already updated)");
-            return;
-          }
-
-          // Nếu mình là receiver, thêm tin nhắn vào state
-          if (receiverId === session.user.id) {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
+        if (!isListenerRegistered.current) {
+          newConnection.on("ReceiveMessage", (senderId: string, receiverId: string, message: string) => {
+            // Nếu tin nhắn đến từ chính mình, FE đã dùng optimistic UI → bỏ qua
+            if (senderId === userId) {
+              console.log("Skipping event because I'm sender");
+              return;
+            }
+            // Nếu mình là receiver, thêm tin nhắn vào state
+            if (receiverId === userId) {
+              const newMsg: Message = {
                 id: uuidv4(),
                 sender_id: senderId,
                 receiver_id: receiverId,
                 content: message,
                 timestamp: new Date(),
-              },
-            ]);
-          }
-        });
+              };
+              setMessages((prev) => [...prev, newMsg]);
+            }
+          });
+          isListenerRegistered.current = true;
+        }
       })
       .catch((err) => console.error("SignalR connection failed:", err));
-
+  
     return () => {
       if (connectionRef.current) {
+        // Hủy đăng ký listener để tránh trường hợp duplicate khi unmount
+        connectionRef.current.off("ReceiveMessage");
         connectionRef.current.stop();
         connectionRef.current = null;
+        isListenerRegistered.current = false;
       }
     };
   }, [session?.user?.id]);
+  
 
   // Fetch tin nhắn ban đầu khi mở chat
   useEffect(() => {

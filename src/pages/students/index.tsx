@@ -127,23 +127,21 @@ const DashboardPage: React.FC = () => {
     );
     return (
       <ul>
-        {dayEvents.length > 0 && (
-          <li className="text-red-500">•</li> // Red dot for events on the day
-        )}
+        {dayEvents.length > 0 && <li className="text-red-500">•</li>}
       </ul>
     );
   };
-  const daysStudied = 2; // Example: 2 days studied
-  const totalDays = 30; // Example: total 30 days
+
+  const daysStudied = 2;
+  const totalDays = 30;
 
   return (
-    <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
-      <Card className="mt-4">
-        <Row gutter={[24, 24]}>
-          {/* Left Section: User Info & Weather */}
-          <Col xs={24} sm={16} md={15}>
-            <Card className="shadow-lg rounded-lg p-6 bg-white mb-3">
-              <Row gutter={[16, 16]} className="flex items-center">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[1200px] mx-auto p-4">
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <Card className="shadow-lg rounded-lg p-6 mb-4">
+              <Row gutter={[16, 16]} align="middle">
                 <Col xs={8} sm={6}>
                   <Image
                     width={120}
@@ -153,55 +151,50 @@ const DashboardPage: React.FC = () => {
                   />
                 </Col>
                 <Col xs={16} sm={18}>
-                  <Title level={4}>
-                    <UserOutlined /> John Doe
+                  <Title level={4} className="m-0 flex items-center">
+                    <UserOutlined className="mr-2" />
+                    John Doe
                   </Title>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 mb-1">
                     Web Development | Student
                   </p>
                   <p className="text-sm text-gray-600">Location: New York</p>
                 </Col>
               </Row>
             </Card>
+
             <Card className="shadow-lg rounded-lg p-6 bg-blue-50">
-              <Row gutter={[16, 16]} className="flex items-center">
-                {/* Left Section: Weather */}
-                <Col xs={24} sm={12} className="flex flex-col space-y-2">
+              <Row gutter={[16, 16]} align="middle">
+                <Col xs={24} sm={12}>
                   <Title level={4} className="flex items-center">
-                    <CloudOutlined /> Current Weather
+                    <CloudOutlined className="mr-2" />
+                    Current Weather
                   </Title>
-                  <p className="text-gray-600">Location: Ho Chi Minh City</p>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 mb-1">
+                    Location: Ho Chi Minh City
+                  </p>
+                  <p className="text-gray-600 mb-1">
                     Temperature: {weather.temperature}°C
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 mb-0">
                     Condition: {weather.condition}
                   </p>
                 </Col>
-
-                {/* Vertical Divider */}
-                <Col
-                  className="flex justify-center items-center"
-                  xs={24}
-                  sm={1}
-                >
-                  <div className="border-l-2 h-24 mx-4"></div>
+                {/* Divider dọc chỉ hiện ở màn hình trung bình trở lên */}
+                <Col xs={0} sm={1} className="flex justify-center items-center">
+                  <div className="border-l-2 h-16 mx-2"></div>
                 </Col>
-
-                {/* Right Section: Days Studied */}
-                <Col xs={24} sm={11} className="flex flex-col space-y-4">
-                  <Title level={5} className="text-center">
+                <Col xs={24} sm={11} className="flex flex-col space-y-2">
+                  <Title level={5} className="text-center m-0">
                     Days Studied
                   </Title>
-
-                  {/* Progress Bar to show Study and Rest Days */}
-                  <div className="flex flex-col items-center space-y-2">
+                  <div className="flex justify-center">
                     <Progress
                       type="circle"
                       width={80}
                       percent={(daysStudied / totalDays) * 100}
                       format={() => `${daysStudied} / ${totalDays}`}
-                      strokeColor="#4caf50" // Green for study days
+                      strokeColor="#4caf50"
                     />
                   </div>
                 </Col>
@@ -209,17 +202,13 @@ const DashboardPage: React.FC = () => {
             </Card>
           </Col>
 
-          <Col
-            xs={24}
-            sm={8}
-            md={9}
-            className="flex justify-center items-center"
-          >
-            <Card className="shadow-lg rounded-lg p-6 bg-white w-full max-w-lg">
+          {/* Col phải: Calendar */}
+          <Col xs={24} md={12}>
+            <Card className="shadow-lg rounded-lg p-6">
               <Title level={4} className="mb-4">
                 My Calendar
               </Title>
-              <div className="w-full h-80">
+              <div className="w-full overflow-auto">
                 <Calendar
                   onSelect={handleDateClick}
                   dateCellRender={dateCellRender}
@@ -229,11 +218,9 @@ const DashboardPage: React.FC = () => {
             </Card>
           </Col>
         </Row>
-      </Card>
 
-      {/* Tasks and Submissions */}
-      <Card className="mt-4">
-        <Row gutter={[16, 16]}>
+        {/* Row thứ hai: Tasks và Submissions */}
+        <Row gutter={[16, 16]} className="mt-4">
           <Col xs={24} md={12}>
             <Card
               title="Pending Tasks"
@@ -247,7 +234,6 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-
           <Col xs={24} md={12}>
             <Card
               title="Recent Submissions"
@@ -262,72 +248,68 @@ const DashboardPage: React.FC = () => {
             </Card>
           </Col>
         </Row>
-      </Card>
 
-      {/* Latest News and Community Groups */}
-      <Row gutter={[24, 24]} className="mt-8">
-        <Col span={24}>
-          <Card className="shadow-lg rounded-lg p-6 bg-yellow-50">
-            <Title level={4}>Community Groups</Title>
-            <List
-              dataSource={[
-                "Design Community, USA",
-                "UX Hunters",
-                "Frontend Developers",
-              ]}
-              renderItem={(item) => <List.Item>{item}</List.Item>}
-            />
-          </Card>
-        </Col>
+        {/* Row thứ ba: Community Groups và Latest News */}
+        <Row gutter={[16, 16]} className="mt-4">
+          <Col xs={24} md={12}>
+            <Card className="shadow-lg rounded-lg p-6 bg-yellow-50">
+              <Title level={4}>Community Groups</Title>
+              <List
+                dataSource={[
+                  "Design Community, USA",
+                  "UX Hunters",
+                  "Frontend Developers",
+                ]}
+                renderItem={(item) => <List.Item>{item}</List.Item>}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12}>
+            <Card className="shadow-lg rounded-lg p-6 bg-gray-100">
+              <Title level={4}>Latest News</Title>
+              <List
+                dataSource={newsData}
+                renderItem={(item) => (
+                  <List.Item className="flex justify-between items-center">
+                    <Title level={5} className="text-blue-500 m-0">
+                      {item.title}
+                    </Title>
+                    <span className="text-sm text-gray-600">{item.date}</span>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-        <Col span={24}>
-          <Card className="shadow-lg rounded-lg p-6 bg-gray-100">
-            <Title level={4}>Latest News</Title>
-            <List
-              dataSource={newsData}
-              renderItem={(item) => (
-                <List.Item>
-                  <Title level={5} className="text-blue-500">
-                    {item.title}
-                  </Title>
-                  <span className="text-sm text-gray-600 float-right">
-                    {item.date}
-                  </span>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
+        {/* Modal hiển thị chi tiết event */}
+        <Modal
+          title={selectedEvent ? selectedEvent.title : "Event Details"}
+          visible={isModalVisible}
+          onOk={() => setIsModalVisible(false)}
+          onCancel={() => setIsModalVisible(false)}
+          className="event-modal"
+          style={{ borderRadius: "8px" }}
+        >
+          <Timeline>
+            <Timeline.Item>
+              <Title level={4}>{selectedEvent?.title}</Title>
+              <p>{selectedEvent?.description}</p>
+            </Timeline.Item>
+          </Timeline>
+        </Modal>
 
-      {/* Event Details Modal */}
-      <Modal
-        title={selectedEvent ? selectedEvent.title : "Event Details"}
-        visible={isModalVisible}
-        onOk={() => setIsModalVisible(false)}
-        onCancel={() => setIsModalVisible(false)}
-        className="event-modal"
-        style={{ borderRadius: "8px" }}
-      >
-        <Timeline>
-          <Timeline.Item>
-            <Title level={4}>{selectedEvent?.title}</Title>
-            <p>{selectedEvent?.description}</p>
-          </Timeline.Item>
-        </Timeline>
-      </Modal>
-
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Students Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Dashboard cards */}
-          <Link href="/documents/document-list" className="block">
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <h2 className="text-xl font-semibold mb-2">Documents</h2>
-              <p className="text-gray-600">View and manage your documents</p>
-            </div>
-          </Link>
-          {/* ... other dashboard cards ... */}
+        {/* Dashboard Cards khác */}
+        <div className="mt-8">
+          <h1 className="text-2xl font-bold mb-4">Students Dashboard</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/documents/document-list" className="block">
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <h2 className="text-xl font-semibold mb-2">Documents</h2>
+                <p className="text-gray-600">View and manage your documents</p>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

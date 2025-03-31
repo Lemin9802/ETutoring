@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Send request to backend
     const { data } = await axios.post(
-      `${process.env.BACKEND_URL}/api/messages/get-all`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/messages/get-all`,
       {
         user_id,
       },

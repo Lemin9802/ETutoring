@@ -54,8 +54,8 @@ interface MeetingCalendarProps {
 }
 
 const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
-  userId,
-  userRole = "student",
+  // userId,
+  // userRole = "student",
 }) => {
   const [meetings, setMeetings] = useState<Meeting[]>(SAMPLE_MEETINGS);
   const [loading, setLoading] = useState<boolean>(false);

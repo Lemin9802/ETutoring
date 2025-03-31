@@ -4,10 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -31,7 +28,7 @@ export default async function handler(
 
   try {
     const response = await axios.post<APIResponse>(
-      `${process.env.BACKEND_URL}/api/documents/comments/gets`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/documents/comments/gets`,
       { document_id: document_id },
       {
         headers: {
