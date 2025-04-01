@@ -1,4 +1,3 @@
-
 using ETutoring.Business.Dtos.Email;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Mappers;
@@ -89,5 +88,16 @@ namespace ETutoring.API.Controllers
             }
         }
 
+        [HttpPost("mark-as-read")]
+        public async Task<IActionResult> MarkEmailAsRead([FromBody] Guid emailId)
+        {
+            if (emailId == Guid.Empty)
+            {
+                return BadRequest("Invalid email ID provided.");
+            }
+
+            await _emailService.MarkAsReadAsync(emailId);
+            return Ok("Email marked as read successfully.");
+        }
     }
 }

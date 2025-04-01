@@ -7,4 +7,5 @@ public interface IEmailService
 {
     Task SendEmailAsync(EmailTemplateRequest emailRequest);
     Task<List<EmailSent>> GetAllEmailsAsync();
+    Task MarkAsReadAsync(Guid emailId);
 }
