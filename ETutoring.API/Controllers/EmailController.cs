@@ -1,4 +1,4 @@
-﻿
+
 using ETutoring.Business.Dtos.Email;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Mappers;
@@ -62,12 +62,17 @@ namespace ETutoring.API.Controllers
             }
         }
         [HttpPost("get-mail-by-user-id")]
-        public async Task<IActionResult> GetEmailsByPost()
+        public async Task<IActionResult> GetEmailsByPost([FromBody] Guid userId)
         {
             try
             {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest("Invalid user ID provided.");
+                }
+
                 var emails = await _emailService.GetAllEmailsAsync();
-                var result = emails.Select(e => new
+                var userEmails = emails.Where(e => e.UserId == userId).Select(e => new
                 {
                     e.Id,
                     e.Subject,
@@ -75,11 +80,11 @@ namespace ETutoring.API.Controllers
                     CreatedAt = e.CreatedAt.ToString("dd-MM-yyyy")
                 }).ToList();
 
-                return Ok(result);
+                return Ok(userEmails);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error retrieving emails: {ex.Message}");
+                Console.WriteLine($"Error retrieving emails for user {userId}: {ex.Message}");
                 return StatusCode(500, "Internal Server Error");
             }
         }
