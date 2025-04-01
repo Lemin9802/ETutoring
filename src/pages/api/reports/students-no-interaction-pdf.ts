@@ -37,7 +37,7 @@ export default async function handler(
 
   try {
     const backendResponse = await fetch(
-      `${process.env.BACKEND_URL}/api/reports/students/no-interaction/pdf`, // Updated endpoint
+      `${process.env.NEXT_PUBLIC_API_URL}/api/reports/students/no-interaction/pdf`, // Updated endpoint
       {
         method: "POST",
         headers: {
