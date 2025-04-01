@@ -104,12 +104,18 @@ const DropdownNotification = () => {
     : notifications.slice(0, initialDisplayCount);
 
   // Mark notification as read
-  const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+  const markAsRead = useCallback(async (id: string) => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/email/mark-as-read`,
+        id,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      setNotifications((prev) => prev.filter((notif) => notif.id !== id)); // Remove notification from frontend state
+    } catch (error) {
+      console.error("🚨 Error marking notification as read:", error);
+      setError("⚠️ Failed to mark notification as read"); // Set error state to display error message
+    }
   }, []);
 
   // Handle click to view notification details
