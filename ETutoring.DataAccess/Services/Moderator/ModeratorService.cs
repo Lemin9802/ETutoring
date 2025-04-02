@@ -142,7 +142,6 @@ namespace ETutoring.DataAccess.Services.Moderator
                     }
                 )));
 
-                // Gọi AssignChatroomAsync với try-catch để tránh lỗi ảnh hưởng toàn bộ
                 //chatroomTasks.Add(Task.Run(async () =>
                 //{
                 //    try
