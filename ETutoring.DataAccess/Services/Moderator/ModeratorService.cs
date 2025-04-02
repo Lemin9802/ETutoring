@@ -1,23 +1,16 @@
-﻿using ETutoring.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using ETutoring.Business.Interfaces.Moderator;
-using ETutoring.DataAccess.Data;
+﻿using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Request.Moderator;
 using ETutoring.Business.Dtos.Response.Moderator;
-using ETutoring.Business.Dtos.Request;
-using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Dtos.Response;
 using ETutoring.Business.Dtos.Response.Students;
-using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.User;
-using ETutoring.Core.Common;
-using Microsoft.AspNetCore.Http.HttpResults;
-using ETutoring.Business.Dtos;
-using ETutoring.Business.Dtos.Documents;
-using Microsoft.AspNetCore.Mvc;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Interfaces.Moderator;
 using ETutoring.Business.Interfaces.Services;
+using ETutoring.Core.Common;
 using ETutoring.Core.EmailTemplate;
+using ETutoring.Core.Entities;
+using ETutoring.DataAccess.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -134,8 +127,8 @@ namespace ETutoring.DataAccess.Services.Moderator
                     EmailTemplateType.StudentReceiveNewTutor,
                     new Dictionary<string, string>
                     {
-                { "{{studentName}}", student.Email },
-                { "{{TutorName}}", tutor.Email }
+                { "StudentName", student.Email },
+                { "TutorName", tutor.Email }
                     }
                 );
                 await _emailService.SendEmailAsync(studentEmailRequest);
@@ -391,7 +384,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             var allocationPairs = allocations
                 .Select(a => new { a.TutorId, a.StudentId })
                 .ToList();
-            
+
             var allAllocations = await _context.Allocations.ToListAsync();
 
             var allocationEntities = allAllocations
@@ -406,7 +399,7 @@ namespace ETutoring.DataAccess.Services.Moderator
 
             return ApiResponse<bool>.SuccessResponse(true);
         }
-        public async Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaRequest meta)
         {
             try
             {

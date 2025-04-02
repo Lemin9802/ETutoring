@@ -23,10 +23,13 @@ public class MeetingConfiguration : IEntityTypeConfiguration<Meeting>
 
         builder.HasOne(m => m.Creator)
             .WithMany()
-            .HasForeignKey(m => m.CreatorId);
+            .HasForeignKey(m => m.CreatorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(m => m.Receiver)
-            .WithMany()
-            .HasForeignKey(m => m.ReceiverId);
+        // Configure many-to-many via MeetingAttendee
+        builder
+            .HasMany(m => m.Attendees)
+            .WithOne(a => a.Meeting)
+            .HasForeignKey(a => a.MeetingId);
     }
 }

@@ -7,17 +7,19 @@ using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ETutoring.DataAccess.Services.Messages
 {
-    public partial class MessageService : IMessageService
+    public class MessageService : IMessageService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMessageHubService _messageHubService;
+
+        public MessageService(ApplicationDbContext context, IMessageHubService messageHubService)
+        {
+            _context = context;
+            _messageHubService = messageHubService;
+        }
 
         public async Task<ApiResponse<AverageMessagesResponse>> GetAverageMessagesPerTutorAsync()
         {
@@ -90,7 +92,7 @@ namespace ETutoring.DataAccess.Services.Messages
 
             var tutorPerformance = tutorPerformanceResponse.Data;
 
-using var document = new PdfSharp.Pdf.PdfDocument();
+            using var document = new PdfSharp.Pdf.PdfDocument();
             var page = document.AddPage();
             var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
             var font = new PdfSharp.Drawing.XFont("Arial", 12);
@@ -178,12 +180,6 @@ using var document = new PdfSharp.Pdf.PdfDocument();
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             return stream.ToArray();
-        }
-
-        public MessageService(ApplicationDbContext context, IMessageHubService messageHubService)
-        {
-            _context = context;
-            _messageHubService = messageHubService;
         }
 
         public async Task<ApiResponse<List<ConversationResponse>>> GetUserConversationsAsync(GetConversationsRequest request)
@@ -337,7 +333,7 @@ using var document = new PdfSharp.Pdf.PdfDocument();
             });
         }
 
-        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync(MetaResponse meta)
+        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync(MetaRequest meta)
         {
             try
             {

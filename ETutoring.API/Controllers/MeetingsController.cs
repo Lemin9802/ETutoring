@@ -57,5 +57,13 @@ namespace ETutoring.API.Controllers
             var response = ApiResponse<IEnumerable<MeetingResponse>>.SuccessResponse(meetings, "Meetings retrieved successfully.");
             return Ok(response);
         }
+
+        [HttpPost("all")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<MeetingResponse>>>> GetAllMeetings(CancellationToken cancellationToken)
+        {
+            var meetings = await _meetingService.GetAllMeetings(cancellationToken);
+            var response = ApiResponse<IEnumerable<MeetingResponse>>.SuccessResponse(meetings, "Meetings retrieved successfully.");
+            return Ok(response);
+        }
     }
 }
