@@ -47,14 +47,14 @@ namespace ETutoring.DataAccess.Services.Students
 
                 if (!tutors.Any())
                 {
-                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("Sinh viên này chưa được phân tutor.");
+                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("This student has not been assigned a Tutor yet.");
                 }
 
-                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Lấy danh sách tutor thành công.");
+                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Get tutor list successfully.");
             }
             catch (Exception ex)
             {
-                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"Đã có lỗi khi lấy danh sách tutor: {ex.Message}");
+                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"There was an error getting the tutor list: {ex.Message}");
             }
         }
 
