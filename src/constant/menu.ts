@@ -165,6 +165,11 @@ export const menuGroupsModerators = [
         route: "/moderators/manage/allocations",
       },
       {
+        icon: Layers,
+        label: "Chatting Rooms",
+        route: "/moderators/manage/relationships",
+      },
+      {
         icon: MessageSquare,
         label: "Chat Management",
         route: "/moderators/manage/chat",
