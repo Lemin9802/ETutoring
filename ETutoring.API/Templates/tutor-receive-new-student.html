@@ -61,12 +61,10 @@
 <body>
     <div class="container">
         <h2>Hello, {{TutorName}}! 👋</h2>
-        <p>Great news! You have been assigned {{StudentCount}} new student{{StudentCount > 1 ? 's' : ''}}.</p>
+        <p>Great news! You have been assigned {{StudentCount}} new student{{StudentPlural}}.</p>
 
         <ul class="student-list">
-            {{#each StudentList}}
-            <li><strong>{{this.Name}}</strong> ({{this.Course}})</li>
-            {{/each}}
+            {{StudentList}}
         </ul>
 
         <p>If you have any questions, feel free to reach out.</p>
