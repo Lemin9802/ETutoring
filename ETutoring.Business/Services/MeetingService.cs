@@ -49,6 +49,8 @@ public class MeetingService : IMeetingService
             .Where(m =>
                 m.CreatorId == userId ||
                 m.Attendees.Any(a => a.UserId == userId))
+            .Include(m => m.Attendees)
+                .ThenInclude(a => a.User)
             .ToListAsync(cancellationToken);
 
         return meetings.Select(m => m.ToMeetingDto());
@@ -57,8 +59,6 @@ public class MeetingService : IMeetingService
 
     public async Task<bool> ChangeMeetingStatus(ChangeMeetingStatusRequest request, CancellationToken cancellationToken)
     {
-        if (request.IsTutor) throw new DeclineMeetingException();
-
         var meeting = await _context.Meetings.FirstOrDefaultAsync(m => m.Id == request.MeetingId, cancellationToken);
         if (meeting is null) throw new EntityNotFoundException("Meeting", request.MeetingId);
 
@@ -67,7 +67,6 @@ public class MeetingService : IMeetingService
 
         return true;
     }
-
 
     public async Task<IEnumerable<MeetingResponse>> GetAllMeetings(CancellationToken cancellationToken)
     {

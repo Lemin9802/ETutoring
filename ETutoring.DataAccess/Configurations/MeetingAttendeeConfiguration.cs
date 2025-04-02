@@ -12,7 +12,8 @@ public class MeetingAttendeeConfiguration : IEntityTypeConfiguration<MeetingAtte
 
         builder.HasOne(ma => ma.Meeting)
             .WithMany(m => m.Attendees)
-            .HasForeignKey(ma => ma.MeetingId);
+            .HasForeignKey(ma => ma.MeetingId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ma => ma.User)
             .WithMany(u => u.Meetings)

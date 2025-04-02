@@ -3,6 +3,7 @@ using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
@@ -33,8 +34,16 @@ namespace ETutoring.API.Controllers
         }
 
         [HttpPost("change-status")]
+        [Authorize]
         public async Task<ActionResult<ApiResponse<ChangeMeetingStatusRequest>>> ChangeMeetingStatus([FromBody] ChangeMeetingStatusRequest request, CancellationToken cancellationToken)
         {
+            var userRole = User.FindFirstValue("role");
+
+            if (userRole != "Tutor")
+            {
+                throw new AuthErrorException("Only tutors of the meeting can change meeting status.");
+            }
+
             var isSuccess = await _meetingService.ChangeMeetingStatus(request, cancellationToken);
 
             var response = isSuccess
@@ -50,10 +59,17 @@ namespace ETutoring.API.Controllers
         }
 
         [HttpPost("user")]
+        [Authorize]
         public async Task<ActionResult<ApiResponse<IEnumerable<MeetingResponse>>>> GetUserMeetings(CancellationToken cancellationToken)
         {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            var meetings = await _meetingService.GetUserMeetings(Guid.Parse(userId ?? throw new AuthErrorException("Not found user in JWT token")), cancellationToken);
+            var userId = Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var parsedId) ? parsedId : Guid.Empty;
+
+            if (userId == Guid.Empty)
+            {
+                throw new AuthErrorException("Not found user in JWT token");
+            }
+
+            var meetings = await _meetingService.GetUserMeetings(userId, cancellationToken);
             var response = ApiResponse<IEnumerable<MeetingResponse>>.SuccessResponse(meetings, "Meetings retrieved successfully.");
             return Ok(response);
         }

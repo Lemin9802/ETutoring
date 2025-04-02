@@ -33,7 +33,8 @@ public static class MeetingMappers
                     FullName = a.User.FullName,
                     Email = a.User.Email!
                 })
-                .ToList()
+                .ToList(),
+            Status = meeting.Status
         };
     }
 }
