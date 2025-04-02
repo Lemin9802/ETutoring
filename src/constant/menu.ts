@@ -27,6 +27,11 @@ export const menuGroupsStudents = [
         route: "/messages",
       },
       {
+        icon: User,
+        label: "My Tutor",
+        route: "/students/tutors",
+      },
+      {
         icon: Calendar,
         label: "Calendar",
         route: "/calendar",
