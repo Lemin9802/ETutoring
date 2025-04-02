@@ -223,15 +223,6 @@ const StudentProfile = () => {
                   </Card>
                 </TabPane>
 
-                <TabPane tab="Learning Progress" key="progress">
-                  <Card bordered={false}>
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No progress data available yet"
-                    />
-                  </Card>
-                </TabPane>
-
                 <TabPane tab="Session History" key="sessions">
                   <Card bordered={false}>
                     <Empty
