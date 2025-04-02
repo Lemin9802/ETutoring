@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Badge, Table, Typography, Button, message } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useSession } from "next-auth/react";
@@ -46,9 +46,9 @@ const DocumentListPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(5);
 
   const [data, setData] = useState<DataType[]>([]);
-
   const [tutorList, setTutorList] = useState<Tutor[]>([]);
-  const fetchDocuments = async () => {
+
+  const fetchDocuments = useCallback(async () => {
     try {
       const response = await axios.post<APIResponse>("/api/documents/user", {
         page_number: currentPage,
@@ -63,7 +63,7 @@ const DocumentListPage: React.FC = () => {
     } catch (error) {
       console.error("Unexpected error:", error);
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchDocuments();
@@ -73,16 +73,11 @@ const DocumentListPage: React.FC = () => {
     const fetchTutors = async () => {
       try {
         const response = await axios.post<APIResponse>("/api/students/get-tutors");
-
         const resData = response.data.data as Tutor[];
 
         if (response.data.success) {
-          const formattedTutors = resData.map((tutor) => ({
-            tutor_id: tutor,
-            full_name: tutor, // Assuming the string represents both ID and name
-          })) as unknown as Tutor[];
-
-          setTutorList(formattedTutors);
+          // Adjust mapping if necessary. Assuming API returns complete Tutor objects.
+          setTutorList(resData);
         }
         console.log("Tutors:", resData);
       } catch (error) {
@@ -143,12 +138,13 @@ const DocumentListPage: React.FC = () => {
     setCurrentPage(pagination.current || 1);
     setPageSize(pagination.pageSize || 10);
   };
+
   const columns: ColumnsType<DataType> = [
     {
       title: (
-        <Text strong style={{ fontSize: "14px" }}>
-          Title
-        </Text>
+          <Text strong style={{ fontSize: "14px" }}>
+            Title
+          </Text>
       ),
       dataIndex: "title",
       key: "title",
@@ -156,85 +152,85 @@ const DocumentListPage: React.FC = () => {
     },
     {
       title: (
-        <Text strong style={{ fontSize: "14px" }}>
-          Status
-        </Text>
+          <Text strong style={{ fontSize: "14px" }}>
+            Status
+          </Text>
       ),
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-        <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
+          <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
       ),
     },
     {
       title: (
-        <Text strong style={{ fontSize: "14px" }}>
-          Recipient
-        </Text>
+          <Text strong style={{ fontSize: "14px" }}>
+            Recipient
+          </Text>
       ),
       dataIndex: "recipient_name",
       key: "recipient",
-      render: (recipient: string) => <Text> {recipient}</Text>,
+      render: (recipient: string) => <Text>{recipient}</Text>,
     },
     {
       title: (
-        <Text strong style={{ fontSize: "14px" }}>
-          Status Updated
-        </Text>
+          <Text strong style={{ fontSize: "14px" }}>
+            Status Updated
+          </Text>
       ),
-      dataIndex: "updated_at",
-      key: "updated_at",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
       render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
     },
     {
       title: "Action",
       key: "action",
       render: (record: DataType) => (
-        <Link href={`/documents/detail?id=${record.id}`}>
-          <Button type="primary" ghost>
-            Detail
-          </Button>
-        </Link>
+          <Link href={`/documents/detail?id=${record.id}`}>
+            <Button type="primary" ghost>
+              Detail
+            </Button>
+          </Link>
       ),
     },
   ];
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <Title level={2}>Documents</Title>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: 20,
-        }}
-      >
-        <Button type="primary" onClick={showModal}>
-          Add Document
-        </Button>
-      </div>
-      <Table<DataType>
-        columns={columns}
-        dataSource={data}
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: data.length,
-          showSizeChanger: true,
-          pageSizeOptions: ["5", "10", "20"],
-        }}
-        onChange={handleTableChange}
-        bordered={false}
-        showHeader
-      />
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        <Title level={2}>Documents</Title>
+        <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: 20,
+            }}
+        >
+          <Button type="primary" onClick={showModal}>
+            Add Document
+          </Button>
+        </div>
+        <Table<DataType>
+            columns={columns}
+            dataSource={data}
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: data.length,
+              showSizeChanger: true,
+              pageSizeOptions: ["5", "10", "20"],
+            }}
+            onChange={handleTableChange}
+            bordered={false}
+            showHeader
+        />
 
-      <AddDocumentModal
-        isOpen={isModalOpen}
-        onCancel={handleCancel}
-        onSubmit={handleSubmit}
-        tutorList={tutorList}
-      />
-    </div>
+        <AddDocumentModal
+            isOpen={isModalOpen}
+            onCancel={handleCancel}
+            onSubmit={handleSubmit}
+            tutorList={tutorList}
+        />
+      </div>
   );
 };
 
