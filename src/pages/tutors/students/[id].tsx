@@ -25,6 +25,7 @@ import Head from "next/head";
 import { Student } from "@/types/Students";
 import dayjs from "dayjs";
 import ScheduleSessionModal from "@/components/ScheduleSessionModal";
+import DocumentList from "@/components/Documents/DocumentList";
 
 const { TabPane } = Tabs;
 
@@ -164,7 +165,6 @@ const StudentProfile = () => {
                           studentId={student.id}
                           onClose={() => setScheduleModalVisible(false)}
                           onSessionScheduled={() => {
-                            // Handle successful session scheduling (e.g., refresh session history)
                             message.success('Session scheduled successfully!');
                             setScheduleModalVisible(false);
                           }}
@@ -223,21 +223,9 @@ const StudentProfile = () => {
                   </Card>
                 </TabPane>
 
-                <TabPane tab="Session History" key="sessions">
-                  <Card bordered={false}>
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No session history available"
-                    />
-                  </Card>
-                </TabPane>
-
                 <TabPane tab="Documents" key="documents">
                   <Card bordered={false}>
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No documents available"
-                    />
+                    <DocumentList studentId={student.id || ''} />
                   </Card>
                 </TabPane>
               </Tabs>
