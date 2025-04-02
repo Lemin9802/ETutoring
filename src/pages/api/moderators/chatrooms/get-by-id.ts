@@ -26,9 +26,9 @@ export default async function handler(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { chatroomId } = req.body;
+    const { chatroom_id } = req.body;
     const bodyData = {
-      chatroom_id: chatroomId,
+      chatroom_id,
     };
 
     const response = await fetch(
