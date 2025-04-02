@@ -1,13 +1,10 @@
 ﻿using ETutoring.Business.Dtos.Request.Students;
-using ETutoring.Business.Dtos.Response.Moderator;
+using ETutoring.Business.Dtos.Response.Students;
 using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
-using ETutoring.Business.Dtos.Response;
-using ETutoring.Business.Dtos.Response.Students;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ETutoring.API.Controllers.Students
 {
@@ -24,7 +21,8 @@ namespace ETutoring.API.Controllers.Students
         }
 
         [HttpPost("get-tutors")]
-        public async Task<ApiResponse<List<GetTutorForStudentResponse>>>GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
+        [SwaggerOperation("Display a list of assigned tutor of a student")]
+        public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
             return await _studentService.GetTutorsForStudentAsync(model);            
         }

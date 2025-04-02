@@ -1,4 +1,6 @@
-﻿namespace ETutoring.Business.Dtos.Meetings;
+﻿using ETutoring.Core.Enums;
+
+namespace ETutoring.Business.Dtos.Meetings;
 
 public record MeetingResponse
 {
@@ -14,5 +16,14 @@ public record MeetingResponse
 
     public Guid CreatorId { get; init; }
 
-    public Guid ReceiverId { get; init; }
+    public List<MeetingParticipantDto> Participants { get; init; } = new();
+
+    public MeetingStatus Status { get; init; }
+}
+
+public record MeetingParticipantDto
+{
+    public string FullName { get; init; }
+
+    public string Email { get; init; }
 }

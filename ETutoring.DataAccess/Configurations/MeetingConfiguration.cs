@@ -21,12 +21,19 @@ public class MeetingConfiguration : IEntityTypeConfiguration<Meeting>
         builder.Property(m => m.EndTime)
             .IsRequired();
 
+        builder.Property(m => m.Status)
+            .HasComment("0: Pending, 1: Accepted, 2: Rejected")
+            .IsRequired();
+
         builder.HasOne(m => m.Creator)
             .WithMany()
-            .HasForeignKey(m => m.CreatorId);
+            .HasForeignKey(m => m.CreatorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(m => m.Receiver)
-            .WithMany()
-            .HasForeignKey(m => m.ReceiverId);
+        // Configure many-to-many via MeetingAttendee
+        builder
+            .HasMany(m => m.Attendees)
+            .WithOne(a => a.Meeting)
+            .HasForeignKey(a => a.MeetingId);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ETutoring.Business.Dtos.Meetings;
 
-public record CreateMeetingRequest
+public class CreateMeetingDto
 {
     public required string Title { get; init; }
 
@@ -10,12 +10,7 @@ public record CreateMeetingRequest
 
     public required DateTime EndTime { get; init; }
 
-    public Guid CreatorId { get; private set; }
+    public Guid CreatorId { get; init; }
 
-    public List<string> Participants { get; init; }
-
-    public void AddCreator(Guid id)
-    {
-        CreatorId = id;
-    }
+    public List<Guid> Participants { get; init; }
 }

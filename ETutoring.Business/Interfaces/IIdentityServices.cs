@@ -1,4 +1,5 @@
-﻿using ETutoring.Business.Dtos.Auth;
+﻿using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Auth;
 using ETutoring.Core.Entities;
 using ETutoring.Core.Utilities;
 
@@ -17,4 +18,8 @@ public interface IIdentityServices
     Task<AuthResult<string>> AssignRoleAsync(Guid userId, Guid roleId);
 
     Task<AuthResult<ApplicationUser>> GetUserByIdAsync(Guid userId);
+
+    Task<IEnumerable<string?>> GetUsersByEmailAsync(string email, MetaRequest meta);
+
+    Task<List<Guid>> FindUsersByEmailsAsync(List<string> email, CancellationToken cancellationToken);
 }

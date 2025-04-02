@@ -48,4 +48,5 @@ public class ApplicationUser : IdentityUser<Guid>
     // Add these new navigation properties
     public ICollection<Document> UploadedDocuments { get; set; } = new List<Document>();
     public ICollection<Document> ReceivedDocuments { get; set; } = new List<Document>();
+    public ICollection<MeetingAttendee> Meetings { get; set; } = new List<MeetingAttendee>();
 }
