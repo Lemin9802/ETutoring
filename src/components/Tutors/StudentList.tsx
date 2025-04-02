@@ -25,6 +25,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import type { RangePickerProps } from "antd/es/date-picker";
 import axios from "axios";
 import { APIResponse } from "@/types/APIResponse";
+import ScheduleSessionModal from "@/components/ScheduleSessionModal";
 
 dayjs.extend(relativeTime);
 
@@ -44,6 +45,8 @@ interface FilterOptions {
 const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [pagination, setPagination] = useState({
     current: 1,
@@ -237,6 +240,24 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
           >
             Message
           </a>
+          <span className="text-gray-300">|</span>
+          <Button size="small" onClick={() => {
+            setSelectedStudentId(record.student_id);
+            setScheduleModalVisible(true);
+          }}>
+            Schedule Session
+          </Button>
+          {scheduleModalVisible && selectedStudentId === record.student_id && (
+            <ScheduleSessionModal
+              studentId={selectedStudentId}
+              onClose={() => setScheduleModalVisible(false)}
+              onSessionScheduled={() => {
+                // Handle successful session scheduling (e.g., refresh student list or display message)
+                message.success('Session scheduled successfully!');
+                setScheduleModalVisible(false);
+              }}
+            />
+          )}
         </div>
       ),
     },

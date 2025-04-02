@@ -24,6 +24,7 @@ import Link from "next/link";
 import Head from "next/head";
 import { Student } from "@/types/Students";
 import dayjs from "dayjs";
+import ScheduleSessionModal from "@/components/ScheduleSessionModal";
 
 const { TabPane } = Tabs;
 
@@ -31,6 +32,7 @@ const StudentProfile = () => {
   const router = useRouter();
   const { id } = router.query;
   const [student, setStudent] = useState<Student | null>(null);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const session = useSession();
   const token = session?.data?.user?.accessToken;
@@ -156,7 +158,18 @@ const StudentProfile = () => {
                       >
                         Message Student
                       </Button>
-                      <Button>Schedule Session</Button>
+                      <Button onClick={() => setScheduleModalVisible(true)}>Schedule Session</Button>
+                      {scheduleModalVisible && student && (
+                        <ScheduleSessionModal
+                          studentId={student.id}
+                          onClose={() => setScheduleModalVisible(false)}
+                          onSessionScheduled={() => {
+                            // Handle successful session scheduling (e.g., refresh session history)
+                            message.success('Session scheduled successfully!');
+                            setScheduleModalVisible(false);
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -199,8 +212,8 @@ const StudentProfile = () => {
                       <Descriptions.Item label="Last Login">
                         {student.last_login_time
                           ? dayjs(student.last_login_time).format(
-                              "MMMM D, YYYY, h:mm A"
-                            )
+                            "MMMM D, YYYY, h:mm A"
+                          )
                           : "Never logged in"}
                       </Descriptions.Item>
                       <Descriptions.Item label="Account Created">
