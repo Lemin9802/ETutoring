@@ -26,7 +26,7 @@ namespace ETutoring.API.Controllers.Students
         [HttpPost("get-tutors")]
         public async Task<ApiResponse<List<GetTutorForStudentResponse>>>GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
-            return await _studentService.GetTutorsForStudentAsync(model.StudentId);            
+            return await _studentService.GetTutorsForStudentAsync(model);            
         }
 
 

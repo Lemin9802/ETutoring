@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ETutoring.Business.Dtos.Request.Students;
 using ETutoring.Business.Dtos.Response;
 using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.Students;
@@ -13,7 +14,7 @@ namespace ETutoring.Business.Interfaces.Students
 {
     public interface IStudentService
     {
-        Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(Guid studentId);
+        Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(GetTutorsForStudentRequest modal);
         Task<ApiResponse<List<UnassignedStudentResponse>>> GetUnassignedStudentsAsync();
         Task<ApiResponse<List<InactiveStudentResponse>>> GetInactiveStudentsAsync(int days);
         Task<byte[]> GenerateUnassignedStudentsPdfReportAsync();

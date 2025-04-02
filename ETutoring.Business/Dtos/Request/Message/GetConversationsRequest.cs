@@ -8,6 +8,6 @@ namespace ETutoring.Business.Dtos.Request.Message
 {
     public class GetConversationsRequest
     {
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
     }
 }

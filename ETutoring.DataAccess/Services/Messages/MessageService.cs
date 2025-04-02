@@ -90,7 +90,7 @@ namespace ETutoring.DataAccess.Services.Messages
 
             var tutorPerformance = tutorPerformanceResponse.Data;
 
-using var document = new PdfSharp.Pdf.PdfDocument();
+            using var document = new PdfSharp.Pdf.PdfDocument();
             var page = document.AddPage();
             var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
             var font = new PdfSharp.Drawing.XFont("Arial", 12);
@@ -188,42 +188,52 @@ using var document = new PdfSharp.Pdf.PdfDocument();
 
         public async Task<ApiResponse<List<ConversationResponse>>> GetUserConversationsAsync(GetConversationsRequest request)
         {
-            var conversations = await _context.Messages
-                .Where(m => m.SenderId == request.UserId || m.ReceiverId == request.UserId)
-                .GroupBy(m => m.SenderId == request.UserId ? m.ReceiverId : m.SenderId)
-                .Select(g => new
-                {
-                    ConversationId = g.FirstOrDefault() != null ? g.FirstOrDefault().Id : Guid.Empty,
-                    ParticipantId = g.Key,
-                    LastMessage = g.OrderByDescending(m => m.Timestamp).Select(m => m.Content).FirstOrDefault(),
-                    LastMessageTime = g.OrderByDescending(m => m.Timestamp).Select(m => m.Timestamp).FirstOrDefault(),
-                    SenderId = g.FirstOrDefault() != null ? g.FirstOrDefault().SenderId : string.Empty,
-                    ReceiverId = g.FirstOrDefault() != null ? g.FirstOrDefault().ReceiverId : string.Empty
-                })
-                .OrderByDescending(c => c.LastMessageTime)
+            // Lấy tất cả các phòng chat mà người dùng tham gia (dưới dạng ChattingRoom)
+            var chatrooms = await _context.ChattingRooms
+                .Where(cr => cr.StudentId == request.UserId || cr.TutorId == request.UserId)
                 .ToListAsync();
 
-            var participantIds = conversations.Select(c => Guid.Parse(c.ParticipantId)).ToList();
+            var conversationResponses = new List<ConversationResponse>();
 
-            var users = await _context.Users
-                .Where(u => participantIds.Contains(u.Id))
-                .Select(u => new { u.Id, u.FullName, u.ProfilePicture })
-                .ToListAsync();
-
-            var conversationResponses = conversations.Select(c => new ConversationResponse
+            foreach (var room in chatrooms)
             {
-                ConversationId = c.ConversationId,
-                ParticipantId = Guid.Parse(c.ParticipantId),
-                FullName = users.FirstOrDefault(u => u.Id == Guid.Parse(c.ParticipantId))?.FullName ?? "Unknown",
-                ProfilePicture = users.FirstOrDefault(u => u.Id == Guid.Parse(c.ParticipantId))?.ProfilePicture ?? "",
-                LastMessage = c.LastMessage,
-                LastMessageTime = c.LastMessageTime,
-                SenderId = Guid.Parse(c.SenderId),
-                ReceiverId = Guid.Parse(c.ReceiverId)
-            }).ToList();
+                // Lấy tin nhắn cuối cùng trong phòng chat (không bao gồm tin nhắn bị xóa)
+                var lastMessage = await _context.Messages
+                    .Where(m => m.ChatroomId == room.Id && !m.IsDeleted)
+                    .OrderByDescending(m => m.Timestamp)
+                    .FirstOrDefaultAsync();
+
+                // Xác định đối tác trong phòng chat: nếu user là Student thì đối tác là Tutor, ngược lại.
+                Guid participantId = room.StudentId == request.UserId ? room.TutorId : room.StudentId;
+
+                // Lấy thông tin đối tác từ bảng Users
+                var participant = await _context.Users
+                    .Where(u => u.Id == participantId)
+                    .Select(u => new { u.Id, u.FullName, u.ProfilePicture })
+                    .FirstOrDefaultAsync();
+
+                conversationResponses.Add(new ConversationResponse
+                {
+                    ChatroomId = room.Id,
+                    ConversationId = lastMessage != null ? lastMessage.Id : Guid.Empty,
+                    ParticipantId = participantId,
+                    FullName = participant != null ? participant.FullName : "Unknown",
+                    ProfilePicture = participant != null ? participant.ProfilePicture : string.Empty,
+                    LastMessage = lastMessage != null ? lastMessage.Content : "No messages yet",
+                    LastMessageTime = lastMessage != null ? lastMessage.Timestamp : room.CreatedAt,
+                    SenderId = lastMessage != null ? Guid.Parse(lastMessage.SenderId) : Guid.Empty,
+                    ReceiverId = lastMessage != null ? Guid.Parse(lastMessage.ReceiverId) : Guid.Empty,
+                });
+            }
+
+            // Sắp xếp theo thời gian tin nhắn cuối cùng giảm dần
+            conversationResponses = conversationResponses
+                .OrderByDescending(c => c.LastMessageTime)
+                .ToList();
 
             return ApiResponse<List<ConversationResponse>>.SuccessResponse(conversationResponses);
         }
+
 
         public async Task<ApiResponse<MessageListResponse>> GetUserMessagesAsync(GetMessagesRequest request)
         {
@@ -263,27 +273,28 @@ using var document = new PdfSharp.Pdf.PdfDocument();
 
         public async Task<ApiResponse<SendMessageResponse>> SendMessageAsync(SendMessageRequest request)
         {
-            var message = new Message
+            var messageEntity = new Message
             {
                 SenderId = request.SenderId,
                 ReceiverId = request.ReceiverId,
                 Content = request.Content,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                ChatroomId = request.ChatroomId
             };
 
-            await _context.Messages.AddAsync(message);
+            await _context.Messages.AddAsync(messageEntity);
             await _context.SaveChangesAsync();
 
-            await _messageHubService.SendMessage(Guid.Parse(request.SenderId), Guid.Parse(request.ReceiverId),
-                request.Content);
+            await _messageHubService.SendMessage(Guid.Parse(request.SenderId), Guid.Parse(request.ReceiverId), request.Content);
 
             return ApiResponse<SendMessageResponse>.SuccessResponse(new SendMessageResponse
             {
-                MessageId = message.Id,
+                MessageId = messageEntity.Id,
                 Success = true,
                 Message = "Message sent successfully"
             });
         }
+
 
         public async Task<ApiResponse<DeleteMessageResponse>> DeleteMessageAsync(DeleteMessageRequest request)
         {

@@ -1,4 +1,4 @@
-﻿﻿using ETutoring.Business.Dtos.Response.Moderator;
+﻿using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,7 @@ using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using ClosedXML.Excel;
 using System.IO;
+using ETutoring.Business.Dtos.Request.Students;
 
 namespace ETutoring.DataAccess.Services.Students
 {
@@ -24,38 +25,31 @@ namespace ETutoring.DataAccess.Services.Students
             _context = context;
         }
 
-        public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(Guid studentId)
+        public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(GetTutorsForStudentRequest req)
         {
-            try
-            {
-                var tutors = await _context.Allocations
-                    .Where(a => a.StudentId == studentId)
-                    .Join(
-                        _context.Users,
-                        allocation => allocation.TutorId,
-                        user => user.Id,
-                        (allocation, tutor) => new GetTutorForStudentResponse
-                        {
-                            TutorId = tutor.Id,
-                            FullName = tutor.FullName,
-                            Address = tutor.Address,
-                            PhoneNumber = tutor.PhoneNumber,
-                            Email = tutor.Email
-                        }
-                    )
-                    .ToListAsync();
+            var tutors = await _context.Allocations
+                .Where(a => a.StudentId == req.StudentId)
+                .Join(
+                    _context.Users,
+                    allocation => allocation.TutorId,
+                    user => user.Id,
+                    (allocation, tutor) => new GetTutorForStudentResponse
+                    {
+                        TutorId = tutor.Id,
+                        FullName = tutor.FullName,
+                        Address = tutor.Address,
+                        PhoneNumber = tutor.PhoneNumber,
+                        Email = tutor.Email
+                    }
+                )
+                .ToListAsync();
 
-                if (!tutors.Any())
-                {
-                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("Sinh viên này chưa được phân tutor.");
-                }
-
-                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Lấy danh sách tutor thành công.");
-            }
-            catch (Exception ex)
+            if (!tutors.Any())
             {
-                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"Đã có lỗi khi lấy danh sách tutor: {ex.Message}");
+                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("Sinh viên này chưa được phân tutor.");
             }
+
+            return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Lấy danh sách tutor thành công.");
         }
 
         public async Task<ApiResponse<List<UnassignedStudentResponse>>> GetUnassignedStudentsAsync()
