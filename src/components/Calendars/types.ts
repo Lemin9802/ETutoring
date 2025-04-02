@@ -1,15 +1,15 @@
 export interface Attendee {
-  name: string;
+  full_name: string;
   email: string;
-  avatar?: string;
 }
 
 export interface Meeting {
   id: string;
   title: string;
   description: string;
-  startTime: string; // ISO string
-  endTime: string; // ISO string
-  attendees: Attendee[];
+  start_time: string; // ISO string
+  end_time: string; // ISO string
+  participants: Attendee[];
   location?: string;
+  status: number // 0: pending, 1: accepted, 2: rejected
 }

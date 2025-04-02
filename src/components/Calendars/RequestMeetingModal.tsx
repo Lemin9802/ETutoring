@@ -1,36 +1,22 @@
-import {
-  ArrowLeftOutlined,
-  MinusCircleOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
-import {
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  Modal,
-  Steps,
-  TimePicker,
-  Typography,
-  AutoComplete,
-} from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Button, DatePicker, Form, Input, Modal, Steps, TimePicker, Typography, Select, message } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import React, { useEffect, useState, useCallback } from "react";
-import { Meeting } from "./types";
+import React, { useEffect, useState } from "react";
+import { Meeting, Attendee } from "./types";
 import axios from "axios";
-import debounce from "lodash/debounce";
 
 const { TextArea } = Input;
+const { Option } = Select;
 
-interface AddMeetingModalProps {
+interface RequestMeetingModalProps {
   visible: boolean;
   onCancel: () => void;
   onAdd: (meeting: Omit<Meeting, "id">) => void;
   initialDate?: Dayjs | null;
 }
 
-const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
+const RequestMeetingModal: React.FC<RequestMeetingModalProps> = ({
   visible,
   onCancel,
   onAdd,
@@ -40,8 +26,8 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [tutors, setTutors] = useState<Attendee[]>([]);
+  const [loadingTutors, setLoadingTutors] = useState(false);
 
   // Reset form and set initial date when modal is opened
   useEffect(() => {
@@ -54,50 +40,36 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
           meetingDate: initialDate,
         });
       }
+      // Load tutors when modal opens
+      fetchAssignedTutors();
     }
   }, [visible, initialDate, form]);
 
-  const handleSuggestUserEmailOnSearch = async (value: string) => {
-    if (!value) {
-      setSuggestions([]);
-      return;
-    }
-
+  const fetchAssignedTutors = async () => {
     try {
-      setSearchLoading(true);
+      setLoadingTutors(true);
       const bodyData = {
-        search: value,
-        page_size: 5,
         page_number: 1,
+        page_size: 100,
       };
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/search-by-email`,
-        bodyData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`/api/students/get-tutors`, bodyData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.data && response.data.data) {
-        setSuggestions(response.data.data);
+        setTutors(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching suggested emails:", error);
-      setSuggestions([]);
+      console.error("Error fetching assigned tutors:", error);
+      message.error("Failed to load tutors. Please try again.");
+      setTutors([]);
     } finally {
-      setSearchLoading(false);
+      setLoadingTutors(false);
     }
   };
-
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      handleSuggestUserEmailOnSearch(value);
-    }, 500),
-    []
-  );
 
   const handleSubmit = async () => {
     try {
@@ -105,18 +77,23 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
       const values = await form.validateFields();
 
       // Process form values
-      const {
-        title,
-        description,
-        meetingDate,
-        timeRange,
-        location,
-        attendees,
-      } = values;
+      const { title, description, meetingDate, timeRange, location, tutorId } = values;
+
+      // Find selected tutor details
+      const selectedTutor = tutors.find((tutor) => tutor.email === tutorId);
+
+      if (!selectedTutor) {
+        message.error("Selected tutor not found. Please try again.");
+        return;
+      }
 
       // Use the selectedDate state which was properly set when moving to step 2
       // instead of potentially new meetingDate from the form
       const dateToUse = selectedDate || meetingDate;
+
+      // Log for debugging
+      console.log("Selected date:", dateToUse?.format("YYYY-MM-DD"));
+      console.log("Time range:", timeRange[0].format("HH:mm"), "-", timeRange[1].format("HH:mm"));
 
       // Create meeting object with combined date and time
       const startDateTime = dateToUse
@@ -133,13 +110,12 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
         description,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
-        location,
-        participants: attendees || [],
+        location: location || "",
+        participants: [selectedTutor],
         status: 0,
       };
 
       onAdd(meeting);
-      // form.resetFields();
     } catch (error) {
       console.error("Validation failed:", error);
     } finally {
@@ -187,16 +163,10 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
   const renderTimeAndDetails = () => (
     <>
       <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          style={{ marginRight: 8 }}
-          onClick={handleBackToDateSelection}
-        >
+        <Button icon={<ArrowLeftOutlined />} style={{ marginRight: 8 }} onClick={handleBackToDateSelection}>
           Back
         </Button>
-        <Typography.Text strong>
-          Meeting date: {selectedDate?.format("YYYY-MM-DD")}
-        </Typography.Text>
+        <Typography.Text strong>Meeting date: {selectedDate?.format("YYYY-MM-DD")}</Typography.Text>
       </div>
 
       <Form.Item
@@ -210,9 +180,7 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
       <Form.Item
         name="timeRange"
         label="Time Range"
-        rules={[
-          { required: true, message: "Please select start and end time" },
-        ]}
+        rules={[{ required: true, message: "Please select start and end time" }]}
       >
         <TimePicker.RangePicker format="HH:mm" style={{ width: "100%" }} />
       </Form.Item>
@@ -224,66 +192,30 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
       <Form.Item
         name="description"
         label="Description"
-        rules={[
-          { required: true, message: "Please enter a meeting description" },
-        ]}
+        rules={[{ required: true, message: "Please enter a meeting description" }]}
       >
         <TextArea rows={4} placeholder="Enter meeting description" />
       </Form.Item>
 
-      <Typography.Title level={5}>Attendees</Typography.Title>
-
-      <Form.List name="attendees">
-        {(fields, { add, remove }) => (
-          <>
-            {fields.map(({ key, name, ...restField }) => (
-              <div
-                className="flex justify-between items-center mb-2 h-fit"
-                key={key}
-              >
-                <Form.Item
-                  {...restField}
-                  name={[name, "email"]}
-                  rules={[
-                    { required: true, message: "Missing email" },
-                    { type: "email", message: "Invalid email format" },
-                  ]}
-                  className="!w-full !mb-0"
-                >
-                  <AutoComplete
-                    placeholder="Email"
-                    options={suggestions.map((email) => ({
-                      value: email,
-                      label: email,
-                    }))}
-                    onSearch={debouncedSearch}
-                    notFoundContent={searchLoading ? "Searching..." : null}
-                    className="!w-full !mb-0"
-                  />
-                </Form.Item>
-
-                <MinusCircleOutlined onClick={() => remove(name)} />
-              </div>
-            ))}
-            <Form.Item>
-              <Button
-                type="dashed"
-                onClick={() => add()}
-                block
-                icon={<PlusOutlined />}
-              >
-                Add Attendee
-              </Button>
-            </Form.Item>
-          </>
-        )}
-      </Form.List>
+      <Form.Item
+        name="tutorId"
+        label="Select Tutor"
+        rules={[{ required: true, message: "Please select a tutor" }]}
+      >
+        <Select placeholder="Select a tutor" loading={loadingTutors} style={{ width: "100%" }}>
+          {tutors.map((tutor) => (
+            <Option key={tutor.email} value={tutor.email}>
+              {tutor.full_name} ({tutor.email})
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
     </>
   );
 
   return (
     <Modal
-      title="Add New Meeting"
+      title="Request Meeting with Tutor"
       open={visible}
       onCancel={onCancel}
       footer={
@@ -297,13 +229,8 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
               <Button key="cancel" onClick={onCancel}>
                 Cancel
               </Button>,
-              <Button
-                key="submit"
-                type="primary"
-                loading={loading}
-                onClick={handleSubmit}
-              >
-                Add Meeting
+              <Button key="submit" type="primary" loading={loading} onClick={handleSubmit}>
+                Request Meeting
               </Button>,
             ]
       }
@@ -315,11 +242,11 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
         style={{ marginBottom: 24 }}
       />
 
-      <Form form={form} layout="vertical" name="addMeetingForm">
+      <Form form={form} layout="vertical" name="requestMeetingForm">
         {currentStep === 0 ? renderDateSelection() : renderTimeAndDetails()}
       </Form>
     </Modal>
   );
 };
 
-export default AddMeetingModal;
+export default RequestMeetingModal;

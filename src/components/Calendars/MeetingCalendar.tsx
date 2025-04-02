@@ -1,96 +1,118 @@
-import React, { useState, useEffect } from "react";
-import { Card, Button, Typography, Empty, Spin } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { Card, Button, Typography, message } from "antd";
+import { PlusOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import Calendar from "./Calendar";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import AddMeetingModal from "./AddMeetingModal";
+import RequestMeetingModal from "./RequestMeetingModal";
+import PendingMeetingsModal from "./PendingMeetingsModal";
 import { Meeting } from "./types";
-
-// Sample data - in a real app this would come from an API
-const SAMPLE_MEETINGS: Meeting[] = [
-  {
-    id: "1",
-    title: "Mathematics Tutoring Session",
-    description: "Algebra and calculus concepts review session.",
-    startTime: dayjs().add(1, "day").hour(10).minute(0).second(0).toISOString(),
-    endTime: dayjs().add(1, "day").hour(11).minute(30).second(0).toISOString(),
-    attendees: [
-      { name: "Jane Smith", email: "jane.smith@example.com" },
-      { name: "John Doe", email: "john.doe@example.com" },
-    ],
-    location: "Online - Zoom",
-  },
-  {
-    id: "2",
-    title: "Physics Lab Discussion",
-    description:
-      "Review of last week's physics lab results and preparation for the next experiment.",
-    startTime: dayjs().add(2, "day").hour(14).minute(0).second(0).toISOString(),
-    endTime: dayjs().add(2, "day").hour(15).minute(30).second(0).toISOString(),
-    attendees: [
-      { name: "Alex Johnson", email: "alex.j@example.com" },
-      { name: "Sarah Williams", email: "sarah.w@example.com" },
-      { name: "Michael Brown", email: "michael.b@example.com" },
-    ],
-    location: "Science Building, Room 105",
-  },
-  {
-    id: "3",
-    title: "Student Progress Review",
-    description: "Monthly review of student progress and academic performance.",
-    startTime: dayjs().add(5, "day").hour(9).minute(0).second(0).toISOString(),
-    endTime: dayjs().add(5, "day").hour(10).minute(0).second(0).toISOString(),
-    attendees: [
-      { name: "Emma Wilson", email: "emma.w@example.com" },
-      { name: "David Miller", email: "david.m@example.com" },
-    ],
-  },
-];
+import axios from "axios";
 
 interface MeetingCalendarProps {
-  userId?: string;
-  userRole: string;
+  initalMeetings?: Meeting[];
+  currentUserRole: string | undefined;
+  currentUserEmail?: string;
 }
 
 const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
-  // userId,
-  // userRole = "student",
+  initalMeetings,
+  currentUserRole,
+  currentUserEmail,
 }) => {
-  const [meetings, setMeetings] = useState<Meeting[]>(SAMPLE_MEETINGS);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [meetings, setMeetings] = useState<Meeting[]>(initalMeetings ?? []);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [isAddModalVisible, setIsAddModalVisible] = useState<boolean>(false);
+  const [isRequestMeetingModalVisible, setIsRequestMeetingModalVisible] = useState<boolean>(false);
+  const [isPendingMeetingsModalVisible, setIsPendingMeetingsModalVisible] = useState<boolean>(false);
 
-  // In a real application, you would fetch meetings from an API
   useEffect(() => {
-    // Simulating API call
-    setLoading(true);
-    setTimeout(() => {
-      setMeetings(SAMPLE_MEETINGS);
-      setLoading(false);
-    }, 500);
-  }, []);
+    setMeetings(initalMeetings ?? []);
+  }, [initalMeetings]);
 
-  // Function to handle adding a new meeting
-  const handleAddMeeting = (newMeeting: Omit<Meeting, "id">) => {
-    // Validate that meeting is not in the past
-    const now = dayjs();
-    const meetingStart = dayjs(newMeeting.startTime);
+  if (!currentUserRole) {
+    return null;
+  }
 
-    if (meetingStart.isBefore(now)) {
-      // You might want to show a notification or alert here in a real application
-      console.error("Cannot create meetings in the past");
-      return;
-    }
-
-    const meeting: Meeting = {
+  const handleAddMeeting = async (newMeeting: Omit<Meeting, "id">) => {
+    const meeting = {
       ...newMeeting,
       id: Date.now().toString(), // Simple ID generation for demo purposes
     };
 
-    setMeetings([...meetings, meeting]);
-    setIsAddModalVisible(false);
+    if (currentUserRole === "Student") {
+      // Add user email to participants
+      meeting.participants = [
+        ...meeting.participants,
+        {
+          email: currentUserEmail ?? "",
+          full_name: "Student", // Doens't matter
+        },
+      ];
+    }
+
+    const bodyData = {
+      meeting: {
+        title: meeting.title,
+        description: meeting.description,
+        start_time: meeting.start_time,
+        end_time: meeting.end_time,
+        participants: meeting.participants.map((attendee) => attendee),
+      },
+    };
+
+    try {
+      const response = await axios.post(`/api/meetings/create`, bodyData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status !== 200) {
+        message.error("Error creating meeting. Please try again.");
+        return;
+      }
+
+      message.success("Meeting created successfully!");
+      setMeetings([...meetings, meeting]);
+      setIsAddModalVisible(false);
+      setIsRequestMeetingModalVisible(false);
+    } catch (error) {
+      console.error("Error adding meeting:", error);
+      message.error("Failed to create meeting. Please try again.");
+    }
+  };
+
+  // Function to handle meeting status changes
+  const handleMeetingStatusChange = async (meetingId: string, newStatus: number) => {
+    try {
+      const response = await axios.post(`/api/meetings/change-status`, {
+        meeting_id: meetingId,
+        status: newStatus,
+      });
+
+      if (response.status !== 200) {
+        message.error("Error updating meeting status. Please try again.");
+        return false;
+      }
+
+      // Update the meeting status in the local state
+      const updatedMeetings = meetings.map((meeting) => {
+        if (meeting.id === meetingId) {
+          return { ...meeting, status: newStatus };
+        }
+        return meeting;
+      });
+
+      setMeetings(updatedMeetings);
+      message.success(`Meeting ${newStatus === 1 ? "approved" : "rejected"} successfully!`);
+      return true;
+    } catch (error) {
+      console.error("Error updating meeting status:", error);
+      message.error("Failed to update meeting status. Please try again.");
+      return false;
+    }
   };
 
   // Function to handle date selection
@@ -103,8 +125,14 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
     }
 
     setSelectedDate(date);
-    setIsAddModalVisible(true);
+    if (currentUserRole === "student") {
+      setIsRequestMeetingModalVisible(true);
+    } else {
+      setIsAddModalVisible(true);
+    }
   };
+
+  const isTeacher = currentUserRole === "Tutor";
 
   return (
     <div className="meeting-calendar-container">
@@ -120,44 +148,74 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
             <Typography.Title level={4} style={{ margin: 0 }}>
               Meeting Calendar
             </Typography.Title>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsAddModalVisible(true)}
-            >
-              Add Meeting
-            </Button>
+            <div>
+              {isTeacher && (
+                <Button
+                  type="default"
+                  icon={<ClockCircleOutlined />}
+                  onClick={() => setIsPendingMeetingsModalVisible(true)}
+                  style={{ marginRight: 8 }}
+                >
+                  Pending Requests
+                </Button>
+              )}
+
+              {(currentUserRole === "admin" || currentUserRole === "moderator") && (
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAddModalVisible(true)}>
+                  Add Meeting
+                </Button>
+              )}
+
+              {currentUserRole === "Student" && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setIsRequestMeetingModalVisible(true)}
+                >
+                  Request Meeting
+                </Button>
+              )}
+            </div>
           </div>
         }
-        bodyStyle={{ padding: "20px" }}
       >
-        {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "40px",
-            }}
-          >
-            <Spin size="large" />
-          </div>
-        ) : meetings.length === 0 ? (
-          <Empty description="No meetings scheduled" />
-        ) : (
-          <Calendar
-            meetings={meetings}
-            onDateSelect={handleDateSelect}
-            disabledDate={(date) => date.isBefore(dayjs().startOf("day"))}
-          />
-        )}
+        <Calendar
+          meetings={meetings}
+          onDateSelect={handleDateSelect}
+          disabledDate={(date) => date.isBefore(dayjs().startOf("day"))}
+        />
       </Card>
 
-      <AddMeetingModal
-        visible={isAddModalVisible}
-        onCancel={() => setIsAddModalVisible(false)}
-        onAdd={handleAddMeeting}
-        initialDate={selectedDate}
-      />
+      {/* Admin/Moderator Meeting Modal */}
+      {(currentUserRole === "Admin" || currentUserRole === "Moderator" || currentUserRole === "Tutor") && (
+        <AddMeetingModal
+          visible={isAddModalVisible}
+          onCancel={() => setIsAddModalVisible(false)}
+          onAdd={handleAddMeeting}
+          initialDate={selectedDate}
+        />
+      )}
+
+      {/* Student Meeting Request Modal */}
+      {currentUserRole === "Student" && (
+        <RequestMeetingModal
+          visible={isRequestMeetingModalVisible}
+          onCancel={() => setIsRequestMeetingModalVisible(false)}
+          onAdd={handleAddMeeting}
+          initialDate={selectedDate}
+        />
+      )}
+
+      {/* Teacher Pending Meetings Modal */}
+      {isTeacher && (
+        <PendingMeetingsModal
+          visible={isPendingMeetingsModalVisible}
+          onCancel={() => setIsPendingMeetingsModalVisible(false)}
+          onStatusChange={handleMeetingStatusChange}
+          teacherEmail={currentUserEmail}
+          meetings={meetings}
+        />
+      )}
     </div>
   );
 };

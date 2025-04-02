@@ -1,12 +1,5 @@
 import { MailOutlined } from "@ant-design/icons";
-import {
-  Calendar as AntCalendar,
-  Avatar,
-  Badge,
-  Divider,
-  Modal,
-  Typography
-} from "antd";
+import { Calendar as AntCalendar, Badge, Divider, Modal, Typography } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import React, { useState } from "react";
@@ -21,31 +14,18 @@ interface CalendarComponentProps {
 
 // Helper to determine the color based on meeting type or time
 const getMeetingColor = (meeting: Meeting) => {
-  const now = dayjs();
-  const meetingStart = dayjs(meeting.startTime);
-
-  // Past meetings
-  if (meetingStart.isBefore(now, "day")) {
-    return "#8c8c8c"; // Gray for past meetings
+  // Get color base on status
+  // yellow is pending, green is accepted, red is rejected
+  switch (meeting.status) {
+    case 0:
+      return "#fadb14"; // yellow
+    case 1:
+      return "#52c41a"; // green
+    case 2:
+      return "#ff4d4f"; // red
+    default:
+      return "#1890ff"; // default blue
   }
-
-  // Today's meetings
-  if (meetingStart.isSame(now, "day")) {
-    return "#f5222d"; // Red for today's meetings
-  }
-
-  // This week's meetings
-  if (meetingStart.isBefore(now.add(7, "day"))) {
-    return "#fa8c16"; // Orange for this week
-  }
-
-  // This month's meetings
-  if (meetingStart.isBefore(now.add(1, "month"))) {
-    return "#52c41a"; // Green for this month
-  }
-
-  // Far future meetings
-  return "#1890ff"; // Blue for future meetings
 };
 
 // Main Calendar component
@@ -61,7 +41,7 @@ const Calendar: React.FC<CalendarComponentProps> = ({
   const getMeetingsForDate = (date: Dayjs) => {
     const dateString = date.format("YYYY-MM-DD");
     return meetings.filter((meeting) => {
-      const meetingDate = dayjs(meeting.startTime).format("YYYY-MM-DD");
+      const meetingDate = dayjs(meeting.start_time).format("YYYY-MM-DD");
       return meetingDate === dateString;
     });
   };
@@ -113,31 +93,19 @@ const Calendar: React.FC<CalendarComponentProps> = ({
     const startTime = dayjs(start);
     const endTime = dayjs(end);
 
-    return `${startTime.format("MMM DD, YYYY HH:mm")} - ${endTime.format(
-      "HH:mm"
-    )}`;
+    return `${startTime.format("MMM DD, YYYY HH:mm")} - ${endTime.format("HH:mm")}`;
   };
 
   return (
     <div className="calendar-container">
-      <AntCalendar
-        dateCellRender={dateCellRender}
-        onSelect={handleSelect}
-        disabledDate={disabledDate}
-      />
+      <AntCalendar dateCellRender={dateCellRender} onSelect={handleSelect} disabledDate={disabledDate} />
 
       {/* Meeting Details Modal */}
       <Modal
         title={
           <div style={{ display: "flex", alignItems: "center" }}>
-            <Badge
-              color={
-                selectedMeeting ? getMeetingColor(selectedMeeting) : "#1890ff"
-              }
-            />
-            <span style={{ marginLeft: "8px" }}>
-              {selectedMeeting?.title || "Meeting Details"}
-            </span>
+            <Badge color={selectedMeeting ? getMeetingColor(selectedMeeting) : "#1890ff"} />
+            <span style={{ marginLeft: "8px" }}>{selectedMeeting?.title || "Meeting Details"}</span>
           </div>
         }
         open={!!selectedMeeting}
@@ -148,11 +116,7 @@ const Calendar: React.FC<CalendarComponentProps> = ({
         {selectedMeeting && (
           <div className="meeting-details">
             <Typography.Paragraph>
-              <strong>Time:</strong>{" "}
-              {formatMeetingTime(
-                selectedMeeting.startTime,
-                selectedMeeting.endTime
-              )}
+              <strong>Time:</strong> {formatMeetingTime(selectedMeeting.start_time, selectedMeeting.end_time)}
             </Typography.Paragraph>
 
             {selectedMeeting.location && (
@@ -172,7 +136,7 @@ const Calendar: React.FC<CalendarComponentProps> = ({
             <Divider orientation="left">Attendees</Divider>
 
             <div className="attendees-list">
-              {selectedMeeting.attendees.map((attendee, index) => (
+              {selectedMeeting.participants.map((attendee, index) => (
                 <div
                   key={index}
                   style={{
@@ -181,16 +145,11 @@ const Calendar: React.FC<CalendarComponentProps> = ({
                     marginBottom: "8px",
                   }}
                 >
-                  <Avatar src={attendee.avatar}>
-                    {attendee.name.charAt(0)}
-                  </Avatar>
                   <div style={{ marginLeft: "12px" }}>
-                    <div>{attendee.name}</div>
+                    <div>{attendee.full_name}</div>
                     <div>
                       <MailOutlined style={{ marginRight: "4px" }} />
-                      <Typography.Text type="secondary">
-                        {attendee.email}
-                      </Typography.Text>
+                      <Typography.Text type="secondary">{attendee.email}</Typography.Text>
                     </div>
                   </div>
                 </div>

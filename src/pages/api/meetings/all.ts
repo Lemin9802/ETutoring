@@ -12,34 +12,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const session = await getServerSession(req, res, authOptions);
 
-    if (!session?.user?.accessToken) {
+    if (!session) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const user_id = session.user.id; // Assuming user ID is stored in session
+    const token = session.user.accessToken;
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    const bodyData = {
-      user_id,
-    };
-
-    // Send request to backend
-    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/messages/get-all`, bodyData, {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/meetings/all`, {
       headers: {
-        Authorization: `Bearer ${session.user.accessToken}`,
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    
-
-    return res.status(200).json(data);
+    return res.status(200).json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
-        message: error.response?.data?.message || "An error occurred",
+        message: error.response?.data?.message || "An error occurred while creating meeting",
       });
     }
 
-    return res.status(500).json({ message: "An unexpected error occurred" });
+    return res.status(500).json({ message: "An error occurred" });
   }
 }
