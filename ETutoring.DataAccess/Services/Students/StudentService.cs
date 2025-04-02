@@ -1,4 +1,4 @@
-﻿﻿using ETutoring.Business.Dtos.Response.Moderator;
+﻿using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces.Students;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,7 @@ using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using ClosedXML.Excel;
 using System.IO;
+using ETutoring.Business.Dtos.Request.Students;
 
 namespace ETutoring.DataAccess.Services.Students
 {
@@ -24,8 +25,9 @@ namespace ETutoring.DataAccess.Services.Students
             _context = context;
         }
 
-        public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(Guid studentId)
+        public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(GetTutorsForStudentRequest req)
         {
+
             try
             {
                 var tutors = await _context.Allocations
@@ -56,6 +58,8 @@ namespace ETutoring.DataAccess.Services.Students
             {
                 return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"There was an error getting the tutor list: {ex.Message}");
             }
+
+            return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Lấy danh sách tutor thành công.");
         }
 
         public async Task<ApiResponse<List<UnassignedStudentResponse>>> GetUnassignedStudentsAsync()

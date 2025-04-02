@@ -24,7 +24,7 @@ namespace ETutoring.API.Controllers.Students
         [SwaggerOperation("Display a list of assigned tutor of a student")]
         public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudent([FromBody] GetTutorsForStudentRequest model)
         {
-            return await _studentService.GetTutorsForStudentAsync(model.StudentId);
+            return await _studentService.GetTutorsForStudentAsync(model);            
         }
     }
 }

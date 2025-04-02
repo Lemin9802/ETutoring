@@ -19,5 +19,10 @@ namespace ETutoring.Business.Dtos.Response.Message
         public string ReceiverId { get; set; }
         public string Content { get; set; }
         public DateTime Timestamp { get; set; }
+
+        public string? SenderFullName { get; set; }
+        public string? SenderEmail { get; set; }
+        public string? ReceiverFullName { get; set; }
+        public string? ReceiverEmail { get; set; }
     }
 }

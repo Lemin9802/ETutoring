@@ -98,7 +98,7 @@ namespace ETutoring.API
             builder.Services.AddScoped<ITutorService, TutorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IMeetingService, MeetingService>();
-
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IMessageHubService, MessageHubService>();
             // Add AWS S3 configuration
