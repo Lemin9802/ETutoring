@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Button, Spin, Alert, message, InputNumber, Form } from "antd";
 import { DownloadOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
@@ -36,6 +36,10 @@ const StudentsWithoutInteractionReport: React.FC = () => {
   const [downloadingExcel, setDownloadingExcel] = useState<boolean>(false);
   const [days, setDays] = useState<number>(7); // Default days
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    fetchData(days);
+  }, []);
 
   const fetchData = async (currentDays: number) => {
     if (currentDays <= 0) {

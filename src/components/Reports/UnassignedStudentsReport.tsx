@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Removed useEffect
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { Table, Button, Spin, Alert, Space, message } from "antd";
 import { DownloadOutlined, SearchOutlined } from "@ant-design/icons"; // Added SearchOutlined
 import type { TableProps } from "antd";
@@ -63,7 +63,9 @@ const UnassignedStudentsReport: React.FC = () => {
     }
   };
 
-  // Removed useEffect hook
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleDownload = async (format: "pdf" | "excel") => {
     // Corrected download API endpoints based on ReportController.cs

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Button, Spin, Alert, Space, message } from "antd";
 import { DownloadOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
@@ -33,6 +33,10 @@ const UnconfirmedEmailStudentsReport: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState<boolean>(false);
   const [downloadingExcel, setDownloadingExcel] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
