@@ -28,7 +28,5 @@ namespace ETutoring.API.Controllers.Students
         {
             return await _studentService.GetTutorsForStudentAsync(model);            
         }
-
-
     }
 }
