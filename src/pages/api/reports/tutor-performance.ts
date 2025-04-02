@@ -19,19 +19,17 @@ export default async function handler(
   const isAuthorized = roles?.includes("Moderator") || roles?.includes("Admin");
 
   if (!session || !isAuthorized) {
-    return res
-      .status(401)
-      .json({
-        error:
-          "Unauthorized: Access is restricted to Moderators and Administrators.",
-      });
+    return res.status(401).json({
+      error:
+        "Unauthorized: Access is restricted to Moderators and Administrators.",
+    });
   }
 
   const token = session.user.accessToken;
 
   try {
     const backendResponse = await fetch(
-      `${process.env.BACKEND_URL}/api/reports/tutor-performance`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/reports/tutor-performance`,
       {
         method: "POST",
         headers: {

@@ -43,41 +43,44 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     if (!session?.user?.id) return;
     // Nếu connectionRef.current đã có, tức là listener đã được đăng ký
     if (connectionRef.current) return;
-  
+
     const userId = session.user.id;
     const newConnection = new HubConnectionBuilder()
-      .withUrl(`http://localhost:5142/messageHub?userId=${userId}`)
+      .withUrl(`${process.env.NEXT_PUBLIC_API_URL}/messageHub?userId=${userId}`)
       .withAutomaticReconnect()
       .build();
-  
+
     newConnection
       .start()
       .then(() => {
         connectionRef.current = newConnection;
         if (!isListenerRegistered.current) {
-          newConnection.on("ReceiveMessage", (senderId: string, receiverId: string, message: string) => {
-            // Nếu tin nhắn đến từ chính mình, FE đã dùng optimistic UI → bỏ qua
-            if (senderId === userId) {
-              console.log("Skipping event because I'm sender");
-              return;
+          newConnection.on(
+            "ReceiveMessage",
+            (senderId: string, receiverId: string, message: string) => {
+              // Nếu tin nhắn đến từ chính mình, FE đã dùng optimistic UI → bỏ qua
+              if (senderId === userId) {
+                console.log("Skipping event because I'm sender");
+                return;
+              }
+              // Nếu mình là receiver, thêm tin nhắn vào state
+              if (receiverId === userId) {
+                const newMsg: Message = {
+                  id: uuidv4(),
+                  sender_id: senderId,
+                  receiver_id: receiverId,
+                  content: message,
+                  timestamp: new Date(),
+                };
+                setMessages((prev) => [...prev, newMsg]);
+              }
             }
-            // Nếu mình là receiver, thêm tin nhắn vào state
-            if (receiverId === userId) {
-              const newMsg: Message = {
-                id: uuidv4(),
-                sender_id: senderId,
-                receiver_id: receiverId,
-                content: message,
-                timestamp: new Date(),
-              };
-              setMessages((prev) => [...prev, newMsg]);
-            }
-          });
+          );
           isListenerRegistered.current = true;
         }
       })
       .catch((err) => console.error("SignalR connection failed:", err));
-  
+
     return () => {
       if (connectionRef.current) {
         // Hủy đăng ký listener để tránh trường hợp duplicate khi unmount
@@ -88,7 +91,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       }
     };
   }, [session?.user?.id]);
-  
 
   // Fetch tin nhắn ban đầu khi mở chat
   useEffect(() => {
@@ -137,11 +139,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({
       });
 
       // Gọi SignalR để gửi tin cho Receiver (BE sẽ không gửi lại cho Sender)
-      if (connectionRef.current && connectionRef.current.state === "Connected") {
+      if (
+        connectionRef.current &&
+        connectionRef.current.state === "Connected"
+      ) {
         await connectionRef.current.invoke(
           "SendMessage",
-          session.user.id,  // sender
-          recipientId,      // receiver
+          session.user.id, // sender
+          recipientId, // receiver
           tempMessage.content
         );
       } else {
@@ -207,9 +212,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           messages.map((message) => {
             const isSender = message.sender_id === session?.user?.id;
             return (
-              <div key={message.id} className={`flex ${isSender ? "justify-end" : "justify-start"}`}>
+              <div
+                key={message.id}
+                className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+              >
                 <div
-                  className={`max-w-[70%] break-words rounded-lg p-3 ${isSender ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"}`}
+                  className={`max-w-[70%] break-words rounded-lg p-3 ${
+                    isSender
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
                 >
                   <p className="text-sm">{message.content}</p>
                   <span className="text-xs opacity-75">
@@ -233,7 +245,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({
             placeholder="Type a message..."
             className="flex-1"
           />
-          <Button type="primary" icon={<SendOutlined />} onClick={handleSendMessage} />
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={handleSendMessage}
+          />
         </div>
       </div>
     </div>

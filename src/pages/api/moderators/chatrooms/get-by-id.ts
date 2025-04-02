@@ -3,7 +3,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res
@@ -29,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     const response = await fetch(
-      `${process.env.BACKEND_URL}/api/moderator/chatrooms/get-by-id`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/moderator/chatrooms/get-by-id`,
       {
         method: "POST",
         headers: {
