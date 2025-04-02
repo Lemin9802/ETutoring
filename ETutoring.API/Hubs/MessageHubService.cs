@@ -1,6 +1,7 @@
-﻿using ETutoring.API.Hubs;
-using ETutoring.Business.Interfaces.Message;
+﻿using ETutoring.Business.Interfaces.Message;
 using Microsoft.AspNetCore.SignalR;
+
+namespace ETutoring.API.Hubs;
 
 public class MessageHubService : IMessageHubService
 {

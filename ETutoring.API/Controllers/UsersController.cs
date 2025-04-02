@@ -1,4 +1,6 @@
-﻿using ETutoring.Business.Dtos.Auth;
+﻿using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Auth;
+using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
@@ -30,6 +32,20 @@ namespace ETutoring.API.Controllers
             }
 
             return BadRequest(ApiResponseHandler.FailureResponse<string>("Failed to assign role.", result.Errors));
+        }
+
+        [HttpPost("search-by-email")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<string>>>> SearchUsersByEmail([FromBody] SearchUsersRequest request)
+        {
+            var meta = new MetaRequest()
+            {
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
+
+            var result = await _identityServices.GetUsersByEmailAsync(request.Search, meta);
+
+            return Ok(ApiResponseHandler.SuccessResponse(result, "Users found successfully."));
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ETutoring.Business.Dtos;
 
-public record MetaResponse
+public record MetaRequest
 {
     public int PageNumber { get; init; }
 

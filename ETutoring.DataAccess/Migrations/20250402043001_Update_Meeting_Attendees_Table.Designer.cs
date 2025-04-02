@@ -3,6 +3,7 @@ using System;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ETutoring.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250402043001_Update_Meeting_Attendees_Table")]
+    partial class Update_Meeting_Attendees_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -518,8 +521,7 @@ namespace ETutoring.DataAccess.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
-                        .HasColumnName("status")
-                        .HasComment("0: Pending, 1: Accepted, 2: Rejected");
+                        .HasColumnName("status");
 
                     b.Property<string>("Title")
                         .IsRequired()

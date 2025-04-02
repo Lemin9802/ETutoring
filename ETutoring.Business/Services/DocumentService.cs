@@ -49,7 +49,7 @@ public class DocumentService : IDocumentService
 
     public async Task<ApiResponse<List<DocumentResponse>>> GetDocumentsByUserIdAsync(
         Guid userId,
-        MetaResponse meta,
+        MetaRequest meta,
         CancellationToken cancellationToken)
     {
         // Get the total count of documents for pagination
