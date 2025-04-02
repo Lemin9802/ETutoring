@@ -7,9 +7,11 @@ interface BlogListProps {
   blogs: BlogType[];
   userId?: string;
   users: { id: string; name: string }[];
+  onBlogUpdated?: (updatedBlog: BlogType) => void;
+  onBlogDeleted?: (deletedBlogId: string) => void;
 }
 
-const BlogList = ({ blogs, users }: BlogListProps) => {
+const BlogList = ({ blogs, users, filter, onBlogUpdated, onBlogDeleted }: BlogListProps) => {
   const getUserName = useCallback(
     (userId: string) => {
       const user = users.find((u) => u.id === userId);
@@ -18,14 +20,6 @@ const BlogList = ({ blogs, users }: BlogListProps) => {
     [users]
   );
 
-  const handleUpdate = (updatedBlog: BlogType) => {
-    console.log("Updated blog: ", updatedBlog);
-  };
-
-  const handleDelete = (deletedId: string) => {
-    console.log("Deleted blog ID: ", deletedId);
-  };
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-4 flex flex-col gap-6">
       {blogs.map((blog) => (
@@ -33,10 +27,10 @@ const BlogList = ({ blogs, users }: BlogListProps) => {
           key={blog.id}
           blog={{
             ...blog,
-            userName: blog.user_full_name || getUserName(blog.user_id), 
+            userName: blog.user_full_name || getUserName(blog.user_id),
           }}
-          onBlogUpdated={handleUpdate}
-          onBlogDeleted={handleDelete}
+          onBlogUpdated={onBlogUpdated ? onBlogUpdated : () => {}}
+          onBlogDeleted={onBlogDeleted ? onBlogDeleted : () => {}}
         />
       ))}
       {blogs.length === 0 && (
