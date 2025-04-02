@@ -12,5 +12,7 @@ namespace ETutoring.Business.Dtos.Request.Message
         public string SenderId { get; set; }
         public string ReceiverId { get; set; }
         public string Content { get; set; }
+
+        public Guid ChatroomId { get; set; }
     }
 }

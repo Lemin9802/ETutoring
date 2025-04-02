@@ -18,6 +18,7 @@ using ETutoring.Business.Dtos.Documents;
 using Microsoft.AspNetCore.Mvc;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Core.EmailTemplate;
+using ETutoring.Business.Dtos.Response.Message;
 using ETutoring.Business.Interfaces.Message;
 using Amazon.Runtime.Internal.Transform;
 using System.Text.Json;
@@ -414,7 +415,7 @@ namespace ETutoring.DataAccess.Services.Moderator
             var allocationPairs = allocations
                 .Select(a => new { a.TutorId, a.StudentId })
                 .ToList();
-            
+
             var allAllocations = await _context.Allocations.ToListAsync();
 
             var allocationEntities = allAllocations
@@ -431,120 +432,121 @@ namespace ETutoring.DataAccess.Services.Moderator
         }
         public async Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaResponse meta)
         {
-            try
-            {
-                var query = _context.ChattingRooms
-                    .Select(cr => new ChatRoomDto
-                    {
-                        Id = cr.Id,
-                        StudentId = cr.StudentId,
-                        TutorId = cr.TutorId,
-                        CreatedAt = cr.CreatedAt,
-                        StudentName = _context.Users
-                            .Where(u => u.Id == cr.StudentId)
-                            .Select(u => u.FullName)
-                            .FirstOrDefault(),
-                        TutorName = _context.Users
-                            .Where(u => u.Id == cr.TutorId)
-                            .Select(u => u.FullName)
-                            .FirstOrDefault(),
-                        NumberOfMessages = _context.Messages
-                            .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
-                        LastActivity = _context.Messages
-                            .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
-                            .Max(m => (DateTime?)m.Timestamp),
-                        NumberOfReports = 0 // Gán cố định vì không có dữ liệu report
-                    });
+            var query = _context.ChattingRooms
+                .Select(cr => new ChatRoomDto
+                {
+                    Id = cr.Id,
+                    StudentId = cr.StudentId,
+                    TutorId = cr.TutorId,
+                    CreatedAt = cr.CreatedAt,
+                    // Lấy tên đầy đủ và email của học sinh
+                    StudentName = _context.Users
+                        .Where(u => u.Id == cr.StudentId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    StudentEmail = _context.Users
+                        .Where(u => u.Id == cr.StudentId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault(),
+                    // Lấy tên đầy đủ và email của gia sư
+                    TutorName = _context.Users
+                        .Where(u => u.Id == cr.TutorId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    TutorEmail = _context.Users
+                        .Where(u => u.Id == cr.TutorId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault(),
+                    NumberOfMessages = _context.Messages
+                        .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
+                    LastActivity = _context.Messages
+                        .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
+                        .Max(m => (DateTime?)m.Timestamp),
+                    // Lấy MessageId của tin nhắn cuối cùng nếu có, ngược lại Guid.Empty
+                    MessageId = _context.Messages
+                        .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
+                        .OrderByDescending(m => m.Timestamp)
+                        .Select(m => m.Id)
+                        .FirstOrDefault(),
+                    NumberOfReports = 0 // Gán cố định vì không có dữ liệu report
+                });
 
-                var totalItems = await query.CountAsync();
-                int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
+            var totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
 
-                var chatrooms = await query
-                    .OrderByDescending(c => c.LastActivity)
-                    .Skip((meta.PageNumber - 1) * meta.PageSize)
-                    .Take(meta.PageSize)
-                    .ToListAsync();
+            var chatrooms = await query
+                .OrderByDescending(c => c.LastActivity)
+                .Skip((meta.PageNumber - 1) * meta.PageSize)
+                .Take(meta.PageSize)
+                .ToListAsync();
 
-                var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
-                return ApiResponse<List<ChatRoomDto>>.SuccessResponseWithMeta(chatrooms, metaData);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ChatRoomDto>>.FailureResponse(
-                    "Error getting chat room list.",
-                    new List<string> { ex.Message }
-                );
-            }
+            var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
+            return ApiResponse<List<ChatRoomDto>>.SuccessResponseWithMeta(chatrooms, metaData);
         }
-        public async Task<ApiResponse<ChatRoomDto>> GetChatroomByIdAsync(Guid chatroomId)
+
+        public async Task<ApiResponse<MessageListResponse>> GetChatroomByIdAsync(Guid chatroomId)
         {
-            try
-            {
-                var chatRoomDto = await _context.ChattingRooms
-                    .Where(cr => cr.Id == chatroomId)
-                    .Select(cr => new ChatRoomDto
-                    {
-                        Id = cr.Id,
-                        StudentId = cr.StudentId,
-                        TutorId = cr.TutorId,
-                        CreatedAt = cr.CreatedAt,
-                        StudentName = _context.Users
-                            .Where(u => u.Id == cr.StudentId)
-                            .Select(u => u.FullName)
-                            .FirstOrDefault(),
-                        TutorName = _context.Users
-                            .Where(u => u.Id == cr.TutorId)
-                            .Select(u => u.FullName)
-                            .FirstOrDefault(),
-                        NumberOfMessages = _context.Messages
-                            .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
-                        LastActivity = _context.Messages
-                            .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
-                            .Max(m => (DateTime?)m.Timestamp),
-                        NumberOfReports = 0
-                    })
-                    .FirstOrDefaultAsync();
+            var messages = await _context.Messages
+                .Where(m => m.ChatroomId == chatroomId && !m.IsDeleted)
+                .OrderBy(m => m.Timestamp)
+                .Select(m => new MessageResponse
+                {
+                    Id = m.Id,
+                    SenderId = m.SenderId,
+                    ReceiverId = m.ReceiverId,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp,
+                    // Lấy thông tin của người gửi
+                    SenderFullName = _context.Users
+                        .Where(u => u.Id.ToString() == m.SenderId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    SenderEmail = _context.Users
+                        .Where(u => u.Id.ToString() == m.SenderId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault(),
+                    // Lấy thông tin của người nhận
+                    ReceiverFullName = _context.Users
+                        .Where(u => u.Id.ToString() == m.ReceiverId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    ReceiverEmail = _context.Users
+                        .Where(u => u.Id.ToString() == m.ReceiverId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
 
-                if (chatRoomDto == null)
-                    return ApiResponse<ChatRoomDto>.FailureResponse("Chat room not found.");
-
-                return ApiResponse<ChatRoomDto>.SuccessResponse(chatRoomDto);
-            }
-            catch (Exception ex)
+            if (messages == null || messages.Count == 0)
             {
-                return ApiResponse<ChatRoomDto>.FailureResponse(
-                    "Error getting chat room details.",
-                    new List<string> { ex.Message }
-                );
+                return ApiResponse<MessageListResponse>.FailureResponse("No messages found for the chatroom.");
             }
+
+            var response = new MessageListResponse
+            {
+                TotalMessages = messages.Count,
+                Messages = messages
+            };
+
+            return ApiResponse<MessageListResponse>.SuccessResponse(response);
         }
 
         public async Task<ApiResponse<bool>> UpdateChatroomStatusAsync(Guid chatroomId, bool isActive)
         {
-            return ApiResponse<bool>.FailureResponse("Chat room status updates are not supported (ChattingRoom does not have a status column).");
-        }
+            return ApiResponse<bool>.FailureResponse("Function under development");
+            return ApiResponse<bool>.FailureResponse("Chat room status updates are not supported (ChattingRoom does not have a status column).");        }
         public async Task<ApiResponse<bool>> DeleteChatroomAsync(Guid chatroomId)
         {
-            try
-            {
-                var chatRoom = await _context.ChattingRooms
-                    .FirstOrDefaultAsync(cr => cr.Id == chatroomId);
+            var chatRoom = await _context.ChattingRooms
+                .FirstOrDefaultAsync(cr => cr.Id == chatroomId);
+
 
                 if (chatRoom == null)
                     return ApiResponse<bool>.FailureResponse("Chat room not found.");
+            _context.ChattingRooms.Remove(chatRoom);
+            await _context.SaveChangesAsync();
 
-                _context.ChattingRooms.Remove(chatRoom);
-                await _context.SaveChangesAsync();
-
-                return ApiResponse<bool>.SuccessResponse(true, "Chat room deleted successfully.");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.FailureResponse(
-                    "Error deleting chat room.",
-                    new List<string> { ex.Message }
-                );
-            }
+            return ApiResponse<bool>.SuccessResponse(true, "Delete chatrooms success");
         }
     }
 }
