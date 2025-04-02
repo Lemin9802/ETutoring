@@ -16,7 +16,9 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
   const { data: session } = useSession();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedTutor, setSelectedTutor] = useState<string | null>(null);
-  const [tutors, setTutors] = useState<{ id: string; email: string }[]>([]);
+  const [tutors, setTutors] = useState<{ id: string; email: string }[]>(
+    () => []
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -64,7 +66,11 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
 
       const result = await response.json();
       if (response.ok) {
-        message.success(result.message || "Assigned tutor successfully.");
+        if (result?.success === true) {
+          message.success(result.message || "Assigned tutor successfully.");
+        } else if (result?.success === false) {
+          message.error(result.message);
+        }
       } else {
         message.error(result.message || "Failed to assign tutor.");
       }
@@ -103,7 +109,7 @@ const AssignTutorButton: React.FC<AssignTutorButtonProps> = ({
           onChange={setSelectedTutor}
           disabled={isLoading} // Disable select khi loading
         >
-          {tutors.map((tutor) => (
+          {(tutors ?? []).map((tutor) => (
             <Option key={tutor.id} value={tutor.id}>
               {tutor.email}
             </Option>

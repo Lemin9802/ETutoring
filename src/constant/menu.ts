@@ -52,11 +52,6 @@ export const menuGroupsStudents = [
         route: "/blogs",
       },
       {
-        icon: Calendar,
-        label: "Meeting Calendar",
-        route: "/meeting",
-      },
-      {
         icon: Settings,
         label: "Settings",
         route: "/settings",
@@ -170,6 +165,11 @@ export const menuGroupsModerators = [
         route: "/moderators/manage/allocations",
       },
       {
+        icon: Layers,
+        label: "Chatting Rooms",
+        route: "/moderators/manage/relationships",
+      },
+      {
         icon: MessageSquare,
         label: "Chat Management",
         route: "/moderators/manage/chat",
@@ -211,6 +211,11 @@ export const menuGroupsTeachers = [
         icon: File,
         label: "Documents",
         route: "/documents/document-list",
+      },
+      {
+        icon: FileEdit,
+        label: "Blogs",
+        route: "/blogs",
       },
       {
         icon: BarChart,

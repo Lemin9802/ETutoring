@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
   Card,
@@ -23,6 +24,7 @@ import Link from "next/link";
 import Head from "next/head";
 import { Student } from "@/types/Students";
 import dayjs from "dayjs";
+import ScheduleSessionModal from "@/components/ScheduleSessionModal";
 
 const { TabPane } = Tabs;
 
@@ -30,7 +32,10 @@ const StudentProfile = () => {
   const router = useRouter();
   const { id } = router.query;
   const [student, setStudent] = useState<Student | null>(null);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const session = useSession();
+  const token = session?.data?.user?.accessToken;
 
   useEffect(() => {
     if (!id) return;
@@ -38,57 +43,41 @@ const StudentProfile = () => {
     const fetchStudentDetails = async () => {
       setLoading(true);
       try {
-        // In a real app, make an API call to get student details
-        // For demo purposes, we'll simulate with a timeout
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const response = await fetch(
+          `http://localhost:5142/api/users/profile`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id }),
+          }
+        );
 
-        // Mock student data
-        const mockStudent: Student = {
-          id: id as string,
-          full_name: `Student ${id}`,
-          email: `student${id}@example.com`,
-          profile_picture:
-            Number(id) % 3 === 0
-              ? `https://randomuser.me/api/portraits/${
-                  Number(id) % 2 === 0 ? "men" : "women"
-                }/${(Number(id) % 10) + 1}.jpg`
-              : null,
-          date_of_birth: `1995-0${(Number(id) % 9) + 1}-${
-            (Number(id) % 20) + 1
-          }`,
-          gender: Number(id) % 2 === 0 ? "Male" : "Female",
-          phone_number:
-            Number(id) % 4 === 0
-              ? `+1 (555) ${100 + Number(id)}-${1000 + Number(id)}`
-              : undefined,
-          nationality: ["US", "UK", "Canada", "Australia", "Germany"][
-            Number(id) % 5
-          ],
-          address: `${Number(id) + 100} Main St, Anytown, ${
-            ["US", "UK", "Canada", "Australia", "Germany"][Number(id) % 5]
-          }`,
-          last_login_time:
-            Number(id) % 5 === 0
-              ? undefined
-              : new Date(
-                  Date.now() - 1000 * 60 * 60 * 24 * (Number(id) % 14)
-                ).toISOString(),
-          created_at: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 30 * ((Number(id) % 6) + 1)
-          ).toISOString(),
-        };
-
-        setStudent(mockStudent);
-      } catch (error) {
+        if (!response.ok) {
+          if (response.status === 404) {
+            setStudent(null);
+          } else {
+            throw new Error(
+              `Failed to fetch student details. Status: ${response.status}`
+            );
+          }
+        } else {
+          const data = await response.json();
+          setStudent(data);
+        }
+      } catch (error: unknown) {
         console.error("Error fetching student details:", error);
         message.error("Failed to load student details");
+        setStudent(null); // Set student to null in case of error
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudentDetails();
-  }, [id]);
+  }, [id, token]);
 
   const handleMessageStudent = () => {
     if (!student) return;
@@ -169,7 +158,18 @@ const StudentProfile = () => {
                       >
                         Message Student
                       </Button>
-                      <Button>Schedule Session</Button>
+                      <Button onClick={() => setScheduleModalVisible(true)}>Schedule Session</Button>
+                      {scheduleModalVisible && student && (
+                        <ScheduleSessionModal
+                          studentId={student.id}
+                          onClose={() => setScheduleModalVisible(false)}
+                          onSessionScheduled={() => {
+                            // Handle successful session scheduling (e.g., refresh session history)
+                            message.success('Session scheduled successfully!');
+                            setScheduleModalVisible(false);
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -212,23 +212,14 @@ const StudentProfile = () => {
                       <Descriptions.Item label="Last Login">
                         {student.last_login_time
                           ? dayjs(student.last_login_time).format(
-                              "MMMM D, YYYY, h:mm A"
-                            )
+                            "MMMM D, YYYY, h:mm A"
+                          )
                           : "Never logged in"}
                       </Descriptions.Item>
                       <Descriptions.Item label="Account Created">
                         {dayjs(student.created_at).format("MMMM D, YYYY")}
                       </Descriptions.Item>
                     </Descriptions>
-                  </Card>
-                </TabPane>
-
-                <TabPane tab="Learning Progress" key="progress">
-                  <Card bordered={false}>
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No progress data available yet"
-                    />
                   </Card>
                 </TabPane>
 

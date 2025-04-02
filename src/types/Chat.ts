@@ -90,6 +90,7 @@ export interface GetChatRoomsResponse {
 export interface ConversationResponse {
   conversation_id: string;
   participant_id: string;
+  chatroom_id: string;
   full_name: string;
   profile_picture?: string;
   last_message: string;

@@ -6,23 +6,19 @@ import StatisticalCalendar from "./components/dashboard/calendarData";
 import { PlusOutlined, UserOutlined, TeamOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import {
-  getStudents,
-  getTutors,
-  getMeetings,
-  MeetingType,
-  getUserNameById,
-} from "@/lib/api/moderator";
+import { getMeetings, MeetingType, getUserNameById } from "@/lib/api/moderator";
 
-// export const metadata: Metadata = {
-//   title: "Next.js Chart | TailAdmin - Next.js Dashboard Template",
-//   description:
-//     "This is Next.js Chart page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
-// };
+interface DashboardStats {
+  totalMeetings: { value: number; trend: number };
+  totalStaff: { value: number; trend: number };
+  studentCount: { value: number; trend: number };
+  tutorCount: { value: number; trend: number };
+  meetingCompletionRate: { value: number; trend: number };
+}
 
 const DashboardPage: React.FC = () => {
   const { data: session } = useSession();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalMeetings: { value: 0, trend: 0 },
     totalStaff: { value: 0, trend: 0 },
     studentCount: { value: 0, trend: 0 },
@@ -34,28 +30,43 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [students, tutors, meetings] = await Promise.all([
-          getStudents(),
-          getTutors(),
-          getMeetings(),
-        ]);
+        // Lấy danh sách meetings (vẫn dùng API của moderator)
+        const meetings = await getMeetings();
 
+        // Tính số meetings đã hoàn thành
         const completedMeetings = meetings.filter(
           (meeting) => meeting.status === "completed"
         ).length;
 
-        // Calculate trends based on previous data (mock for now)
+        // Gọi API dashboard để lấy số liệu total_students và total_tutors
+        const dashboardResponse = await fetch("/api/dashboard/get-statictis", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!dashboardResponse.ok) {
+          throw new Error("Failed to fetch dashboard stats");
+        }
+
+        // Sử dụng các key từ response dạng snake_case
+        const dashboardData = await dashboardResponse.json();
+        // dashboardData: { total_students: number, total_tutors: number }
+
+        // Tính toán trend (giả lập dựa trên dữ liệu cũ)
         const calculateTrend = (current: number, previous: number) => {
           if (previous === 0) return 0;
           return Math.round(((current - previous) / previous) * 100);
         };
 
-        // Mock previous values (these would come from API in the future)
+        // Giả lập giá trị cũ (có thể thay thế bằng API sau này)
         const previousStats = {
           meetings: Math.floor(meetings.length * 0.9),
-          staff: Math.floor((students.length + tutors.length) * 1.1),
-          students: Math.floor(students.length * 0.95),
-          tutors: Math.floor(tutors.length * 1.02),
+          staff: Math.floor((dashboardData.total_students + dashboardData.total_tutors) * 1.1),
+          students: Math.floor(dashboardData.total_students * 0.95),
+          tutors: Math.floor(dashboardData.total_tutors * 1.02),
           completion: meetings.length
             ? Math.floor((completedMeetings / meetings.length) * 90)
             : 0,
@@ -67,21 +78,20 @@ const DashboardPage: React.FC = () => {
             trend: calculateTrend(meetings.length, previousStats.meetings),
           },
           totalStaff: {
-            value: students.length + tutors.length,
+            value: dashboardData.total_students + dashboardData.total_tutors,
             trend: calculateTrend(
-              students.length + tutors.length,
+              dashboardData.total_students + dashboardData.total_tutors,
               previousStats.staff
             ),
           },
           studentCount: {
-            value: students.length,
-            trend: calculateTrend(students.length, previousStats.students),
+            value: dashboardData.total_students,
+            trend: calculateTrend(dashboardData.total_students, previousStats.students),
           },
           tutorCount: {
-            value: tutors.length,
-            trend: calculateTrend(tutors.length, previousStats.tutors),
+            value: dashboardData.total_tutors,
+            trend: calculateTrend(dashboardData.total_tutors, previousStats.tutors),
           },
-
           meetingCompletionRate: {
             value: meetings.length
               ? (completedMeetings / meetings.length) * 100
