@@ -1,30 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Typography, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import Calendar from "./Calendar";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import AddMeetingModal from "./AddMeetingModal";
+import RequestMeetingModal from "./RequestMeetingModal";
+import PendingMeetingsModal from "./PendingMeetingsModal";
 import { Meeting } from "./types";
 import axios from "axios";
+
 interface MeetingCalendarProps {
   initalMeetings?: Meeting[];
+  currentUserRole: string | undefined;
+  currentUserEmail?: string;
 }
 
-const MeetingCalendar: React.FC<MeetingCalendarProps> = ({ initalMeetings }) => {
+const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
+  initalMeetings,
+  currentUserRole,
+  currentUserEmail,
+}) => {
   const [meetings, setMeetings] = useState<Meeting[]>(initalMeetings ?? []);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [isAddModalVisible, setIsAddModalVisible] = useState<boolean>(false);
+  const [isRequestMeetingModalVisible, setIsRequestMeetingModalVisible] = useState<boolean>(false);
+  const [isPendingMeetingsModalVisible, setIsPendingMeetingsModalVisible] = useState<boolean>(false);
 
   useEffect(() => {
     setMeetings(initalMeetings ?? []);
   }, [initalMeetings]);
+
+  if (!currentUserRole) {
+    return null;
+  }
 
   const handleAddMeeting = async (newMeeting: Omit<Meeting, "id">) => {
     const meeting = {
       ...newMeeting,
       id: Date.now().toString(), // Simple ID generation for demo purposes
     };
+
+    if (currentUserRole === "Student") {
+      // Add user email to participants
+      meeting.participants = [
+        ...meeting.participants,
+        {
+          email: currentUserEmail ?? "",
+          full_name: "Student", // Doens't matter
+        },
+      ];
+    }
 
     const bodyData = {
       meeting: {
@@ -50,10 +76,43 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({ initalMeetings }) => 
 
       message.success("Meeting created successfully!");
       setMeetings([...meetings, meeting]);
+      setIsAddModalVisible(false);
+      setIsRequestMeetingModalVisible(false);
     } catch (error) {
       console.error("Error adding meeting:", error);
+      message.error("Failed to create meeting. Please try again.");
     }
-    // setIsAddModalVisible(false);
+  };
+
+  // Function to handle meeting status changes
+  const handleMeetingStatusChange = async (meetingId: string, newStatus: number) => {
+    try {
+      const response = await axios.post(`/api/meetings/change-status`, {
+        meeting_id: meetingId,
+        status: newStatus,
+      });
+
+      if (response.status !== 200) {
+        message.error("Error updating meeting status. Please try again.");
+        return false;
+      }
+
+      // Update the meeting status in the local state
+      const updatedMeetings = meetings.map((meeting) => {
+        if (meeting.id === meetingId) {
+          return { ...meeting, status: newStatus };
+        }
+        return meeting;
+      });
+
+      setMeetings(updatedMeetings);
+      message.success(`Meeting ${newStatus === 1 ? "approved" : "rejected"} successfully!`);
+      return true;
+    } catch (error) {
+      console.error("Error updating meeting status:", error);
+      message.error("Failed to update meeting status. Please try again.");
+      return false;
+    }
   };
 
   // Function to handle date selection
@@ -66,8 +125,14 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({ initalMeetings }) => 
     }
 
     setSelectedDate(date);
-    setIsAddModalVisible(true);
+    if (currentUserRole === "student") {
+      setIsRequestMeetingModalVisible(true);
+    } else {
+      setIsAddModalVisible(true);
+    }
   };
+
+  const isTeacher = currentUserRole === "Tutor";
 
   return (
     <div className="meeting-calendar-container">
@@ -83,12 +148,36 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({ initalMeetings }) => 
             <Typography.Title level={4} style={{ margin: 0 }}>
               Meeting Calendar
             </Typography.Title>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAddModalVisible(true)}>
-              Add Meeting
-            </Button>
+            <div>
+              {isTeacher && (
+                <Button
+                  type="default"
+                  icon={<ClockCircleOutlined />}
+                  onClick={() => setIsPendingMeetingsModalVisible(true)}
+                  style={{ marginRight: 8 }}
+                >
+                  Pending Requests
+                </Button>
+              )}
+
+              {(currentUserRole === "admin" || currentUserRole === "moderator") && (
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAddModalVisible(true)}>
+                  Add Meeting
+                </Button>
+              )}
+
+              {currentUserRole === "Student" && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setIsRequestMeetingModalVisible(true)}
+                >
+                  Request Meeting
+                </Button>
+              )}
+            </div>
           </div>
         }
-        bodyStyle={{ padding: "20px" }}
       >
         <Calendar
           meetings={meetings}
@@ -97,12 +186,36 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({ initalMeetings }) => 
         />
       </Card>
 
-      <AddMeetingModal
-        visible={isAddModalVisible}
-        onCancel={() => setIsAddModalVisible(false)}
-        onAdd={handleAddMeeting}
-        initialDate={selectedDate}
-      />
+      {/* Admin/Moderator Meeting Modal */}
+      {(currentUserRole === "Admin" || currentUserRole === "Moderator" || currentUserRole === "Tutor") && (
+        <AddMeetingModal
+          visible={isAddModalVisible}
+          onCancel={() => setIsAddModalVisible(false)}
+          onAdd={handleAddMeeting}
+          initialDate={selectedDate}
+        />
+      )}
+
+      {/* Student Meeting Request Modal */}
+      {currentUserRole === "Student" && (
+        <RequestMeetingModal
+          visible={isRequestMeetingModalVisible}
+          onCancel={() => setIsRequestMeetingModalVisible(false)}
+          onAdd={handleAddMeeting}
+          initialDate={selectedDate}
+        />
+      )}
+
+      {/* Teacher Pending Meetings Modal */}
+      {isTeacher && (
+        <PendingMeetingsModal
+          visible={isPendingMeetingsModalVisible}
+          onCancel={() => setIsPendingMeetingsModalVisible(false)}
+          onStatusChange={handleMeetingStatusChange}
+          teacherEmail={currentUserEmail}
+          meetings={meetings}
+        />
+      )}
     </div>
   );
 };

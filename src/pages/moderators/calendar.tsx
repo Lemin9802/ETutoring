@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Card, Layout, Typography, Tabs, message } from "antd";
 import { MeetingCalendar } from "../../components/Calendars";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -9,6 +10,9 @@ const { TabPane } = Tabs;
 
 const ModeratorCalendarPage: React.FC = () => {
   const [meetings, setMeetings] = useState([]);
+
+  const { data: session } = useSession();
+
   useEffect(() => {
     const fetchAllMeetings = async () => {
       try {
@@ -42,7 +46,7 @@ const ModeratorCalendarPage: React.FC = () => {
 
         <Tabs defaultActiveKey="overview" className="mb-6">
           <TabPane tab="Overview Calendar" key="overview">
-            <MeetingCalendar initalMeetings={meetings} />
+            <MeetingCalendar initalMeetings={meetings} currentUserRole={session?.user.roles} />
           </TabPane>
         </Tabs>
       </Card>

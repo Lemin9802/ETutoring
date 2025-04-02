@@ -14,31 +14,18 @@ interface CalendarComponentProps {
 
 // Helper to determine the color based on meeting type or time
 const getMeetingColor = (meeting: Meeting) => {
-  const now = dayjs();
-  const meetingStart = dayjs(meeting.start_time);
-
-  // Past meetings
-  if (meetingStart.isBefore(now, "day")) {
-    return "#8c8c8c"; // Gray for past meetings
+  // Get color base on status
+  // yellow is pending, green is accepted, red is rejected
+  switch (meeting.status) {
+    case 0:
+      return "#fadb14"; // yellow
+    case 1:
+      return "#52c41a"; // green
+    case 2:
+      return "#ff4d4f"; // red
+    default:
+      return "#1890ff"; // default blue
   }
-
-  // Today's meetings
-  if (meetingStart.isSame(now, "day")) {
-    return "#f5222d"; // Red for today's meetings
-  }
-
-  // This week's meetings
-  if (meetingStart.isBefore(now.add(7, "day"))) {
-    return "#fa8c16"; // Orange for this week
-  }
-
-  // This month's meetings
-  if (meetingStart.isBefore(now.add(1, "month"))) {
-    return "#52c41a"; // Green for this month
-  }
-
-  // Far future meetings
-  return "#1890ff"; // Blue for future meetings
 };
 
 // Main Calendar component

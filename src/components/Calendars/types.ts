@@ -11,4 +11,5 @@ export interface Meeting {
   end_time: string; // ISO string
   participants: Attendee[];
   location?: string;
+  status: number // 0: pending, 1: accepted, 2: rejected
 }
