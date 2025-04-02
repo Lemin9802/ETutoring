@@ -11,7 +11,7 @@ interface BlogListProps {
   onBlogDeleted?: (deletedBlogId: string) => void;
 }
 
-const BlogList = ({ blogs, users, filter, onBlogUpdated, onBlogDeleted }: BlogListProps) => {
+const BlogList = ({ blogs, users, onBlogUpdated, onBlogDeleted }: BlogListProps) => {
   const getUserName = useCallback(
     (userId: string) => {
       const user = users.find((u) => u.id === userId);

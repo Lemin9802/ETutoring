@@ -90,13 +90,13 @@ const BlogIndex = () => {
       <BlogWriteModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onBlogCreated={(newBlog: BlogType) => {
+        onBlogCreated={() => {
           fetchBlogs();
         }}
-        onBlogUpdated={(updatedBlog: BlogType) => {
+        onBlogUpdated={() => {
           fetchBlogs();
         }}
-        onBlogDeleted={(deletedBlogId: string) => {
+        onBlogDeleted={() => {
           fetchBlogs();
         }}
       />
@@ -106,10 +106,10 @@ const BlogIndex = () => {
          userId={session?.user?.id} 
          users={users} 
          blogs={blogs} 
-         onBlogUpdated={(updatedBlog: BlogType) => {
+         onBlogUpdated={() => {
              fetchBlogs();
          }}
-         onBlogDeleted={(deletedId: string) => {
+         onBlogDeleted={() => {
              fetchBlogs();
          }}
       />
