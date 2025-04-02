@@ -86,14 +86,6 @@ const TutorsPage: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Tutors List</h1>
@@ -139,6 +131,11 @@ const TutorsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      {error && (
+        <div className="flex justify-center items-center h-screen">
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
     </div>
   );
 };

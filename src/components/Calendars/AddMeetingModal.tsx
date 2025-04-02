@@ -1,23 +1,11 @@
-import {
-  ArrowLeftOutlined,
-  MinusCircleOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
-import {
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  Modal,
-  Space,
-  Steps,
-  TimePicker,
-  Typography
-} from "antd";
+import { ArrowLeftOutlined, MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, DatePicker, Form, Input, Modal, Steps, TimePicker, Typography, AutoComplete } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Meeting } from "./types";
+import axios from "axios";
+import debounce from "lodash/debounce";
 
 const { TextArea } = Input;
 
@@ -38,6 +26,8 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Reset form and set initial date when modal is opened
   useEffect(() => {
@@ -53,40 +43,75 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
     }
   }, [visible, initialDate, form]);
 
+  const handleSuggestUserEmailOnSearch = async (value: string) => {
+    if (!value) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      setSearchLoading(true);
+      const bodyData = {
+        search: value,
+        page_size: 5,
+        page_number: 1,
+      };
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/search-by-email`,
+        bodyData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data && response.data.data) {
+        setSuggestions(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching suggested emails:", error);
+      setSuggestions([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      handleSuggestUserEmailOnSearch(value);
+    }, 500),
+    []
+  );
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
 
       // Process form values
-      const {
-        title,
-        description,
-        meetingDate,
-        timeRange,
-        location,
-        attendees,
-      } = values;
+      const { title, description, meetingDate, timeRange, location, attendees } = values;
 
       // Create meeting object with combined date and time
-      const startDateTime = meetingDate
-        .hour(timeRange[0].hour())
-        .minute(timeRange[0].minute());
-      const endDateTime = meetingDate
-        .hour(timeRange[1].hour())
-        .minute(timeRange[1].minute());
+      const startDateTime = dayjs(meetingDate)
+        .set("hour", timeRange[0].hour())
+        .set("minute", timeRange[0].minute());
+      const endDateTime = dayjs(meetingDate)
+        .set("hour", timeRange[1].hour())
+        .set("minute", timeRange[1].minute());
 
       const meeting: Omit<Meeting, "id"> = {
         title,
         description,
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
         location,
-        attendees: attendees || [],
+        participants: attendees || [],
       };
 
       onAdd(meeting);
-      form.resetFields();
+      // form.resetFields();
     } catch (error) {
       console.error("Validation failed:", error);
     } finally {
@@ -134,16 +159,10 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
   const renderTimeAndDetails = () => (
     <>
       <div style={{ marginBottom: 16, display: "flex", alignItems: "center" }}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          style={{ marginRight: 8 }}
-          onClick={handleBackToDateSelection}
-        >
+        <Button icon={<ArrowLeftOutlined />} style={{ marginRight: 8 }} onClick={handleBackToDateSelection}>
           Back
         </Button>
-        <Typography.Text strong>
-          Meeting date: {selectedDate?.format("YYYY-MM-DD")}
-        </Typography.Text>
+        <Typography.Text strong>Meeting date: {selectedDate?.format("YYYY-MM-DD")}</Typography.Text>
       </div>
 
       <Form.Item
@@ -157,9 +176,7 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
       <Form.Item
         name="timeRange"
         label="Time Range"
-        rules={[
-          { required: true, message: "Please select start and end time" },
-        ]}
+        rules={[{ required: true, message: "Please select start and end time" }]}
       >
         <TimePicker.RangePicker format="HH:mm" style={{ width: "100%" }} />
       </Form.Item>
@@ -171,9 +188,7 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
       <Form.Item
         name="description"
         label="Description"
-        rules={[
-          { required: true, message: "Please enter a meeting description" },
-        ]}
+        rules={[{ required: true, message: "Please enter a meeting description" }]}
       >
         <TextArea rows={4} placeholder="Enter meeting description" />
       </Form.Item>
@@ -184,18 +199,7 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
         {(fields, { add, remove }) => (
           <>
             {fields.map(({ key, name, ...restField }) => (
-              <Space
-                key={key}
-                style={{ display: "flex", marginBottom: 8 }}
-                align="baseline"
-              >
-                <Form.Item
-                  {...restField}
-                  name={[name, "name"]}
-                  rules={[{ required: true, message: "Missing name" }]}
-                >
-                  <Input placeholder="Name" />
-                </Form.Item>
+              <div className="flex justify-between items-center mb-2 h-fit" key={key}>
                 <Form.Item
                   {...restField}
                   name={[name, "email"]}
@@ -203,19 +207,25 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
                     { required: true, message: "Missing email" },
                     { type: "email", message: "Invalid email format" },
                   ]}
+                  className="!w-full !mb-0"
                 >
-                  <Input placeholder="Email" />
+                  <AutoComplete
+                    placeholder="Email"
+                    options={suggestions.map((email) => ({
+                      value: email,
+                      label: email,
+                    }))}
+                    onSearch={debouncedSearch}
+                    notFoundContent={searchLoading ? "Searching..." : null}
+                    className="!w-full !mb-0"
+                  />
                 </Form.Item>
+
                 <MinusCircleOutlined onClick={() => remove(name)} />
-              </Space>
+              </div>
             ))}
             <Form.Item>
-              <Button
-                type="dashed"
-                onClick={() => add()}
-                block
-                icon={<PlusOutlined />}
-              >
+              <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                 Add Attendee
               </Button>
             </Form.Item>
@@ -241,12 +251,7 @@ const AddMeetingModal: React.FC<AddMeetingModalProps> = ({
               <Button key="cancel" onClick={onCancel}>
                 Cancel
               </Button>,
-              <Button
-                key="submit"
-                type="primary"
-                loading={loading}
-                onClick={handleSubmit}
-              >
+              <Button key="submit" type="primary" loading={loading} onClick={handleSubmit}>
                 Add Meeting
               </Button>,
             ]

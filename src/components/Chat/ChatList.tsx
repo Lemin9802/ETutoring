@@ -18,13 +18,9 @@ const ChatList: React.FC<ChatListProps> = ({ onSelectChat, selectedChatId }) => 
 
   useEffect(() => {
     const fetchChats = async () => {
-      if (!session?.user?.id) return;
-
       setLoading(true);
       try {
-        const { data } = await axios.post("/api/messages/get-all-message", {
-          user_id: session.user.id,
-        });
+        const { data } = await axios.post("/api/messages/get-all-message");
 
         // Fix: Ensure response data is an array
         const conversations = Array.isArray(data) ? data : data.data || [];
