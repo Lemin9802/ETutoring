@@ -14,11 +14,17 @@ interface BlogModalProps {
 interface CommentType {
   id: string;
   userId: string;
-  user: string | null;
+  user: UserType | null; // Sửa lại kiểu dữ liệu của user
   text: string;
   createdAt: string;
   updatedAt: string;
   replies?: CommentType[];
+}
+
+interface UserType {
+  id: string;
+  user_name: string;
+  profile_picture: string | null;
 }
 
 interface ApiResponse {
@@ -27,7 +33,7 @@ interface ApiResponse {
   data: {
     content: string;
     user_id: string;
-    user: string | null;
+    user: UserType | null; // Đúng kiểu dữ liệu
     id: string;
     created_at: string;
     updated_at: string;
@@ -36,51 +42,58 @@ interface ApiResponse {
   meta: null | string;
 }
 
+
 const BlogModal: React.FC<BlogModalProps> = ({ blogTitle, blogContent, blogId, isVisible, onClose }) => {
   const [comments, setComments] = useState<CommentType[]>([]);
 
+  const fetchComments = async () => {
+    try {
+      const response = await fetch("/api/blogs/comments/get-by-blog", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ blog_id: blogId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: ApiResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to fetch comments.");
+      }
+
+      const fetchedComments: CommentType[] = data.data.map((comment) => ({
+        id: comment.id,
+        userId: comment.user_id,
+        user: comment.user ? {
+          id: comment.user.id,
+          user_name: comment.user.user_name,
+          profile_picture: comment.user.profile_picture
+        } : null,
+        text: comment.content,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
+        replies: [],
+      }));      
+      
+
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      message.error("Failed to load comments.");
+    }
+  };
   // Fetch comments when modal opens
   useEffect(() => {
     if (isVisible) {
-      const fetchComments = async () => {
-        try {
-          const response = await fetch("/api/blogs/comments/get-by-blog", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ blog_id: blogId }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-
-          const data: ApiResponse = await response.json();
-
-          if (!data.success) {
-            throw new Error(data.message || "Failed to fetch comments.");
-          }
-
-          const fetchedComments: CommentType[] = data.data.map((comment) => ({
-            id: comment.id,
-            userId: comment.user_id,
-            user: comment.user,
-            text: comment.content,
-            createdAt: comment.created_at,
-            updatedAt: comment.updated_at,
-            replies: [],
-          }));
-
-          setComments(fetchedComments);
-        } catch (error) {
-          console.error("Error fetching comments:", error);
-          message.error("Failed to load comments.");
-        }
-      };
       fetchComments();
     }
   }, [isVisible]);
+  
 
   const handleAddComment = async (text: string, parentId?: string) => {
     try {
@@ -89,37 +102,20 @@ const BlogModal: React.FC<BlogModalProps> = ({ blogTitle, blogContent, blogId, i
         content: text,
         parent_id: parentId || null,
       });
-
+  
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to add comment.");
       }
-
-      const newComment: CommentType = {
-        id: response.data.data.id,
-        userId: response.data.data.user_id,
-        user: response.data.data.user,
-        text: response.data.data.content,
-        createdAt: response.data.data.created_at,
-        updatedAt: response.data.data.updated_at,
-        replies: [],
-      };
-
-      setComments((prevComments) =>
-        parentId
-          ? prevComments.map((comment) =>
-              comment.id === parentId
-                ? { ...comment, replies: [...(comment.replies || []), newComment] }
-                : comment
-            )
-          : [...prevComments, newComment]
-      );
-
+  
+      // Fetch lại toàn bộ comment sau khi thêm mới
+      await fetchComments();
       message.success("Comment added!");
     } catch (error) {
       console.error("Error adding comment:", error);
       message.error("Failed to add comment.");
     }
   };
+  
 
   const handleDeleteComment = async (commentId: string) => {
     try {

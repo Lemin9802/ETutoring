@@ -6,16 +6,21 @@ import { useSession } from "next-auth/react";
 interface CommentType {
   id: string;
   userId: string;
-  user: string | null;
+  user: {
+    id: string;
+    user_name: string;
+    profile_picture: string | null;
+  } | null;
   text: string;
   createdAt: string;
   updatedAt: string;
   replies?: CommentType[];
 }
 
+
 interface CommentSectionProps {
   comments: CommentType[];
-  onAddComment: (text: string, parentId?: string) => void;
+  onAddComment: (content: string, parentId?: string) => void;
   onDeleteComment: (commentId: string) => void;
 }
 
@@ -54,6 +59,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     });
   };
 
+  console.log("Comment: ",comments)
   return (
     <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4">Comments</h3>
@@ -67,17 +73,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               ref={index === comments.length - 1 ? lastCommentRef : null}
               className="mb-4 flex items-start gap-3"
             >
-              <Avatar size="large" icon={<UserOutlined />} className="bg-gray-300" />
+              <Avatar
+                size="large"
+                src={comment.user?.profile_picture || undefined}
+                icon={!comment.user?.profile_picture ? <UserOutlined /> : undefined}
+                className="bg-gray-300"
+              />
               <div className="w-full">
                 <div className="bg-gray-100 p-3 rounded-lg shadow-sm">
                   <strong className="text-gray-700">
-                    {comment.user || "Anonymous"}
+                    {comment.user?.user_name || "Anonymous"}
                   </strong>
-                  <p className="text-gray-700 mt-1">{comment.text}</p>
+                  <p className="text-gray-700 mt-1">{comment?.text}</p>
                 </div>
                 <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                   {/* Chỉ hiển thị nút Delete nếu comment thuộc về user hiện tại */}
-                  {session?.user?.id === comment.userId && (
+                  {session?.user?.id === comment?.user?.id && (
                     <button
                       onClick={() => confirmDelete(comment.id)}
                       className="text-red-500 hover:text-red-700"
