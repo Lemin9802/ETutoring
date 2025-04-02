@@ -13,7 +13,12 @@ import {
   Collapse,
   message,
 } from "antd";
-import { SearchOutlined, UserOutlined, ClockCircleOutlined, ClearOutlined } from "@ant-design/icons";
+import {
+  SearchOutlined,
+  UserOutlined,
+  ClockCircleOutlined,
+  ClearOutlined,
+} from "@ant-design/icons";
 import { Student } from "@/types/Students";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -45,7 +50,9 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
     pageSize,
     total: 0,
   });
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const [filters, setFilters] = useState<FilterOptions>({
     loginDateRange: null,
     status: "all",
@@ -76,19 +83,23 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
           filters: {
             loginDateRange: currentFilters.loginDateRange
               ? [
-                  currentFilters.loginDateRange[0]?.toISOString(),
-                  currentFilters.loginDateRange[1]?.toISOString(),
-                ]
+                currentFilters.loginDateRange[0]?.toISOString(),
+                currentFilters.loginDateRange[1]?.toISOString(),
+              ]
               : null,
             status: currentFilters.status,
           },
         };
 
-        const response = await axios.post("/api/tutors/get-students", bodyData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await axios.post(
+          "/api/tutors/get-students",
+          bodyData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         const data: APIResponse = await response.data;
         setStudents(data.data ?? []);
@@ -100,7 +111,9 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
       } catch (error) {
         if (axios.isAxiosError(error)) {
           message.error({
-            content: error.response?.data?.message || "An error occurred while fetching students",
+            content:
+              error.response?.data?.message ||
+              "An error occurred while fetching students",
             key: "students-fetch-error",
             duration: 3,
           });
@@ -173,7 +186,11 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
       key: "full_name",
       render: (text: string, record: Student) => (
         <div className="flex items-center space-x-3">
-          <Avatar src={record.profile_picture} icon={<UserOutlined />} size="large" />
+          <Avatar
+            src={record.profile_picture}
+            icon={<UserOutlined />}
+            size="large"
+          />
           <div>
             <div className="font-medium">{text}</div>
             <div className="text-xs text-gray-500">{record.email}</div>
@@ -204,14 +221,20 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
 
     {
       title: "Action",
-      key: "action",
+      key: "student_id",
       render: (_: unknown, record: Student) => (
         <div className="flex space-x-2">
-          <a href={`/tutors/students/${record.id}`} className="text-blue-500 hover:text-blue-700">
+          <a
+            href={`/tutors/students/${record.student_id}`}
+            className="text-blue-500 hover:text-blue-700"
+          >
             View Profile
           </a>
           <span className="text-gray-300">|</span>
-          <a href={`/messages?studentId=${record.id}`} className="text-green-500 hover:text-green-700">
+          <a
+            href={`/messages?studentId=${record.student_id}`}
+            className="text-green-500 hover:text-green-700"
+          >
             Message
           </a>
         </div>
@@ -239,8 +262,14 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
                 <div className="mb-1 font-medium">Last Login Period</div>
                 <RangePicker
                   style={{ width: "100%" }}
-                  value={filters.loginDateRange as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null}
-                  onChange={(dates) => handleFilterChange("loginDateRange", dates)}
+                  value={
+                    filters.loginDateRange as
+                    | [dayjs.Dayjs | null, dayjs.Dayjs | null]
+                    | null
+                  }
+                  onChange={(dates) =>
+                    handleFilterChange("loginDateRange", dates)
+                  }
                   disabledDate={disabledDate}
                   placeholder={["Start date", "End date"]}
                 />
@@ -271,7 +300,10 @@ const StudentList: React.FC<StudentListProps> = ({ pageSize = 10 }) => {
         {(filters.loginDateRange || filters.status !== "all") && (
           <div className="mt-2 flex flex-wrap gap-2">
             {filters.loginDateRange && (
-              <Tag closable onClose={() => handleFilterChange("loginDateRange", null)}>
+              <Tag
+                closable
+                onClose={() => handleFilterChange("loginDateRange", null)}
+              >
                 Login: {dayjs(filters.loginDateRange[0]).format("MMM D")} -{" "}
                 {dayjs(filters.loginDateRange[1]).format("MMM D")}
               </Tag>
