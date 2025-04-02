@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { Modal, Form, Input, DatePicker, Button, message } from "antd";
+import { message, Modal, Form, Input, DatePicker, Button } from "antd";
+// import scheduleSession from "@/pages/api/meetings/schedule-session"; // Removing direct import, will use API handler in pages directory
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+import { useSession } from "next-auth/react";
 import type { RangePickerProps } from "antd/es/date-picker";
 
 interface ScheduleSessionModalProps {
@@ -16,35 +21,51 @@ const ScheduleSessionModal: React.FC<ScheduleSessionModalProps> = ({
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const { data: session } = useSession();
+    const token = session?.user?.accessToken;
 
     const handleSubmit = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
             const values = await form.validateFields();
             const { title, description, timeRange } = values;
+            // Format dates to UTC ISO string
+            const startTime = dayjs(timeRange[0]).utc().toISOString();
+            const endTime = dayjs(timeRange[1]).utc().toISOString();
 
-            const startTime = timeRange[0].toISOString();
-            const endTime = timeRange[1].toISOString();
+            const apiUrl = `/api/meetings/schedule-session`;
 
-
-            const response = await axios.post("/api/meetings/create", {
-                title: `Tutoring Session: ${title}`,
-                description: description,
-                startTime: startTime,
-                endTime: endTime,
-                receiverId: studentId,
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`, // Include token here
+                },
+                body: JSON.stringify({
+                    title: `Tutoring Session: ${title}`, // Default title, can be customized
+                    description: description,
+                    start_time: startTime, // Changed to startTime to match backend
+                    end_time: endTime, // Changed to endTime to match backend
+                    receiver_id: studentId, // Changed to receiverId to match backend
+                }),
             });
 
-            if (response.status === 200) {
-                message.success("Session scheduled successfully!");
-                onSessionScheduled();
-                onClose();
-            } else {
-                message.error("Failed to schedule session.");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(
+                    errorData.error || "Failed to schedule session."
+                );
             }
-        } catch (error) {
-            message.error("Failed to schedule session.");
-            console.error("Error scheduling session:", error);
+
+            message.success("Session scheduled successfully!");
+            onSessionScheduled(); // Notify parent component about successful scheduling
+            onClose(); // Close the modal
+        } catch (error: unknown) {
+            let errorMessage = "Failed to schedule session.";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+            message.error(errorMessage);
         } finally {
             setLoading(false);
         }
