@@ -40,7 +40,7 @@ const BlogIndex = () => {
       );
   
       const sortedBlogs = (response.data.data as BlogType[]).sort(
-        (a, b) => new Date(b.created_at || b.created_at).getTime() - new Date(a.created_at || a.created_at).getTime()
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setBlogs(sortedBlogs);
   
@@ -49,7 +49,6 @@ const BlogIndex = () => {
     }
   }, [session, activeTab]);
   
-
   useEffect(() => {
     if (session?.user?.accessToken) {
       fetchBlogs();
@@ -91,16 +90,29 @@ const BlogIndex = () => {
       <BlogWriteModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onBlogCreated={(newBlog: BlogType) => setBlogs((prev) => [newBlog, ...prev])}
-        onBlogUpdated={(updatedBlog: BlogType) =>
-          setBlogs((prev) => prev.map((b) => (b.id === updatedBlog.id ? updatedBlog : b)))
-        }
-        onBlogDeleted={(deletedBlogId: string) =>
-          setBlogs((prev) => prev.filter((b) => b.id !== deletedBlogId))
-        }
+        onBlogCreated={() => {
+          fetchBlogs();
+        }}
+        onBlogUpdated={() => {
+          fetchBlogs();
+        }}
+        onBlogDeleted={() => {
+          fetchBlogs();
+        }}
       />
 
-      <BlogList filter={activeTab} userId={session?.user?.id} users={users} blogs={blogs} />
+      <BlogList 
+         filter={activeTab} 
+         userId={session?.user?.id} 
+         users={users} 
+         blogs={blogs} 
+         onBlogUpdated={() => {
+             fetchBlogs();
+         }}
+         onBlogDeleted={() => {
+             fetchBlogs();
+         }}
+      />
     </>
   );
 };

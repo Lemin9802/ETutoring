@@ -52,11 +52,6 @@ export const menuGroupsStudents = [
         route: "/blogs",
       },
       {
-        icon: Calendar,
-        label: "Meeting Calendar",
-        route: "/meeting",
-      },
-      {
         icon: Settings,
         label: "Settings",
         route: "/settings",
@@ -211,6 +206,11 @@ export const menuGroupsTeachers = [
         icon: File,
         label: "Documents",
         route: "/documents/document-list",
+      },
+      {
+        icon: FileEdit,
+        label: "Blogs",
+        route: "/blogs",
       },
       {
         icon: BarChart,
