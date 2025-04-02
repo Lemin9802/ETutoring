@@ -19,6 +19,9 @@ using Microsoft.AspNetCore.Mvc;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Core.EmailTemplate;
 using ETutoring.Business.Dtos.Response.Message;
+using ETutoring.Business.Interfaces.Message;
+using Amazon.Runtime.Internal.Transform;
+using System.Text.Json;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -26,11 +29,13 @@ namespace ETutoring.DataAccess.Services.Moderator
     {
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IMessageService _messageService;
 
-        public ModeratorService(ApplicationDbContext context, IEmailService emailService)
+        public ModeratorService(ApplicationDbContext context, IEmailService emailService, IMessageService messageService)
         {
             _context = context;
             _emailService = emailService;
+            _messageService = messageService;
         }
 
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta)
@@ -74,7 +79,6 @@ namespace ETutoring.DataAccess.Services.Moderator
 
         public async Task<ApiResponse<bool>> AssignTutorToMultipleStudentsAsync(AssignTutorMultipleStudentsRequest request)
         {
-            // Lấy ID của các role Student và Tutor từ database
             var roles = await _context.Roles
                 .Where(r => r.Name == "Student" || r.Name == "Tutor")
                 .ToDictionaryAsync(r => r.Name, r => r.Id);
@@ -85,13 +89,10 @@ namespace ETutoring.DataAccess.Services.Moderator
             var studentRoleId = roles["Student"];
             var tutorRoleId = roles["Tutor"];
 
-            // Kiểm tra xem user có phải là Tutor hợp lệ không
-            var isTutor = await _context.UserRoles
-                .AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
+            var isTutor = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.TutorId && ur.RoleId == tutorRoleId);
             if (!isTutor)
                 return ApiResponse<bool>.FailureResponse("Invalid Tutor.");
 
-            // Lọc danh sách học sinh hợp lệ
             var validStudents = await _context.Users
                 .Where(u => request.StudentIds.Contains(u.Id))
                 .Join(_context.UserRoles.Where(ur => ur.RoleId == studentRoleId),
@@ -107,16 +108,15 @@ namespace ETutoring.DataAccess.Services.Moderator
             if (tutor == null)
                 return ApiResponse<bool>.FailureResponse("Tutor not found.");
 
-            // Lấy danh sách phân công hiện tại của các học sinh
             var existingAllocations = await _context.Allocations
                 .Where(a => validStudents.Select(s => s.Id).Contains(a.StudentId))
                 .ToListAsync();
-
-            // Xóa các phân công cũ
             _context.Allocations.RemoveRange(existingAllocations);
 
             var newAllocations = new List<Allocation>();
             var studentDetails = new List<string>();
+            var emailTasks = new List<Task>();
+            var chatroomTasks = new List<Task>();
 
             foreach (var student in validStudents)
             {
@@ -128,40 +128,63 @@ namespace ETutoring.DataAccess.Services.Moderator
                     AssignedAt = DateTime.UtcNow
                 });
 
-                var studentEmailRequest = new EmailTemplateRequest(
+                studentDetails.Add($"- {student.Email}");
+
+                emailTasks.Add(_emailService.SendEmailAsync(new EmailTemplateRequest(
                     student.Id,
                     student.Email,
                     "You have been assigned a new tutor!",
                     EmailTemplateType.StudentReceiveNewTutor,
                     new Dictionary<string, string>
                     {
-                { "{{studentName}}", student.Email },
-                { "{{TutorName}}", tutor.Email }
+                        { "studentName", student.Email },
+                        { "TutorName", tutor.Email }
                     }
-                );
-                await _emailService.SendEmailAsync(studentEmailRequest);
+                )));
 
-                studentDetails.Add($"- {student.Email}");
+                // Gọi AssignChatroomAsync với try-catch để tránh lỗi ảnh hưởng toàn bộ
+                //chatroomTasks.Add(Task.Run(async () =>
+                //{
+                //    try
+                //    {
+                //        var assignChatroomRequest = new AssignChatroomRequest
+                //        {
+                //            StudentId = student.Id,
+                //            TutorId = tutor.Id
+                //        };
+                //        await _messageService.AssignChatroomAsync(assignChatroomRequest);
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {ex.Message}");
+                //    }
+                //}));
             }
 
             _context.Allocations.AddRange(newAllocations);
             await _context.SaveChangesAsync();
 
-            var tutorEmailRequest = new EmailTemplateRequest(
+            emailTasks.Add(_emailService.SendEmailAsync(new EmailTemplateRequest(
                 tutor.Id,
                 tutor.Email,
                 "You have been assigned new students!",
                 EmailTemplateType.TutorAssignedToStudent,
                 new Dictionary<string, string>
                 {
-            { "{{TutorName}}", tutor.Email },
-            { "{{StudentList}}", string.Join("\n", studentDetails) }
+                    { "TutorName", tutor.Email },
+                    { "StudentCount", validStudents.Count.ToString() },
+                    { "StudentPlural", validStudents.Count > 1 ? "s" : "" },
+                    { "StudentList", string.Join("", validStudents.Select(s => $"<li><strong>{s.Email}</strong></li>")) }
                 }
-            );
-            await _emailService.SendEmailAsync(tutorEmailRequest);
+            )));
+
+
+            await Task.WhenAll(emailTasks);
+            await Task.WhenAll(chatroomTasks);
 
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
+
 
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaDataResponse meta)
         {
@@ -511,20 +534,19 @@ namespace ETutoring.DataAccess.Services.Moderator
         public async Task<ApiResponse<bool>> UpdateChatroomStatusAsync(Guid chatroomId, bool isActive)
         {
             return ApiResponse<bool>.FailureResponse("Function under development");
-        }
+            return ApiResponse<bool>.FailureResponse("Chat room status updates are not supported (ChattingRoom does not have a status column).");        }
         public async Task<ApiResponse<bool>> DeleteChatroomAsync(Guid chatroomId)
         {
             var chatRoom = await _context.ChattingRooms
                 .FirstOrDefaultAsync(cr => cr.Id == chatroomId);
 
-            if (chatRoom == null)
-                return ApiResponse<bool>.FailureResponse("Chatrooms not found");
 
+                if (chatRoom == null)
+                    return ApiResponse<bool>.FailureResponse("Chat room not found.");
             _context.ChattingRooms.Remove(chatRoom);
             await _context.SaveChangesAsync();
 
             return ApiResponse<bool>.SuccessResponse(true, "Delete chatrooms success");
-
         }
     }
 }
