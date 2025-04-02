@@ -30,7 +30,7 @@ const ManageUserPage = () => {
   const { data: session } = useSession();
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [users, setUsers] = useState<UserListType[]>([]);
+  const [users, setUsers] = useState<UserListType[]>(() => []);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userDetails, setUserDetails] = useState<UserListType | null>(null);
@@ -71,10 +71,12 @@ const ManageUserPage = () => {
   }, [session]);
 
   const selectedUsers = useMemo(() => {
+    if(!users) return [];
     return users.filter((user) => selectedRowKeys.includes(user.id));
   }, [selectedRowKeys, users]);
 
   const filteredUsers = useMemo(() => {
+    if (!users) return [];
     return users.filter(
       (user) =>
         user.full_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -125,9 +127,13 @@ const ManageUserPage = () => {
     },
   ];
 
+  useEffect(()=>{
+    console.log("userDetails: ", userDetails)
+  },[userDetails])
+
   const handleViewDetails = async (userId: string) => {
     try {
-      const response = await fetch("/api/moderators/users/profile", {
+      const response = await fetch("/api/profile/profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,6 +142,8 @@ const ManageUserPage = () => {
       });
   
       const result = await response.json();
+
+      console.log("Profile của user: ", result)
       
       if (response.ok) {
         setUserDetails(result);
