@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { List, Card, Spin, Empty, message } from 'antd';
 import { DocumentResponse } from '@/types/Documents';
 import { useSession } from 'next-auth/react';
+import axios from 'axios';
 
 interface DocumentListProps {
     studentId: string;
@@ -19,24 +20,21 @@ const DocumentList: React.FC<DocumentListProps> = ({ studentId }) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(
-                    `http://localhost:5142/api/Documents/user-documents`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ studentId, meta: { pageNumber: 1, pageSize: 10 } }),
+                const response = await axios.post('/api/documents/user', {
+                    page_number: 1,
+                    page_size: 10,
+                    studentId
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-                );
+                });
 
-                if (!response.ok) {
+                if (response.status !== 200) {
                     throw new Error(`Failed to fetch documents. Status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                setDocuments(data.data);
+                setDocuments(response.data.data);
             } catch (error: unknown) {
                 if (error instanceof Error) {
                     setError(error.message);
