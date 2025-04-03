@@ -1,11 +1,11 @@
-﻿using ETutoring.Business.Dtos.Request.Moderator;
+﻿using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Request.Moderator;
+using ETutoring.Business.Dtos.Response.Message;
 using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.Students;
 using ETutoring.Business.Dtos.Response.User;
 using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Dtos;
 using ETutoring.Core.Common;
-using ETutoring.Business.Dtos.Response.Message;
 
 namespace ETutoring.Business.Interfaces.Moderator;
 
@@ -20,7 +20,7 @@ public interface IModeratorService
     Task<ApiResponse<bool>> RemoveTutorFromMultipleStudentsAsync(RemoveTutorMultipleStudentsRequest request);
     Task<ApiResponse<List<AllocationResponse>>> GetAllAllocationsAsync(MetaDataResponse meta);
     Task<ApiResponse<bool>> RemoveAllocationsAsync(List<RemoveAllocation> allocations);
-    Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaResponse meta);
+    Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaRequest meta);
     Task<ApiResponse<MessageListResponse>> GetChatroomByIdAsync(Guid chatroomId);
     Task<ApiResponse<bool>> UpdateChatroomStatusAsync(Guid chatroomId, bool isActive);
     Task<ApiResponse<bool>> DeleteChatroomAsync(Guid chatroomId);
