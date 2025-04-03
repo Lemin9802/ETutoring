@@ -45,4 +45,12 @@ public class DocumentsController : ControllerBase
         var result = await _documentService.DeleteDocumentAsync(id, cancellationToken);
         return Ok(result);
     }
+
+    [HttpPost("get-document-by-uploadid")]
+    [SwaggerOperation(Summary = "Get document for individual id")]
+    public async Task<IActionResult> GetDocumentByUploaderId([FromBody] GetDocumentsByUploaderIdRequest request)
+    {
+        var result = await _documentService.GetDocumentsByUploaderIdAsync(request);
+        return Ok(result);
+    }
 }

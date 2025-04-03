@@ -12,6 +12,7 @@ using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Channels;
+using ETutoring.Business.Interfaces.Message;
 
 namespace ETutoring.DataAccess.Services.Moderator
 {
@@ -19,11 +20,13 @@ namespace ETutoring.DataAccess.Services.Moderator
     {
         private readonly ApplicationDbContext _context;
         private readonly Channel<EmailTemplateRequest> _queue;
+        private readonly IMessageService _messageService;
 
-        public ModeratorService(ApplicationDbContext context, Channel<EmailTemplateRequest> queue)
+        public ModeratorService(ApplicationDbContext context, Channel<EmailTemplateRequest> queue, IMessageService messageService)
         {
             _context = context;
             _queue = queue;
+            _messageService = messageService;
         }
 
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsAsync(MetaDataResponse meta)
@@ -150,14 +153,47 @@ namespace ETutoring.DataAccess.Services.Moderator
                 }
             )).AsTask());
 
-            // Step 8: Save to DB and send all emails
+            var chatroomTasks = new List<Task>();
+            foreach (var student in validStudents)
+            {
+                var chatTask = _messageService.AssignChatroomAsync(new AssignChatroomRequest
+                {
+                    StudentId = student.Id,
+                    TutorId = tutor.Id
+                }).ContinueWith(task =>
+                {
+                    if (task.Exception != null)
+                    {
+                        // Log detailed error
+                        Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {task.Exception.Flatten().Message}");
+                    }
+                });
+                chatroomTasks.Add(chatTask);
+            }
+
+            // Step 9: Save to DB and send all emails first
             await _context.SaveChangesAsync();
             await Task.WhenAll(emailTasks);
 
+            // Step 10: Xử lý chatroom assignments tuần tự để tránh xung đột DbContext
+            foreach (var student in validStudents)
+            {
+                try
+                {
+                    await _messageService.AssignChatroomAsync(new AssignChatroomRequest
+                    {
+                        StudentId = student.Id,
+                        TutorId = tutor.Id
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {ex.Message}");
+                }
+            }
+
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
-
-
 
         public async Task<ApiResponse<List<UserDto>>> GetAllTutorsStudentsAsync(MetaDataResponse meta)
         {
