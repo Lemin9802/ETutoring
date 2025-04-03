@@ -1,15 +1,14 @@
 import {
-  Home,
-  Calendar,
-  User,
-  Table,
-  Settings,
   BarChart,
-  Layers,
-  Lock,
-  MessageSquare,
-  FileEdit,
+  Calendar,
   File,
+  FileEdit,
+  Home,
+  Layers,
+  MessageSquare,
+  Settings,
+  Table,
+  User
 } from "lucide-react";
 
 export const menuGroupsStudents = [
@@ -51,41 +50,37 @@ export const menuGroupsStudents = [
         label: "Blogs",
         route: "/blogs",
       },
-      {
-        icon: Settings,
-        label: "Settings",
-        route: "/settings",
-      },
     ],
-  },
-  {
-    name: "OTHERS",
-    menuItems: [
-      {
-        icon: BarChart,
-        label: "Chart",
-        route: "/chart",
-      },
-      {
-        icon: Layers,
-        label: "UI Elements",
-        route: "#",
-        children: [
-          { label: "Alerts", route: "/ui/alerts" },
-          { label: "Buttons", route: "/ui/buttons" },
-        ],
-      },
-      {
-        icon: Lock,
-        label: "Authentication",
-        route: "#",
-        children: [
-          { label: "Sign In", route: "/auth/signin" },
-          { label: "Sign Up", route: "/auth/signup" },
-        ],
-      },
-    ],
-  },
+  }
+  // ,
+  // {
+  //   name: "OTHERS",
+  //   menuItems: [
+  //     {
+  //       icon: BarChart,
+  //       label: "Chart",
+  //       route: "/chart",
+  //     },
+  //     {
+  //       icon: Layers,
+  //       label: "UI Elements",
+  //       route: "#",
+  //       children: [
+  //         { label: "Alerts", route: "/ui/alerts" },
+  //         { label: "Buttons", route: "/ui/buttons" },
+  //       ],
+  //     },
+  //     {
+  //       icon: Lock,
+  //       label: "Authentication",
+  //       route: "#",
+  //       children: [
+  //         { label: "Sign In", route: "/auth/signin" },
+  //         { label: "Sign Up", route: "/auth/signup" },
+  //       ],
+  //     },
+  //   ],
+  // },
 ];
 
 export const menuGroupsAdmin = [
