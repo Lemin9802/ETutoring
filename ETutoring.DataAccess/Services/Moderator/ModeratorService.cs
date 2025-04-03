@@ -101,77 +101,83 @@ namespace ETutoring.DataAccess.Services.Moderator
             if (tutor == null)
                 return ApiResponse<bool>.FailureResponse("Tutor not found.");
 
-            // Xoá các allocations cũ
+            // Remove old allocations
             var existingAllocations = await _context.Allocations
                 .Where(a => validStudents.Select(s => s.Id).Contains(a.StudentId))
                 .ToListAsync();
             _context.Allocations.RemoveRange(existingAllocations);
 
-            var newAllocations = new List<Allocation>();
-            var emailTasks = new List<Task>();
-            var chatroomTasks = new List<Task>();
-
-            foreach (var student in validStudents)
+            // Add new allocations
+            var newAllocations = validStudents.Select(student => new Allocation
             {
-                newAllocations.Add(new Allocation
-                {
-                    StudentId = student.Id,
-                    TutorId = request.TutorId,
-                    AssignedBy = request.AssignedBy,
-                    AssignedAt = DateTime.UtcNow
-                });
+                StudentId = student.Id,
+                TutorId = request.TutorId,
+                AssignedBy = request.AssignedBy,
+                AssignedAt = DateTime.UtcNow
+            }).ToList();
 
-                // Gửi email cho từng học sinh
-                emailTasks.Add(_emailService.SendEmailAsync(new EmailTemplateRequest(
-                    student.Id,
-                    student.Email,
-                    "You have been assigned a new tutor!",
-                    EmailTemplateType.StudentReceiveNewTutor,
-                    new Dictionary<string, string>
-                    {
-
-                { "StudentName", student.Email },
-                { "TutorName", tutor.Email }
-                    }
-                )));
-
-                // Gọi trực tiếp hàm AssignChatroomAsync và bắt lỗi nếu có
-                chatroomTasks.Add(_messageService.AssignChatroomAsync(new AssignChatroomRequest
-                {
-                    StudentId = student.Id,
-                    TutorId = tutor.Id
-                }).ContinueWith(task =>
-                {
-                    if (task.Exception != null)
-                    {
-                        // Log lỗi chi tiết
-                        Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {task.Exception.Flatten().Message}");
-                    }
-                }));
-            }
-
-            // Thêm các allocations mới
             _context.Allocations.AddRange(newAllocations);
+
+            // Save changes BEFORE starting any other async tasks
             await _context.SaveChangesAsync();
 
-            // Gửi email thông báo cho tutor với danh sách học sinh đã được gán
-            emailTasks.Add(_emailService.SendEmailAsync(new EmailTemplateRequest(
-                tutor.Id,
-                tutor.Email,
-                "You have been assigned new students!",
-                EmailTemplateType.TutorAssignedToStudent,
-                new Dictionary<string, string>
+            // Sequentially send emails and assign chatrooms
+            foreach (var student in validStudents)
+            {
+                try
                 {
-            { "TutorName", tutor.Email },
-            { "StudentCount", validStudents.Count.ToString() },
-            { "StudentPlural", validStudents.Count > 1 ? "s" : "" },
-            { "StudentList", string.Join("", validStudents.Select(s => $"<li><strong>{s.Email}</strong></li>")) }
+                    await _emailService.SendEmailAsync(new EmailTemplateRequest(
+                        student.Id,
+                        student.Email,
+                        "You have been assigned a new tutor!",
+                        EmailTemplateType.StudentReceiveNewTutor,
+                        new Dictionary<string, string>
+                        {
+                    { "StudentName", student.Email },
+                    { "TutorName", tutor.Email }
+                        }
+                    ));
                 }
-            )));
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Failed to send email to student {student.Email}: {ex.Message}");
+                }
 
-            // Chạy đồng thời các tác vụ email và chatroom
-            await Task.WhenAll(emailTasks);
-            await Task.WhenAll(chatroomTasks);
+                try
+                {
+                    await _messageService.AssignChatroomAsync(new AssignChatroomRequest
+                    {
+                        StudentId = student.Id,
+                        TutorId = tutor.Id
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {ex.Message}");
+                }
+            }
+
+            // Notify tutor
+            try
+            {
+                await _emailService.SendEmailAsync(new EmailTemplateRequest(
+                    tutor.Id,
+                    tutor.Email,
+                    "You have been assigned new students!",
+                    EmailTemplateType.TutorAssignedToStudent,
+                    new Dictionary<string, string>
+                    {
+                { "TutorName", tutor.Email },
+                { "StudentCount", validStudents.Count.ToString() },
+                { "StudentPlural", validStudents.Count > 1 ? "s" : "" },
+                { "StudentList", string.Join("", validStudents.Select(s => $"<li><strong>{s.Email}</strong></li>")) }
+                    }
+                ));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to send email to tutor {tutor.Email}: {ex.Message}");
+            }
 
             return ApiResponse<bool>.SuccessResponse(true, "Tutor assigned to multiple students successfully.");
         }
