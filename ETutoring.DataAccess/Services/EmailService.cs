@@ -13,7 +13,7 @@ using MimeKit;
 
 namespace ETutoring.DataAccess.Services;
 
-public class EmailService : IEmailService
+public class EmailService : IEmailService, IAsyncDisposable
 {
     private readonly SmtpSettings _smtpSettings;
     private readonly ApplicationDbContext _context;
@@ -108,5 +108,15 @@ public class EmailService : IEmailService
             _context.EmailSent.Remove(emailToRemove);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
     }
 }

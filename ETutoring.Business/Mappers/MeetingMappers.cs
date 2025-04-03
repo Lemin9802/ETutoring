@@ -5,9 +5,16 @@ namespace ETutoring.Business.Mappers;
 
 public static class MeetingMappers
 {
-    public static Meeting ToCreateMeeting(this CreateMeetingRequest dto)
+    public static Meeting ToCreateMeeting(this CreateMeetingDto dto)
     {
-        return new Meeting(dto.Title, dto.Description, dto.StartTime, dto.EndTime, dto.CreatorId, dto.ReceiverId);
+        var meeting = new Meeting(dto.Title, dto.Description, dto.StartTime, dto.EndTime, dto.CreatorId);
+
+        foreach (var userId in dto.Participants)
+        {
+            meeting.AddAttendee(userId);
+        }
+
+        return meeting;
     }
 
     public static MeetingResponse ToMeetingDto(this Meeting meeting)
@@ -20,7 +27,14 @@ public static class MeetingMappers
             StartTime = meeting.StartTime,
             EndTime = meeting.EndTime,
             CreatorId = meeting.CreatorId,
-            ReceiverId = meeting.ReceiverId
+            Participants = meeting.Attendees
+                .Select(a => new MeetingParticipantDto
+                {
+                    FullName = a.User.FullName,
+                    Email = a.User.Email!
+                })
+                .ToList(),
+            Status = meeting.Status
         };
     }
 }

@@ -8,6 +8,7 @@ namespace ETutoring.Business.Dtos.Response.Message
 {
     public class ConversationResponse
     {
+        public Guid ChatroomId { get; set; }
         public Guid ConversationId { get; set; }  // Đảm bảo sử dụng MessageId làm ConversationId
         public Guid ParticipantId { get; set; }   // ID người tham gia
         public string FullName { get; set; }

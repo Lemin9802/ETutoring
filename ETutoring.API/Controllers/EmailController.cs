@@ -1,7 +1,8 @@
 using ETutoring.Business.Dtos.Email;
-using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Mappers;
+using ETutoring.Core.EmailTemplate;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Channels;
 
 namespace ETutoring.API.Controllers
 {
@@ -9,19 +10,18 @@ namespace ETutoring.API.Controllers
     [ApiController]
     public class EmailController : ControllerBase
     {
-        private readonly IEmailService _emailService;
+        private readonly Channel<EmailTemplateRequest> _queue;
 
-        public EmailController(IEmailService emailService)
+        public EmailController(Channel<EmailTemplateRequest> queue)
         {
-            _emailService = emailService;
+            _queue = queue;
         }
 
-        [HttpPost]
-        public async Task<ActionResult> TestingEmailSending()
+        [HttpPost("test-send-emails")]
+        public async Task<ActionResult> TestEmailSending()
         {
             try
             {
-                // **1. Retrieve Students (Should Include UserId)**
                 var students = new List<EmailStudentInfo>
                 {
                     new EmailStudentInfo(Guid.Parse("4c160a23-5d27-4232-98fe-294ee21b0487"), "hoangt@fpt.edu.vn", "Hoang Nguyen"),
@@ -39,18 +39,17 @@ namespace ETutoring.API.Controllers
                     return BadRequest("A tutor cannot be assigned more than 10 students at a time.");
                 }
 
-                // **2. Generate All Emails (Tutor + Students)**
                 var emailRequests = EmailTemplateFactory.CreateTutorStudentEmailAllocation(
                     tutorId, tutorEmail, tutorName, students, tutorListLink
                 );
 
-                // **3. Send Emails & Handle Errors Individually**
-                var emailTasks = emailRequests.Select(async email =>
+                var writeTasks = new List<Task>();
+                foreach (var email in emailRequests)
                 {
-                    await _emailService.SendEmailAsync(email);
-                });
+                    writeTasks.Add(_queue.Writer.WriteAsync(email).AsTask());
+                }
 
-                await Task.WhenAll(emailTasks);
+                await Task.WhenAll(writeTasks);
 
                 return Ok("Emails sent successfully.");
             }
@@ -83,8 +82,8 @@ namespace ETutoring.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error retrieving emails for user {userId}: {ex.Message}");
-                return StatusCode(500, "Internal Server Error");
+                Console.WriteLine($"[EmailController] Error: {ex.Message}");
+                return StatusCode(500, "Failed to queue emails.");
             }
         }
 

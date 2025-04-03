@@ -48,15 +48,28 @@ namespace ETutoring.Business.Services
             var comments = await _context.BlogsComments
                 .Where(bc => bc.BlogId == blogId)
                 .Include(bc => bc.Comment)
-                .ThenInclude(c => c.User) // Load thông tin User nếu cần
+                .ThenInclude(c => c.User) // Ensure User is included
                 .Select(bc => new Comment
                 {
                     Id = bc.Comment.Id,
                     Content = bc.Comment.Content,
                     UserId = bc.Comment.UserId,
+                    User = bc.Comment.User != null
+                        ? new ApplicationUser
+                        {
+                            Id = bc.Comment.User.Id,
+                            UserName = bc.Comment.User.UserName
+                        }
+                        : null,
                     CreatedAt = bc.Comment.CreatedAt
                 })
                 .ToListAsync(cancellationToken);
+
+            // Log to check if User is null
+            foreach (var comment in comments)
+            {
+                Console.WriteLine($"Comment ID: {comment.Id}, User ID: {comment.UserId}, User Name: {comment.User?.UserName}");
+            }
 
             return comments;
         }

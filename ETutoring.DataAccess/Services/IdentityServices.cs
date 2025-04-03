@@ -1,4 +1,6 @@
-﻿using ETutoring.Business.Dtos.Auth;
+﻿using ETutoring.Business.Dtos;
+using ETutoring.Business.Dtos.Auth;
+using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Entities;
@@ -286,5 +288,30 @@ public class IdentityServices : IIdentityServices
 
         return user == null ? AuthResult<ApplicationUser>.Failure("User not found.")
             : AuthResult<ApplicationUser>.Success(user);
+    }
+
+    public async Task<IEnumerable<string?>> GetUsersByEmailAsync(string email, MetaRequest meta)
+    {
+        var users = await _userManager.Users
+            .Where(u => u.Email.ToLower().Contains(email.ToLower()))
+            .Select(u => u.Email)
+            .Skip((meta.PageNumber - 1) * meta.PageSize)
+            .Take(meta.PageSize)
+            .ToListAsync();
+
+        return users;
+    }
+
+    public async Task<List<Guid>> FindUsersByEmailsAsync(List<string> emailList, CancellationToken cancellationToken)
+    {
+        if (emailList == null || emailList.Count == 0)
+            throw new EntityNotFoundException("User", "Email List");
+
+        var lowerEmails = emailList.Select(e => e.ToLower()).ToList();
+
+        return await _userManager.Users
+            .Where(u => lowerEmails.Contains(u.Email.ToLower()))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
     }
 }

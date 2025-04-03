@@ -87,7 +87,7 @@ namespace ETutoring.API.Controllers.Moderator
 
         [HttpPost("get-all-chatrooms")]
         [Authorize(Roles = "Moderator")]
-        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatrooms([FromBody] MetaResponse meta)
+        public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatrooms([FromBody] MetaRequest meta)
         {
             return await _messageService.GetAssignedChatroomsAsync(meta);
         }
@@ -120,7 +120,7 @@ namespace ETutoring.API.Controllers.Moderator
 
         // POST: api/moderator/chatrooms/get-all
         [HttpPost("chatrooms/get-all")]
-        public async Task<IActionResult> GetAllChatrooms([FromBody] MetaResponse request)
+        public async Task<IActionResult> GetAllChatrooms([FromBody] MetaRequest request)
         {
             var response = await _moderatorService.GetAllChatroomsAsync(request);
             return Ok(response);
