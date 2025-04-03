@@ -218,7 +218,7 @@ export const menuGroupsTeachers = [
         label: "Blogs",
         route: "/blogs",
       },
-      {
+      /* {
         icon: BarChart,
         label: "Performance",
         route: "/tutors/performance",
@@ -227,17 +227,17 @@ export const menuGroupsTeachers = [
         icon: FileEdit,
         label: "Resources",
         route: "/tutors/resources",
-      },
+      }, */
       {
         icon: User,
         label: "Profile",
         route: "/profile",
       },
-      {
+      /* {
         icon: Settings,
         label: "Settings",
         route: "/tutors/settings",
-      },
+      }, */
     ],
   },
 ];
