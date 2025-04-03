@@ -312,6 +312,16 @@ namespace ETutoring.DataAccess.Services.Messages
 
         public async Task<ApiResponse<AssignChatroomResponse>> AssignChatroomAsync(AssignChatroomRequest request)
         {
+            // Kiểm tra xem student và tutor đã được assign vào chatroom nào chưa
+            var existingChatroom = await _context.ChattingRooms
+                .FirstOrDefaultAsync(cr => cr.StudentId == request.StudentId && cr.TutorId == request.TutorId);
+
+            if (existingChatroom != null)
+            {
+                return ApiResponse<AssignChatroomResponse>.FailureResponse("Chatroom between this student and tutor already exists.");
+            }
+
+            // Nếu chưa tồn tại, tạo chatroom mới
             var chatroom = new ChattingRoom
             {
                 StudentId = request.StudentId,
@@ -439,32 +449,30 @@ namespace ETutoring.DataAccess.Services.Messages
 
         public async Task<ApiResponse<DeleteAssignChatroomResponse>> DeleteAssignChatroomAsync(DeleteAssignChatroomRequest request)
         {
-            try
+            // Tìm chatroom theo RoomId
+            var chatroom = await _context.ChattingRooms.FindAsync(request.RoomId);
+            if (chatroom == null)
             {
-                // Tìm chatroom theo RoomId
-                var chatroom = await _context.ChattingRooms.FindAsync(request.RoomId);
-                if (chatroom == null)
-                {
-                    return ApiResponse<DeleteAssignChatroomResponse>.FailureResponse("Chatroom not found.");
-                }
-
-                // Xóa chatroom. (Nếu có liên quan đến messages, có thể xóa chúng trước nếu cần.)
-                _context.ChattingRooms.Remove(chatroom);
-                await _context.SaveChangesAsync();
-
-                return ApiResponse<DeleteAssignChatroomResponse>.SuccessResponse(new DeleteAssignChatroomResponse
-                {
-                    RoomId = chatroom.Id,
-                    Success = true,
-                    Message = "Chatroom deleted successfully."
-                });
+                return ApiResponse<DeleteAssignChatroomResponse>.FailureResponse("Chatroom not found.");
             }
-            catch (Exception ex)
+
+            // Lấy tất cả các message liên quan đến chatroom này
+            var messages = _context.Messages.Where(m => m.ChatroomId == chatroom.Id);
+            // Xóa tất cả các message liên quan
+            _context.Messages.RemoveRange(messages);
+
+            // Xóa chatroom
+            _context.ChattingRooms.Remove(chatroom);
+
+            // Lưu thay đổi
+            await _context.SaveChangesAsync();
+
+            return ApiResponse<DeleteAssignChatroomResponse>.SuccessResponse(new DeleteAssignChatroomResponse
             {
-                Console.WriteLine($"Error in DeleteAssignChatroomAsync: {ex.Message}");
-                return ApiResponse<DeleteAssignChatroomResponse>.FailureResponse("An error occurred while deleting the chatroom.");
-            }
+                RoomId = chatroom.Id,
+                Success = true,
+                Message = "Chatroom and its messages deleted successfully."
+            });
         }
-
     }
 }
