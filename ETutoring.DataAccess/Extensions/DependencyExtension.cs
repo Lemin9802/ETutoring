@@ -1,8 +1,10 @@
 ﻿using ETutoring.Business.Interfaces;
 using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Services;
+using ETutoring.Core.EmailTemplate;
 using ETutoring.Core.Entities;
 using ETutoring.DataAccess.Data;
+using ETutoring.DataAccess.Services.Background;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace ETutoring.DataAccess.Extensions;
 
@@ -128,6 +131,9 @@ public static class DependencyExtension
                 }
             };
         });
+
+        builder.Services.AddHostedService<EmailSendingBackgroundService>();
+        builder.Services.AddSingleton(Channel.CreateUnbounded<EmailTemplateRequest>());
 
         // Apply migrations properly using a scoped service resolution
         ApplyMigrationsAndSeedRoles(builder.Services);

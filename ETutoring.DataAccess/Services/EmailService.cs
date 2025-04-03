@@ -13,7 +13,7 @@ using MimeKit;
 
 namespace ETutoring.DataAccess.Services;
 
-public class EmailService : IEmailService
+public class EmailService : IEmailService, IAsyncDisposable
 {
     private readonly SmtpSettings _smtpSettings;
     private readonly ApplicationDbContext _context;
@@ -99,5 +99,15 @@ public class EmailService : IEmailService
         return await _context.EmailSent
             .OrderByDescending(e => e.CreatedAt) // Sort by newest sent date
             .ToListAsync();
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
     }
 }

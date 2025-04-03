@@ -1,18 +1,12 @@
-﻿using ETutoring.Business.Dtos.Response.Moderator;
-using ETutoring.Business.Exceptions;
-using ETutoring.Business.Interfaces.Students;
-using Microsoft.EntityFrameworkCore;
-using ETutoring.Business.Dtos.Response;
-using System.Diagnostics;
-using System.Net;
+﻿using ClosedXML.Excel;
+using ETutoring.Business.Dtos.Request.Students;
 using ETutoring.Business.Dtos.Response.Students;
+using ETutoring.Business.Interfaces.Students;
 using ETutoring.Core.Common;
 using ETutoring.DataAccess.Data;
+using Microsoft.EntityFrameworkCore;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
-using ClosedXML.Excel;
-using System.IO;
-using ETutoring.Business.Dtos.Request.Students;
 
 namespace ETutoring.DataAccess.Services.Students
 {
