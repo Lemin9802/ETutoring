@@ -160,7 +160,7 @@ const MeetingCalendar: React.FC<MeetingCalendarProps> = ({
                 </Button>
               )}
 
-              {(currentUserRole === "admin" || currentUserRole === "moderator") && (
+              {(currentUserRole === "Admin" || currentUserRole === "Moderator") && (
                 <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAddModalVisible(true)}>
                   Add Meeting
                 </Button>

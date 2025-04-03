@@ -24,10 +24,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ studentId }) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.post('/api/documents/user', {
-                    page_number: 1,
-                    page_size: 10,
-                    studentId
+                const response = await axios.post('/api/documents/get-by-upload-id', {
+                    uploader_id: studentId
                 }, {
                     headers: {
                         Authorization: `Bearer ${token}`
