@@ -8,5 +8,7 @@ public static class Email
     {
         { EmailTemplateType.StudentReceiveNewTutor, "student-receive-new-tutor.html" },
         { EmailTemplateType.TutorAssignedToStudent, "tutor-receive-new-student.html" },
+        { EmailTemplateType.DocumentCommentForStudent, "document-comment-student.html" }, 
+        { EmailTemplateType.DocumentCommentForTutor, "document-comment-tutor.html" }
     };
 }
