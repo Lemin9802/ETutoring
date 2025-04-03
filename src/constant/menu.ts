@@ -8,7 +8,8 @@ import {
   MessageSquare,
   Settings,
   Table,
-  User
+  User,
+  Group
 } from "lucide-react";
 
 export const menuGroupsStudents = [
@@ -155,7 +156,7 @@ export const menuGroupsModerators = [
         route: "/moderators/manage/users",
       },
       {
-        icon: Calendar,
+        icon: Group,
         label: "Manage allocations",
         route: "/moderators/manage/allocations",
       },
@@ -173,6 +174,11 @@ export const menuGroupsModerators = [
         icon: BarChart,
         label: "Reports",
         route: "/reports",
+      },
+      {
+        icon: FileEdit,
+        label: "Blogs",
+        route: "/blogs",
       },
     ],
   },

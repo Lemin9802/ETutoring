@@ -9,12 +9,21 @@ import axios from "axios";
 import { APIResponse } from "@/types/APIResponse";
 import format from "dayjs";
 import AddDocumentModal from "@/components/Documents/AddDocumentModal";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
 // Define the Tutor interface
 interface Tutor {
   tutor_id: string;
+  full_name: string;
+  address?: string;
+  phone_number?: string;
+  email?: string;
+}
+
+interface Student {
+  student_id: string;
   full_name: string;
   address?: string;
   phone_number?: string;
@@ -47,6 +56,12 @@ const DocumentListPage: React.FC = () => {
 
   const [data, setData] = useState<DataType[]>([]);
   const [tutorList, setTutorList] = useState<Tutor[]>([]);
+  const [studentList, setStudentList] = useState<Student[]>([]);
+
+  interface FilterOptions {
+    loginDateRange: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null;
+    status: "all" | "active" | "inactive";
+  }
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -72,7 +87,9 @@ const DocumentListPage: React.FC = () => {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.post<APIResponse>("/api/students/get-tutors");
+        const response = await axios.post<APIResponse>(
+          "/api/students/get-tutors"
+        );
         const resData = response.data.data as Tutor[];
 
         if (response.data.success) {
@@ -84,9 +101,66 @@ const DocumentListPage: React.FC = () => {
         console.error("Unexpected error:", error);
       }
     };
-
     fetchTutors();
   }, []);
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const fetchParams = {
+          page: 1,
+          size: pageSize,
+          searchTerm: "",
+          currentFilters: {
+            loginDateRange: null,
+            status: "all",
+            gender: null,
+            nationality: null,
+          } as FilterOptions,
+        };
+        const { page, size, searchTerm, currentFilters } = fetchParams;
+
+        const bodyData = {
+          page,
+          size,
+          search: searchTerm,
+          filters: {
+            loginDateRange: currentFilters.loginDateRange
+              ? [
+                  currentFilters.loginDateRange[0]?.toISOString(),
+                  currentFilters.loginDateRange[1]?.toISOString(),
+                ]
+              : null,
+            status: currentFilters.status,
+          },
+        };
+
+        const response = await axios.post(
+          "/api/tutors/get-students",
+          bodyData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data: APIResponse = await response.data;
+        console.log("Fetch Student Response: ", data);
+        setStudentList(data.data ?? []);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          message.error({
+            content:
+              error.response?.data?.message ||
+              "An error occurred while fetching students",
+            key: "students-fetch-error",
+            duration: 3,
+          });
+        }
+      }
+    };
+    fetchStudents();
+  }, [pageSize]);
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -100,7 +174,8 @@ const DocumentListPage: React.FC = () => {
     try {
       const senderId = session?.user?.id;
       const tutorId: string = values.tutor;
-      const uploadedFile: File | undefined = values.file?.fileList?.[0]?.originFileObj;
+      const uploadedFile: File | undefined =
+        values.file?.fileList?.[0]?.originFileObj;
 
       if (!uploadedFile || !senderId || !tutorId) {
         message.error("Missing required information!");
@@ -134,7 +209,10 @@ const DocumentListPage: React.FC = () => {
     }
   };
 
-  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
+  const handleTableChange = (pagination: {
+    current?: number;
+    pageSize?: number;
+  }) => {
     setCurrentPage(pagination.current || 1);
     setPageSize(pagination.pageSize || 10);
   };
@@ -142,9 +220,9 @@ const DocumentListPage: React.FC = () => {
   const columns: ColumnsType<DataType> = [
     {
       title: (
-          <Text strong style={{ fontSize: "14px" }}>
-            Title
-          </Text>
+        <Text strong style={{ fontSize: "14px" }}>
+          Title
+        </Text>
       ),
       dataIndex: "title",
       key: "title",
@@ -152,21 +230,24 @@ const DocumentListPage: React.FC = () => {
     },
     {
       title: (
-          <Text strong style={{ fontSize: "14px" }}>
-            Status
-          </Text>
+        <Text strong style={{ fontSize: "14px" }}>
+          Status
+        </Text>
       ),
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-          <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
+        <Badge
+          color={convertDocumentStatusColor(status)}
+          text={convertDocumentStatusName(status)}
+        />
       ),
     },
     {
       title: (
-          <Text strong style={{ fontSize: "14px" }}>
-            Recipient
-          </Text>
+        <Text strong style={{ fontSize: "14px" }}>
+          Recipient
+        </Text>
       ),
       dataIndex: "recipient_name",
       key: "recipient",
@@ -174,63 +255,66 @@ const DocumentListPage: React.FC = () => {
     },
     {
       title: (
-          <Text strong style={{ fontSize: "14px" }}>
-            Status Updated
-          </Text>
+        <Text strong style={{ fontSize: "14px" }}>
+          Status Updated
+        </Text>
       ),
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
+      render: (updatedAt: string) => (
+        <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>
+      ),
     },
     {
       title: "Action",
       key: "action",
       render: (record: DataType) => (
-          <Link href={`/documents/detail?id=${record.id}`}>
-            <Button type="primary" ghost>
-              Detail
-            </Button>
-          </Link>
+        <Link href={`/documents/detail?id=${record.id}`}>
+          <Button type="primary" ghost>
+            Detail
+          </Button>
+        </Link>
       ),
     },
   ];
 
   return (
-      <div style={{ textAlign: "center", padding: "20px" }}>
-        <Title level={2}>Documents</Title>
-        <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: 20,
-            }}
-        >
-          <Button type="primary" onClick={showModal}>
-            Add Document
-          </Button>
-        </div>
-        <Table<DataType>
-            columns={columns}
-            dataSource={data}
-            pagination={{
-              current: currentPage,
-              pageSize: pageSize,
-              total: data.length,
-              showSizeChanger: true,
-              pageSizeOptions: ["5", "10", "20"],
-            }}
-            onChange={handleTableChange}
-            bordered={false}
-            showHeader
-        />
-
-        <AddDocumentModal
-            isOpen={isModalOpen}
-            onCancel={handleCancel}
-            onSubmit={handleSubmit}
-            tutorList={tutorList}
-        />
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <Title level={2}>Documents</Title>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 20,
+        }}
+      >
+        <Button type="primary" onClick={showModal}>
+          Add Document
+        </Button>
       </div>
+      <Table<DataType>
+        columns={columns}
+        dataSource={data}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: data.length,
+          showSizeChanger: true,
+          pageSizeOptions: ["5", "10", "20"],
+        }}
+        onChange={handleTableChange}
+        bordered={false}
+        showHeader
+      />
+
+      <AddDocumentModal
+        isOpen={isModalOpen}
+        onCancel={handleCancel}
+        onSubmit={handleSubmit}
+        tutorList={tutorList}
+        studentList={studentList}
+      />
+    </div>
   );
 };
 
