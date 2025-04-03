@@ -21,37 +21,29 @@ namespace ETutoring.DataAccess.Services.Students
 
         public async Task<ApiResponse<List<GetTutorForStudentResponse>>> GetTutorsForStudentAsync(GetTutorsForStudentRequest req)
         {
+            var tutors = await _context.Allocations
+                .Where(a => a.StudentId == req.StudentId)
+                .Join(
+                    _context.Users,
+                    allocation => allocation.TutorId,
+                    user => user.Id,
+                    (allocation, tutor) => new GetTutorForStudentResponse
+                    {
+                        TutorId = tutor.Id,
+                        FullName = tutor.FullName,
+                        Address = tutor.Address,
+                        PhoneNumber = tutor.PhoneNumber,
+                        Email = tutor.Email
+                    }
+                )
+                .ToListAsync();
 
-            try
+            if (!tutors.Any())
             {
-                var tutors = await _context.Allocations
-                    .Where(a => a.StudentId == req.StudentId)
-                    .Join(
-                        _context.Users,
-                        allocation => allocation.TutorId,
-                        user => user.Id,
-                        (allocation, tutor) => new GetTutorForStudentResponse
-                        {
-                            TutorId = tutor.Id,
-                            FullName = tutor.FullName,
-                            Address = tutor.Address,
-                            PhoneNumber = tutor.PhoneNumber,
-                            Email = tutor.Email
-                        }
-                    )
-                    .ToListAsync();
-
-                if (!tutors.Any())
-                {
-                    return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("This student has not been assigned a Tutor yet.");
-                }
-
-                return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Get tutor list successfully.");
+                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse("This student has not been assigned a Tutor yet.");
             }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<GetTutorForStudentResponse>>.FailureResponse($"There was an error getting the tutor list: {ex.Message}");
-            }
+
+            return ApiResponse<List<GetTutorForStudentResponse>>.SuccessResponse(tutors, "Get tutor list successfully.");
         }
 
         public async Task<ApiResponse<List<UnassignedStudentResponse>>> GetUnassignedStudentsAsync()
