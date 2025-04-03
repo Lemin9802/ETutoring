@@ -4,4 +4,6 @@ public enum EmailTemplateType
 {
     StudentReceiveNewTutor,
     TutorAssignedToStudent,
+    DocumentCommentForStudent,   
+    DocumentCommentForTutor,
 }
