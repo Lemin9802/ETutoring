@@ -153,29 +153,11 @@ namespace ETutoring.DataAccess.Services.Moderator
                 }
             )).AsTask());
 
-            var chatroomTasks = new List<Task>();
-            foreach (var student in validStudents)
-            {
-                var chatTask = _messageService.AssignChatroomAsync(new AssignChatroomRequest
-                {
-                    StudentId = student.Id,
-                    TutorId = tutor.Id
-                }).ContinueWith(task =>
-                {
-                    if (task.Exception != null)
-                    {
-                        // Log detailed error
-                        Console.WriteLine($"[ERROR] AssignChatroomAsync failed for Student {student.Email}: {task.Exception.Flatten().Message}");
-                    }
-                });
-                chatroomTasks.Add(chatTask);
-            }
-
-            // Step 9: Save to DB and send all emails first
+            // Step 8: Save changes and send emails first
             await _context.SaveChangesAsync();
             await Task.WhenAll(emailTasks);
 
-            // Step 10: Xử lý chatroom assignments tuần tự để tránh xung đột DbContext
+            // Step 9: Process chatroom assignments sequentially to avoid concurrency issues
             foreach (var student in validStudents)
             {
                 try
@@ -508,20 +490,20 @@ namespace ETutoring.DataAccess.Services.Moderator
                     Timestamp = m.Timestamp,
                     // Lấy thông tin của người gửi
                     SenderFullName = _context.Users
-                        .Where(u => u.Id.ToString() == m.SenderId)
+                        .Where(u => u.Id == m.SenderId)
                         .Select(u => u.FullName)
                         .FirstOrDefault(),
                     SenderEmail = _context.Users
-                        .Where(u => u.Id.ToString() == m.SenderId)
+                        .Where(u => u.Id == m.SenderId)
                         .Select(u => u.Email)
                         .FirstOrDefault(),
                     // Lấy thông tin của người nhận
                     ReceiverFullName = _context.Users
-                        .Where(u => u.Id.ToString() == m.ReceiverId)
+                        .Where(u => u.Id == m.ReceiverId)
                         .Select(u => u.FullName)
                         .FirstOrDefault(),
                     ReceiverEmail = _context.Users
-                        .Where(u => u.Id.ToString() == m.ReceiverId)
+                        .Where(u => u.Id == m.ReceiverId)
                         .Select(u => u.Email)
                         .FirstOrDefault()
                 })

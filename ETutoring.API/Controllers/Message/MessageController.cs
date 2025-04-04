@@ -42,7 +42,7 @@ namespace ETutoring.API.Controllers.Message
             try
             {
                 // Kiểm tra input
-                if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.ParticipantId))
+                if (request.UserId == Guid.Empty || request.ParticipantId == Guid.Empty)
                 {
                     return BadRequest(new { Message = "UserId and ParticipantId are required." });
                 }
