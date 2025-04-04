@@ -1,4 +1,4 @@
-using ETutoring.Business.Dtos;
+﻿using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Documents;
 using ETutoring.Business.Exceptions;
 using ETutoring.Business.Interfaces;
@@ -99,5 +99,55 @@ public class DocumentService : IDocumentService
         await _context.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<Unit>.SuccessResponse(Unit.Value);
+    }
+
+    public async Task<ApiResponse<List<DocumentDetailResponse>>> GetDocumentsByUploaderIdAsync(GetDocumentsByUploaderIdRequest request)
+    {
+        // Kiểm tra giá trị uploaderId hợp lệ
+        if (request.UploaderId == Guid.Empty)
+        {
+            throw new ArgumentException("UploaderId không được để trống.", nameof(request.UploaderId));
+        }
+
+        // Kiểm tra xem Uploader có tồn tại trong DB hay không
+        var uploaderExists = await _context.Users.AnyAsync(u => u.Id == request.UploaderId);
+        if (!uploaderExists)
+        {
+            throw new EntityNotFoundException("Uploader", request.UploaderId);
+        }
+
+        // Lấy danh sách document theo UploaderId và TutorId
+        var documents = await _context.Documents
+            .Include(d => d.Uploader)
+            .Include(d => d.Tutor)
+            .Where(d => d.UploaderId == request.UploaderId && d.TutorId == request.TutorId)
+            .OrderBy(d => d.CreatedAt)
+            .ToListAsync();
+
+        // Nếu không có document nào, trả về danh sách rỗng
+        if (documents == null || !documents.Any())
+        {
+            return ApiResponse<List<DocumentDetailResponse>>.SuccessResponse(new List<DocumentDetailResponse>());
+        }
+
+        // Map dữ liệu trả về theo định dạng mong muốn
+        var response = documents.Select(document => new DocumentDetailResponse
+        {
+            Id = document.Id,
+            FileUrl = document.FileUrl,
+            Title = document.FileName,
+            Description = document.Description,
+            Status = document.Status,
+            CreatedAt = document.CreatedAt,
+            UpdatedAt = document.UpdatedAt,
+            UploaderId = document.UploaderId,
+            UploaderName = document.Uploader?.FullName,
+            UploaderEmail = document.Uploader?.Email,
+            TutorId = document.TutorId,
+            TutorName = document.Tutor?.FullName,
+            TutorEmail = document.Tutor?.Email
+        }).ToList();
+
+        return ApiResponse<List<DocumentDetailResponse>>.SuccessResponse(response);
     }
 }
