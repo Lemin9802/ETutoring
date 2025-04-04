@@ -7,4 +7,5 @@ public interface IEmailService : IDisposable
 {
     Task SendEmailAsync(EmailTemplateRequest emailRequest);
     Task<List<EmailSent>> GetAllEmailsAsync();
+    Task MarkAsReadAsync(Guid emailId);
 }

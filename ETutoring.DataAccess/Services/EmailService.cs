@@ -100,6 +100,15 @@ public class EmailService : IEmailService, IAsyncDisposable
             .OrderByDescending(e => e.CreatedAt) // Sort by newest sent date
             .ToListAsync();
     }
+    public async Task MarkAsReadAsync(Guid emailId)
+    {
+        var emailToRemove = await _context.EmailSent.FindAsync(emailId);
+        if (emailToRemove != null)
+        {
+            _context.EmailSent.Remove(emailToRemove);
+            await _context.SaveChangesAsync();
+        }
+    }
 
     public void Dispose()
     {

@@ -1,10 +1,11 @@
-﻿
 using ETutoring.Business.Dtos.Email;
 using ETutoring.Business.Mappers;
 using ETutoring.Core.EmailTemplate;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Channels;
+using ETutoring.Business.Interfaces;
 
+using ETutoring.Business.Interfaces.Services;
 namespace ETutoring.API.Controllers
 {
     [Route("api/[controller]")]
@@ -13,9 +14,12 @@ namespace ETutoring.API.Controllers
     {
         private readonly Channel<EmailTemplateRequest> _queue;
 
-        public EmailController(Channel<EmailTemplateRequest> queue)
+        private readonly IEmailService _emailService;
+
+        public EmailController(Channel<EmailTemplateRequest> queue, IEmailService emailService)
         {
             _queue = queue;
+            _emailService = emailService;
         }
 
         [HttpPost("test-send-emails")]
@@ -25,9 +29,9 @@ namespace ETutoring.API.Controllers
             {
                 var students = new List<EmailStudentInfo>
                 {
-                    new EmailStudentInfo(Guid.Parse("4c160a23-5d27-4232-98fe-294ee21b0487"), "hoangt@fpt.edu.vn", "Hoang Nguyen"),
-                    new EmailStudentInfo(Guid.Parse("5a2eff68-a7e5-45e1-9f37-2d0560b50bfb"), "Testing@gmail.com", "Hai Nguyen"),
-                    new EmailStudentInfo(Guid.Parse("01953d7e-ac6b-7f30-b571-81c5cc6cdaee"), "minhhvntcs21024@fpt.edu.vn", "Ngoc Minh")
+                    new (Guid.Parse("4c160a23-5d27-4232-98fe-294ee21b0487"), "hoangt@fpt.edu.vn", "Hoang Nguyen"),
+                    new (Guid.Parse("5a2eff68-a7e5-45e1-9f37-2d0560b50bfb"), "Testing@gmail.com", "Hai Nguyen"),
+                    new (Guid.Parse("01953d7e-ac6b-7f30-b571-81c5cc6cdaee"), "minhhvntcs21024@fpt.edu.vn", "Ngoc Minh")
                 };
 
                 var tutorId = Guid.Parse("d8b523ba-629f-41cd-9d19-7ada0817ad9e");
@@ -52,13 +56,52 @@ namespace ETutoring.API.Controllers
 
                 await Task.WhenAll(writeTasks);
 
-                return Ok("Emails queued successfully.");
+                return Ok("Emails sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error assigning students to tutor: {ex.Message}");
+                return BadRequest("Failed to assign students to tutor.");
+            }
+        }
+        [HttpPost("get-mail-by-user-id")]
+        public async Task<IActionResult> GetEmailsByPost([FromBody] Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest("Invalid user ID provided.");
+                }
+
+                var emails = await _emailService.GetAllEmailsAsync();
+                var userEmails = emails.Where(e => e.UserId == userId).Select(e => new
+                {
+                    e.Id,
+                    e.Subject,
+                    e.Body,
+                    CreatedAt = e.CreatedAt.ToString("dd-MM-yyyy")
+                }).ToList();
+
+                return Ok(userEmails);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[EmailController] Error: {ex.Message}");
                 return StatusCode(500, "Failed to queue emails.");
             }
+        }
+
+        [HttpPost("mark-as-read")]
+        public async Task<IActionResult> MarkEmailAsRead([FromBody] Guid emailId)
+        {
+            if (emailId == Guid.Empty)
+            {
+                return BadRequest("Invalid email ID provided.");
+            }
+
+            await _emailService.MarkAsReadAsync(emailId);
+            return Ok("Email marked as read successfully.");
         }
     }
 }
