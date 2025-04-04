@@ -10,10 +10,10 @@ namespace ETutoring.Business.Dtos.Request.Message
     public class GetMessagesRequest
     {
         [Required]
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
 
         [Required]
-        public string ParticipantId { get; set; }
+        public Guid ParticipantId { get; set; }
 
         public Guid? ChatroomId { get; set; }
     }

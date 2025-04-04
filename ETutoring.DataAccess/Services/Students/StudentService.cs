@@ -7,6 +7,7 @@ using ETutoring.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
+using System.Linq;
 
 namespace ETutoring.DataAccess.Services.Students
 {
@@ -335,23 +336,24 @@ namespace ETutoring.DataAccess.Services.Students
                 foreach (var studentData in studentsWithTutors)
                 {
                     var studentId = studentData.Student.Id;
-                    var studentIdString = studentId.ToString(); // Convert student Guid to string
-                    var tutorIdStrings = studentData.AssignedTutors.Select(t => t.Id.ToString()).ToList(); // Convert tutor Guids to strings
+                    // Directly use GUIDs instead of converting to string
+                    var tutorIds = studentData.AssignedTutors.Select(t => t.Id).ToList();
 
                     // Find the last message time between the student and any of their tutors
                     var lastMessageTime = await _context.Messages
-                        .Where(m => (m.SenderId == studentIdString && tutorIdStrings.Contains(m.ReceiverId)) ||
-                                    (tutorIdStrings.Contains(m.SenderId) && m.ReceiverId == studentIdString))
-                        .OrderByDescending(m => m.Timestamp) // Corrected property name
-                        .Select(m => (DateTime?)m.Timestamp) // Corrected property name & Cast to nullable DateTime
+                        .Where(m => (m.SenderId == studentId && tutorIds.Contains(m.ReceiverId)) ||
+                                    (tutorIds.Contains(m.SenderId) && m.ReceiverId == studentId))
+                        .OrderByDescending(m => m.Timestamp)
+                        .Select(m => (DateTime?)m.Timestamp)
                         .FirstOrDefaultAsync();
 
-                    // Add student if no interaction or last interaction is before cutoff date
+                    // Add student if no interaction or if the last interaction is before the cutoff date
                     if (!lastMessageTime.HasValue || lastMessageTime.Value < cutoffDate)
                     {
                         studentsWithoutRecentInteraction.Add(new StudentWithoutInteractionResponse
                         {
-                            Id = studentData.Student.Id.ToString(), // Convert Guid to string
+                            // If the response model still expects a string, convert here; otherwise, consider using Guid directly.
+                            Id = studentId.ToString(),
                             FullName = studentData.Student.FullName,
                             Email = studentData.Student.Email,
                             LastInteractionTime = lastMessageTime // Could be null if no interaction ever
@@ -368,7 +370,6 @@ namespace ETutoring.DataAccess.Services.Students
                 return ApiResponse<List<StudentWithoutInteractionResponse>>.FailureResponse($"An error occurred while retrieving students without interaction: {ex.Message}");
             }
         }
-
 
         public async Task<byte[]> GenerateStudentsWithoutInteractionPdfReportAsync(int days)
         {

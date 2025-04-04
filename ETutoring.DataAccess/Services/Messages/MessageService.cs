@@ -37,7 +37,7 @@ namespace ETutoring.DataAccess.Services.Messages
 
                 // Get message counts for each tutor
                 var tutorMessageCounts = await _context.Messages
-                    .Where(m => tutorIds.Contains(m.SenderId))
+                    .Where(m => tutorIds.Contains(m.SenderId.ToString()))
                     .GroupBy(m => m.SenderId)
                     .Select(g => new
                     {
@@ -47,7 +47,7 @@ namespace ETutoring.DataAccess.Services.Messages
                     .ToListAsync();
 
                 // Get tutor names
-                var tutorIdGuids = tutorMessageCounts.Select(t => Guid.Parse(t.TutorId)).ToList();
+                var tutorIdGuids = tutorMessageCounts.Select(t => t.TutorId).ToList();
                 var tutors = await _context.Users
                     .Where(u => tutorIdGuids.Contains(u.Id))
                     .Select(u => new { u.Id, u.FullName })
@@ -63,8 +63,8 @@ namespace ETutoring.DataAccess.Services.Messages
                 // Create response
                 var tutorPerformances = tutorMessageCounts.Select(t => new TutorPerformanceResponse
                 {
-                    TutorId = Guid.Parse(t.TutorId),
-                    TutorName = tutors.FirstOrDefault(u => u.Id == Guid.Parse(t.TutorId))?.FullName ?? "Unknown",
+                    TutorId = t.TutorId,
+                    TutorName = tutors.FirstOrDefault(u => u.Id == t.TutorId)?.FullName ?? "Unknown",
                     MessageCount = t.MessageCount
                 }).ToList();
 
@@ -217,8 +217,8 @@ namespace ETutoring.DataAccess.Services.Messages
                     ProfilePicture = participant != null ? participant.ProfilePicture : string.Empty,
                     LastMessage = lastMessage != null ? lastMessage.Content : "No messages yet",
                     LastMessageTime = lastMessage != null ? lastMessage.Timestamp : room.CreatedAt,
-                    SenderId = lastMessage != null ? Guid.Parse(lastMessage.SenderId) : Guid.Empty,
-                    ReceiverId = lastMessage != null ? Guid.Parse(lastMessage.ReceiverId) : Guid.Empty,
+                    SenderId = lastMessage != null ? lastMessage.SenderId : Guid.Empty,
+                    ReceiverId = lastMessage != null ? lastMessage.ReceiverId : Guid.Empty,
                 });
             }
 
@@ -233,7 +233,7 @@ namespace ETutoring.DataAccess.Services.Messages
 
         public async Task<ApiResponse<MessageListResponse>> GetUserMessagesAsync(GetMessagesRequest request)
         {
-            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.ParticipantId))
+            if (request.UserId == Guid.Empty || request.ParticipantId == Guid.Empty)
             {
                 return ApiResponse<MessageListResponse>.FailureResponse("UserId and ParticipantId are required.");
             }
@@ -281,7 +281,7 @@ namespace ETutoring.DataAccess.Services.Messages
             await _context.Messages.AddAsync(messageEntity);
             await _context.SaveChangesAsync();
 
-            await _messageHubService.SendMessage(Guid.Parse(request.SenderId), Guid.Parse(request.ReceiverId), request.Content);
+            await _messageHubService.SendMessage(request.SenderId, request.ReceiverId, request.Content);
 
             return ApiResponse<SendMessageResponse>.SuccessResponse(new SendMessageResponse
             {
@@ -312,47 +312,66 @@ namespace ETutoring.DataAccess.Services.Messages
 
         public async Task<ApiResponse<AssignChatroomResponse>> AssignChatroomAsync(AssignChatroomRequest request)
         {
-            // Kiểm tra xem student và tutor đã được assign vào chatroom nào chưa
+            // Check if a chatroom between the student and tutor already exists
             var existingChatroom = await _context.ChattingRooms
                 .FirstOrDefaultAsync(cr => cr.StudentId == request.StudentId && cr.TutorId == request.TutorId);
 
             if (existingChatroom != null)
             {
-                return ApiResponse<AssignChatroomResponse>.FailureResponse("Chatroom between this student and tutor already exists.");
+                return ApiResponse<AssignChatroomResponse>
+                    .FailureResponse("Chatroom between this student and tutor already exists.");
             }
 
-            // Nếu chưa tồn tại, tạo chatroom mới
-            var chatroom = new ChattingRoom
+            // Use a transaction to ensure both operations succeed together
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                StudentId = request.StudentId,
-                TutorId = request.TutorId,
-                CreatedAt = DateTime.UtcNow
-            };
+                // Create a new chatroom
+                var chatroom = new ChattingRoom
+                {
+                    StudentId = request.StudentId,
+                    TutorId = request.TutorId,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            await _context.ChattingRooms.AddAsync(chatroom);
-            await _context.SaveChangesAsync();
+                await _context.ChattingRooms.AddAsync(chatroom);
+                await _context.SaveChangesAsync();
 
-            var initialMessage = new Message
+                // Create the initial message for the chatroom
+                var initialMessage = new Message
+                {
+                    SenderId = request.StudentId,
+                    ReceiverId = request.TutorId,
+                    Content = "Chatroom created. No messages yet.",
+                    Timestamp = DateTime.UtcNow,
+                    ChatroomId = chatroom.Id
+                };
+
+                await _context.Messages.AddAsync(initialMessage);
+                await _context.SaveChangesAsync();
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+
+                // Notify via the message hub service (outside the transaction)
+                await _messageHubService.AssignChatroom(request.StudentId, request.TutorId);
+
+                return ApiResponse<AssignChatroomResponse>.SuccessResponse(new AssignChatroomResponse
+                {
+                    RoomId = chatroom.Id,
+                    Success = true,
+                    Message = "Chatroom assigned and initial message created"
+                });
+            }
+            catch (Exception ex)
             {
-                SenderId = request.StudentId.ToString(),
-                ReceiverId = request.TutorId.ToString(),
-                Content = "Chatroom created. No messages yet.",
-                Timestamp = DateTime.UtcNow,
-                ChatroomId = chatroom.Id
-            };
-
-            await _context.Messages.AddAsync(initialMessage);
-            await _context.SaveChangesAsync();
-
-            await _messageHubService.AssignChatroom(request.StudentId, request.TutorId);
-
-            return ApiResponse<AssignChatroomResponse>.SuccessResponse(new AssignChatroomResponse
-            {
-                RoomId = chatroom.Id,
-                Success = true,
-                Message = "Chatroom assigned and initial message created"
-            });
+                await transaction.RollbackAsync();
+                // Log the exception as needed before returning a failure response
+                return ApiResponse<AssignChatroomResponse>
+                    .FailureResponse($"An error occurred while assigning the chatroom: {ex.Message}");
+            }
         }
+
 
         public async Task<ApiResponse<List<ChatRoomResponse>>> GetAssignedChatroomsAsync(MetaRequest meta)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ETutoring.Core.Entities
 {
@@ -8,18 +9,18 @@ namespace ETutoring.Core.Entities
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        [Required]
-        public string SenderId { get; set; }
+        public Guid SenderId { get; set; }
 
-        [Required]
-        public string ReceiverId { get; set; }
+        public Guid ReceiverId { get; set; }
 
-        [Required]
         public string Content { get; set; }
+
         public Guid? ChatroomId { get; set; }
+
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
         public bool IsDeleted { get; set; } = false;
+
         public ChattingRoom Chatroom { get; set; }
     }
 }
