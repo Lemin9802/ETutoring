@@ -7,44 +7,34 @@ namespace ETutoring.DataAccess.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Create chatting_rooms table
+            // Xóa bảng nếu nó đã tồn tại
+            migrationBuilder.Sql("DROP TABLE IF EXISTS chatting_rooms CASCADE;");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS messages CASCADE;");
+
+            // Tạo bảng mới
             migrationBuilder.CreateTable(
                 name: "chatting_rooms",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(nullable: false),
-                    student_id = table.Column<Guid>(nullable: false),
-                    tutor_id = table.Column<Guid>(nullable: false),
-                    created_at = table.Column<DateTime>(nullable: false)
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    student_id = table.Column<string>(type: "text", nullable: false),
+                    tutor_id = table.Column<string>(type: "text", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_chatting_rooms", x => x.id);
-                });
+                constraints: table => { table.PrimaryKey("pk_chatting_rooms", x => x.id); });
 
-            // Create messages table
             migrationBuilder.CreateTable(
                 name: "messages",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(nullable: false),
-                    sender_id = table.Column<Guid>(nullable: false),
-                    receiver_id = table.Column<Guid>(nullable: false),
-                    content = table.Column<string>(nullable: false),
-                    chatroom_id = table.Column<Guid>(nullable: true),
-                    timestamp = table.Column<DateTime>(nullable: false),
-                    is_deleted = table.Column<bool>(nullable: false)
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    sender_id = table.Column<string>(type: "text", nullable: false),
+                    receiver_id = table.Column<string>(type: "text", nullable: false),
+                    content = table.Column<string>(type: "text", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_messages", x => x.id);
-                });
-
-            // Create index on chatroom_id for faster lookups in messages
-            migrationBuilder.CreateIndex(
-                name: "ix_messages_chatroom_id",
-                table: "messages",
-                column: "chatroom_id");
+                constraints: table => { table.PrimaryKey("pk_messages", x => x.id); });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
