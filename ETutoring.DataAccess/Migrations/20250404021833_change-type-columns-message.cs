@@ -38,25 +38,22 @@ namespace ETutoring.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_messages", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_Messages_ChattingRooms_ChatroomId",
-                        column: x => x.chatroom_id,
-                        principalTable: "chatting_rooms",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             // Create index on chatroom_id for faster lookups in messages
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_ChatroomId",
+                name: "ix_messages_chatroom_id",
                 table: "messages",
                 column: "chatroom_id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "messages");
-            migrationBuilder.DropTable(name: "chatting_rooms");
+            migrationBuilder.DropTable(
+                name: "chatting_rooms");
+
+            migrationBuilder.DropTable(
+                name: "messages");
         }
     }
 }
