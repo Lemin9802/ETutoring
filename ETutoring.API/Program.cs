@@ -106,6 +106,8 @@ namespace ETutoring.API
             builder.Services.AddScoped<IStorageService, AWSS3Service>();
             builder.Services.AddScoped<IDocumentService, DocumentService>();
             builder.Services.AddScoped<IDocumentCommentService, DocumentCommentService>();
+            builder.Services.AddScoped<IRoleService, RoleService>();
+
             var app = builder.Build();
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
