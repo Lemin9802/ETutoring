@@ -4,7 +4,9 @@ using ETutoring.Business.Dtos.Request;
 using ETutoring.Business.Interfaces;
 using ETutoring.Core.Common;
 using ETutoring.Core.Helpers;
+using ETutoring.DataAccess.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ETutoring.API.Controllers
@@ -14,10 +16,12 @@ namespace ETutoring.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IIdentityServices _identityServices;
+        private readonly IRoleService _roleService;
 
-        public UsersController(IIdentityServices identityServices)
+        public UsersController(IIdentityServices identityServices, IRoleService roleService)
         {
             _identityServices = identityServices;
+            _roleService = roleService;
         }
 
         [HttpPost("assign-role")]
@@ -46,6 +50,13 @@ namespace ETutoring.API.Controllers
             var result = await _identityServices.GetUsersByEmailAsync(request.Search, meta);
 
             return Ok(ApiResponseHandler.SuccessResponse(result, "Users found successfully."));
+        }
+
+        [HttpPost("get-role")]
+        public async Task<ActionResult<List<IdentityRole>>> GetRoles([FromBody] MetaRequest request)
+        {
+            var roles = await _roleService.GetRolesAsync(request);
+            return Ok(new { data = roles });
         }
     }
 }
