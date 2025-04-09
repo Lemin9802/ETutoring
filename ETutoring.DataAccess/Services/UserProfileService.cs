@@ -36,11 +36,20 @@ namespace ETutoring.DataAccess.Services
             if (user == null)
                 return null;
 
-            user.FullName = model.FullName ?? user.FullName;
-            user.Address = model.Address ?? user.Address;
-            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
-            user.ProfilePicture = model.ProfilePicture ?? user.ProfilePicture;
-            user.Gender = model.Gender ?? user.Gender;
+            // Update string properties only if a non-empty value is provided
+            user.FullName = string.IsNullOrWhiteSpace(model.FullName) ? user.FullName : model.FullName;
+            user.Address = string.IsNullOrWhiteSpace(model.Address) ? user.Address : model.Address;
+            user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? user.PhoneNumber : model.PhoneNumber;
+            user.ProfilePicture = string.IsNullOrWhiteSpace(model.ProfilePicture) ? user.ProfilePicture : model.ProfilePicture;
+            user.Gender = string.IsNullOrWhiteSpace(model.Gender) ? user.Gender : model.Gender;
+            user.Nationality = string.IsNullOrWhiteSpace(model.Nationality) ? user.Nationality : model.Nationality;
+            user.IdentificationNumber = string.IsNullOrWhiteSpace(model.IdentificationNumber) ? user.IdentificationNumber : model.IdentificationNumber;
+
+            // Update DateOfBirth if a valid (non-default) date is provided
+            if (model.DateOfBirth != default(DateTime))
+            {
+                user.DateOfBirth = model.DateOfBirth;
+            }
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();

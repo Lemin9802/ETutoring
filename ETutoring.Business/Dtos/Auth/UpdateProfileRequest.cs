@@ -20,8 +20,15 @@ namespace ETutoring.Business.Dtos.Auth
 
         [StringLength(255)]
         public string? ProfilePicture { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         [StringLength(10)]
-        public string? Gender { get; set; }
+        public string Gender { get; set; } = string.Empty;
+
+        [StringLength(50)]
+        public string Nationality { get; set; } = string.Empty;
+
+        [StringLength(20)]
+        public string IdentificationNumber { get; set; } = string.Empty;
     }
 }
