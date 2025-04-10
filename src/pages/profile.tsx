@@ -86,10 +86,10 @@ const Profile: React.FC = () => {
       phone_number: userDetails?.phone_number,
       gender: userDetails?.gender,
       address: userDetails?.address,
+      profile_picture: userDetails?.profile_picture,
       nationality: userDetails?.nationality,
-      date_of_birth: userDetails?.date_of_birth
-        ? moment(userDetails.date_of_birth)
-        : null,
+      identification_number: userDetails?.identification_number,
+      date_of_birth: userDetails?.date_of_birth ? moment(userDetails.date_of_birth) : null,
     });
   };
 
@@ -98,7 +98,6 @@ const Profile: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  // Xử lý cập nhật hồ sơ
   const handleUpdate = async (values: Partial<UserProfile>) => {
     confirm({
       title: "Confirm Update",
@@ -107,10 +106,12 @@ const Profile: React.FC = () => {
       onOk: async () => {
         try {
           const updatedFields = Object.fromEntries(
-            Object.entries(values).filter(
-              ([, v]) => v !== undefined && v !== null
-            )
+            Object.entries(values).filter(([, v]) => v !== undefined && v !== null)
           );
+
+          if (updatedFields.date_of_birth) {
+            updatedFields.date_of_birth = moment(updatedFields.date_of_birth as string).toISOString();
+          }
 
           const response = await fetch("/api/profile/update-profile", {
             method: "POST",
@@ -120,7 +121,7 @@ const Profile: React.FC = () => {
             },
             body: JSON.stringify({
               id: userDetails?.id,
-              ...updatedFields, // Send only fields that have changed
+              ...updatedFields,
             }),
           });
 
@@ -179,18 +180,20 @@ const Profile: React.FC = () => {
 
           <Row gutter={[16, 16]} align="middle">
             <Col>
-            {userDetails?.profile_picture && (
-  <Image
-    src={userDetails.profile_picture.startsWith('/') || userDetails.profile_picture.startsWith('http')
-      ? userDetails.profile_picture
-      : `/${userDetails.profile_picture}`}
-    alt="Avatar"
-    width={100}
-    height={100}
-    className="rounded-full"
-  />
-)}
-
+              {userDetails?.profile_picture && (
+                <Image
+                  src={
+                    userDetails.profile_picture.startsWith("/") ||
+                      userDetails.profile_picture.startsWith("http")
+                      ? userDetails.profile_picture
+                      : `/${userDetails.profile_picture}`
+                  }
+                  alt="Avatar"
+                  width={100}
+                  height={100}
+                  className="rounded-full"
+                />
+              )}
             </Col>
             <Col>
               <Title level={3}>
@@ -239,22 +242,46 @@ const Profile: React.FC = () => {
           <Form.Item
             name="full_name"
             label="Full Name"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please input your full name!" }]}
           >
             <Input />
           </Form.Item>
+
           <Form.Item name="phone_number" label="Phone Number">
             <Input />
           </Form.Item>
+
           <Form.Item name="gender" label="Gender">
             <Select>
               <Option value="Male">Male</Option>
               <Option value="Female">Female</Option>
             </Select>
           </Form.Item>
+
           <Form.Item name="date_of_birth" label="Date of Birth">
             <DatePicker className="w-full" />
           </Form.Item>
+
+          <Form.Item name="address" label="Address">
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="profile_picture"
+            label="Profile Picture (URL)"
+            help="Nhập URL của ảnh đại diện"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="nationality" label="Nationality">
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="identification_number" label="Identification Number">
+            <Input />
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Save
