@@ -52,6 +52,16 @@ const Profile: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm();
 
+  // Check for modal=open in URL query parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('modal') === 'open') {
+        setIsModalOpen(true);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchUserProfile();
@@ -95,6 +105,11 @@ const Profile: React.FC = () => {
 
   // Đóng Modal
   const handleCancel = () => {
+    // Prevent closing the modal if full_name is null and modal was opened via redirect
+    if (typeof window !== 'undefined' && window.location.search.includes('modal=open') && !userDetails?.full_name) {
+      message.warning('You must complete your profile with at least your full name before proceeding.');
+      return;
+    }
     setIsModalOpen(false);
   };
 
@@ -133,6 +148,13 @@ const Profile: React.FC = () => {
               prev ? { ...prev, ...updatedFields } : prev
             );
             setIsModalOpen(false);
+
+            // Clear the modal=open query parameter from URL if it exists
+            if (typeof window !== 'undefined' && window.location.search.includes('modal=open')) {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('modal');
+              window.history.replaceState({}, '', url.toString());
+            }
           } else {
             message.error(result?.message || "Failed to update profile!");
           }
@@ -238,11 +260,19 @@ const Profile: React.FC = () => {
         onCancel={handleCancel}
         footer={null}
       >
+        {typeof window !== 'undefined' && window.location.search.includes('modal=open') && !userDetails?.full_name && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-700">
+              <strong>Profile Completion Required:</strong> Please provide your full name and other relevant information to continue using the application.
+            </p>
+          </div>
+        )}
         <Form form={form} layout="vertical" onFinish={handleUpdate}>
           <Form.Item
             name="full_name"
-            label="Full Name"
+            label={<span className={typeof window !== 'undefined' && window.location.search.includes('modal=open') && !userDetails?.full_name ? 'text-red-500 font-bold' : ''}>Full Name</span>}
             rules={[{ required: true, message: "Please input your full name!" }]}
+            className={typeof window !== 'undefined' && window.location.search.includes('modal=open') && !userDetails?.full_name ? 'border border-red-200 p-2 rounded-md bg-red-50' : ''}
           >
             <Input />
           </Form.Item>
