@@ -15,12 +15,12 @@ namespace ETutoring.API.Controllers
     public class BlogsController : ControllerBase
     {
         private readonly IBlogService _blogService;
-
-        public BlogsController(IBlogService blogService)
+        private readonly IBlogLikeService _blogLikeService;
+        public BlogsController(IBlogService blogService, IBlogLikeService blogLikeService)
         {
             _blogService = blogService;
+            _blogLikeService = blogLikeService;
         }
-
         // ✅ Create blog
         [HttpPost("create")]
         public async Task<ActionResult<ApiResponse<Blog>>> CreateBlogAsync([FromBody] CreateBlogRequest request, CancellationToken cancellationToken = default)
@@ -33,7 +33,6 @@ namespace ETutoring.API.Controllers
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
         }
-
         [HttpPost("get-all")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<GetAllBlogRequest>>>> GetAllBlogsAsync(CancellationToken cancellationToken = default)
@@ -41,7 +40,6 @@ namespace ETutoring.API.Controllers
             var blogs = await _blogService.GetAllBlogsAsync(cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blogs, "All blogs retrieved successfully"));
         }
-
         // ✅ Get blog by User ID 
         [HttpPost("get-by-id")]
         [Authorize]
@@ -103,7 +101,32 @@ namespace ETutoring.API.Controllers
 
             return Ok(ApiResponseHandler.SuccessResponse(true, "Blog Deleted Successfully"));
         }
+        // ✅ Like/Unlike toggle
+        [HttpPost("like-process")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<object>>> ProcessLikeAsync(
+            [FromBody] LikeBlogRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var userId = User.GetUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized(ApiResponseHandler.FailureResponse<object>("User not found"));
+            request.UserId = userId;
+            var (isLiked, message) = await _blogLikeService.ProcessLikeAsync(request, cancellationToken);
+            if (message == "Blog not found")
+                return NotFound(ApiResponseHandler.FailureResponse<object>(message));
+            return Ok(ApiResponseHandler.SuccessResponse(new { IsLiked = isLiked }, message));
+        }
+        [HttpPost("liked")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<List<GetAllBlogRequest>>>> GetLikedBlogsAsync(CancellationToken cancellationToken = default)
+        {
+            var userId = User.GetUserId();
+            if (userId == Guid.Empty)
+                return Unauthorized(ApiResponseHandler.FailureResponse<List<GetAllBlogRequest>>("User not found"));
 
-
+            var liked = await _blogLikeService.GetLikedBlogsAsync(userId, cancellationToken);
+            return Ok(ApiResponseHandler.SuccessResponse(liked, "Liked blogs retrieved successfully"));
+        }
     }
 }

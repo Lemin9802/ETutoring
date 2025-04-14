@@ -101,6 +101,7 @@ namespace ETutoring.API
             builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IMessageHubService, MessageHubService>();
+            builder.Services.AddScoped<IBlogLikeService, BlogLikeService>();
             // Add AWS S3 configuration
             builder.Services.AddAWSService<IAmazonS3>();
             builder.Services.AddScoped<IStorageService, AWSS3Service>();
