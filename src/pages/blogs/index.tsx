@@ -22,13 +22,13 @@ const BlogIndex = () => {
 
   const fetchBlogs = useCallback(async () => {
     if (!session?.user?.accessToken) return;
-  
     try {
-      let url = "/api/blogs/get-all"; 
+      let url = "/api/blogs/get-all";
       if (activeTab === "my-blogs") {
         url = "/api/blogs/get-by-id";
+      } else if (activeTab === "liked") {
+        url = "/api/blogs/liked";
       }
-  
       const response = await axios.post(
         url,
         {},
@@ -38,22 +38,22 @@ const BlogIndex = () => {
           },
         }
       );
-  
+
       const sortedBlogs = (response.data.data as BlogType[]).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setBlogs(sortedBlogs);
-  
     } catch (error) {
       console.error("Error fetching blogs:", error);
     }
   }, [session, activeTab]);
-  
+
   useEffect(() => {
     if (session?.user?.accessToken) {
       fetchBlogs();
     }
-  }, [session, fetchBlogs]);
+  }, [session, fetchBlogs, activeTab]);
 
   return (
     <>
@@ -71,7 +71,7 @@ const BlogIndex = () => {
         items={[
           { key: "all", label: "📝 All Blogs" },
           { key: "my-blogs", label: "✍ My Blogs" },
-          { key: "liked", label: "❤️ Liked Blogs" }
+          { key: "liked", label: "❤️ Liked Blogs" },
         ]}
       />
 
@@ -90,28 +90,18 @@ const BlogIndex = () => {
       <BlogWriteModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onBlogCreated={() => {
-          fetchBlogs();
-        }}
-        onBlogUpdated={() => {
-          fetchBlogs();
-        }}
-        onBlogDeleted={() => {
-          fetchBlogs();
-        }}
+        onBlogCreated={fetchBlogs}
+        onBlogUpdated={fetchBlogs}
+        onBlogDeleted={fetchBlogs}
       />
 
-      <BlogList 
-         filter={activeTab} 
-         userId={session?.user?.id} 
-         users={users} 
-         blogs={blogs} 
-         onBlogUpdated={() => {
-             fetchBlogs();
-         }}
-         onBlogDeleted={() => {
-             fetchBlogs();
-         }}
+      <BlogList
+        filter={activeTab}
+        userId={session?.user?.id}
+        users={users}
+        blogs={blogs}
+        onBlogUpdated={fetchBlogs}
+        onBlogDeleted={fetchBlogs}
       />
     </>
   );

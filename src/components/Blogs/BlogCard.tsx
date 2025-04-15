@@ -16,21 +16,26 @@ import { MoreOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import BlogModal from "./BlogModal";
+
 dayjs.extend(relativeTime);
 
 interface BlogCardProps {
   blog: BlogType & { userName?: string };
-  onBlogUpdated: (updatedBlog: BlogType) => void;
+  onBlogUpdated: (updatedBlog?: BlogType) => void;
   onBlogDeleted?: (deletedBlogId: string) => void;
+  filter?: string; // "all", "my-blogs", "liked"
 }
 
-const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
+const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted, filter }: BlogCardProps) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [title, setTitle] = useState(blog.title);
   const [content, setContent] = useState(blog.content);
   const [loading, setLoading] = useState(false);
   const [isBlogModalVisible, setIsBlogModalVisible] = useState(false);
-
+  const [isLiked, setIsLiked] = useState<boolean>(() => {
+    return blog.is_liked ?? false;
+  });
+  const [likeLoading, setLikeLoading] = useState(false);
   const { data: session } = useSession();
 
   const canEditOrDelete =
@@ -41,7 +46,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
     if (!title.trim() || !content.trim()) {
       return message.warning("Title and content cannot be empty!");
     }
-
     setLoading(true);
     try {
       const response = await axios.post(
@@ -49,7 +53,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
         { id: blog.id, title, content },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
-
       if (response.status === 200) {
         message.success("Blog updated successfully!");
         onBlogUpdated(response.data.data);
@@ -67,7 +70,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
 
   const handleDeleteBlog = async () => {
     if (!blog.id) return message.error("Error: Blog ID is missing.");
-
     setLoading(true);
     try {
       const response = await axios.post(
@@ -75,7 +77,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
         { id: blog.id },
         { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
-
       if (response.status === 200) {
         message.success("🗑 Blog deleted successfully!");
         onBlogDeleted?.(blog.id);
@@ -92,6 +93,37 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
 
   const handleShowBlogModal = () => {
     setIsBlogModalVisible(true);
+  };
+
+  const handleToggleLike = async () => {
+    console.log("[BlogCard] Sending like for blog.id =", blog.id);
+    if (!session?.user?.accessToken) {
+      return message.error("Please log in to like the blog.");
+    }
+    setLikeLoading(true);
+    try {
+      const response = await axios.post(
+        "/api/blogs/like-process",
+        { blogId: blog.id },
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+      if (response.status === 200) {
+        const likedStatus = 
+          response.data.data?.is_liked ?? response.data.data?.isLiked ?? response.data.data?.IsLiked;
+        setIsLiked(likedStatus);
+        message.success(response.data.message);
+        if (!likedStatus && filter === "liked") {
+          onBlogUpdated();
+        }
+      } else {
+        throw new Error("Failed to process like");
+      }
+    } catch (error) {
+      console.error("Error processing like:", error);
+      message.error("Failed to process like. Please try again.");
+    } finally {
+      setLikeLoading(false);
+    }
   };
 
   const menu = (
@@ -128,31 +160,34 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
             </p>
           </div>
         </div>
-  
         {canEditOrDelete && (
           <Dropdown overlay={menu} placement="bottomRight" trigger={["click"]}>
             <Button type="text" icon={<MoreOutlined />} />
           </Dropdown>
         )}
       </div>
-  
       <h2 className="text-lg font-semibold mb-1">{blog.title}</h2>
       <p className="text-gray-700 mb-4">{blog.content.slice(0, 120)}...</p>
-  
-      {/* Comment Button */}
       <div className="border-t pt-3">
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          <Button
+            type="text"
+            loading={likeLoading}
+            onClick={handleToggleLike}
+            className="text-base"
+          >
+            {isLiked ? "❤️ Liked" : "🤍 Like"}
+          </Button>
           <Button
             type="text"
             icon={<span className="mr-1">💬</span>}
             onClick={handleShowBlogModal}
+            className="text-base"
           >
             Comment
           </Button>
         </div>
       </div>
-  
-      {/* Blog Modal */}
       <BlogModal
         blogTitle={blog.title}
         blogContent={blog.content}
@@ -160,8 +195,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
         isVisible={isBlogModalVisible}
         onClose={() => setIsBlogModalVisible(false)}
       />
-  
-      {/* Modal Edit */}
       <Modal
         title="Edit Blog"
         open={isEditModalVisible}
@@ -190,7 +223,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted }: BlogCardProps) => {
       </Modal>
     </Card>
   );
-  
 };
 
 export default BlogCard;

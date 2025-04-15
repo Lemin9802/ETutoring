@@ -12,6 +12,7 @@ export type BlogType = {
   content: string;
   userName?: string;
   user_full_name: string;
+  is_liked?: boolean;
 };
 
 export type CommentType = {
