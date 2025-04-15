@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ETutoring.API.Controllers
 {
@@ -21,14 +25,12 @@ namespace ETutoring.API.Controllers
             _blogService = blogService;
             _blogLikeService = blogLikeService;
         }
-        // ✅ Create blog
         [HttpPost("create")]
         public async Task<ActionResult<ApiResponse<Blog>>> CreateBlogAsync([FromBody] CreateBlogRequest request, CancellationToken cancellationToken = default)
         {
             var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("Not found user in JWT token");
-
             request.UserId = Guid.Parse(userId);
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
@@ -37,26 +39,30 @@ namespace ETutoring.API.Controllers
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<GetAllBlogRequest>>>> GetAllBlogsAsync(CancellationToken cancellationToken = default)
         {
-            var blogs = await _blogService.GetAllBlogsAsync(cancellationToken);
+            var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(userIdString))
+                throw new UnauthorizedAccessException("User not found in JWT token");
+            var currentUserId = Guid.Parse(userIdString);
+
+            var blogs = await _blogService.GetAllBlogsAsync(currentUserId, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blogs, "All blogs retrieved successfully"));
         }
-        // ✅ Get blog by User ID 
         [HttpPost("get-by-id")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<GetAllBlogRequest>>>> GetBlogsOfCurrentUser(CancellationToken cancellationToken = default)
         {
-            var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            if (string.IsNullOrEmpty(userId))
+            var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(userIdString))
                 throw new UnauthorizedAccessException("User not found in JWT token");
-
-            var blogs = await _blogService.GetBlogByIdAsync(Guid.Parse(userId), cancellationToken);
+            var currentUserId = Guid.Parse(userIdString);
+            var blogs = await _blogService.GetBlogByIdAsync(currentUserId, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blogs, "Your blogs retrieved successfully"));
         }
         [HttpPost("update")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<Blog>>> UpdateBlogAsync(
-        [FromBody] UpdateBlogRequest request,
-        CancellationToken cancellationToken = default)
+            [FromBody] UpdateBlogRequest request,
+            CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
@@ -66,15 +72,13 @@ namespace ETutoring.API.Controllers
 
                 return BadRequest($"Invalid model: {errors}");
             }
-
             var isAdmin = User.IsAdmin();
             var updatedBlog = await _blogService.UpdateBlogAsync(
-                request.Id,             
+                request.Id,
                 request,
                 isAdmin,
                 cancellationToken
             );
-
             if (updatedBlog == null)
                 return NotFound(ApiResponseHandler.FailureResponse<Blog>("Blog not found or not authorized to update"));
 
@@ -95,13 +99,11 @@ namespace ETutoring.API.Controllers
                 isAdmin,
                 cancellationToken
             );
-
             if (!result)
-                return Forbid(); 
+                return Forbid();
 
             return Ok(ApiResponseHandler.SuccessResponse(true, "Blog Deleted Successfully"));
         }
-        // ✅ Like/Unlike toggle
         [HttpPost("like-process")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<object>>> ProcessLikeAsync(
@@ -124,7 +126,6 @@ namespace ETutoring.API.Controllers
             var userId = User.GetUserId();
             if (userId == Guid.Empty)
                 return Unauthorized(ApiResponseHandler.FailureResponse<List<GetAllBlogRequest>>("User not found"));
-
             var liked = await _blogLikeService.GetLikedBlogsAsync(userId, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(liked, "Liked blogs retrieved successfully"));
         }
