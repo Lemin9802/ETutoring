@@ -14,5 +14,6 @@ public class GetAllBlogRequest
     public Guid UserId { get; set; }
     public string UserFullName { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsLiked { get; set; }
 }
 
