@@ -91,10 +91,6 @@ const RequestMeetingModal: React.FC<RequestMeetingModalProps> = ({
       // instead of potentially new meetingDate from the form
       const dateToUse = selectedDate || meetingDate;
 
-      // Log for debugging
-      console.log("Selected date:", dateToUse?.format("YYYY-MM-DD"));
-      console.log("Time range:", timeRange[0].format("HH:mm"), "-", timeRange[1].format("HH:mm"));
-
       // Create meeting object with combined date and time
       const startDateTime = dateToUse
         .set("hour", timeRange[0].hour())

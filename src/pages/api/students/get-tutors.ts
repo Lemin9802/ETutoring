@@ -18,6 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  if (session.user.roles[0].includes("Students")) {
+    return res.status(200).json({
+      message: "You are not authorized to access this resource",
+    });
+  }
+
   const token = session.user.accessToken;
 
   const { page_number, page_size } = req.body;

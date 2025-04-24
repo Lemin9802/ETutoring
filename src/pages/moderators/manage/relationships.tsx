@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Card,
-  Form,
-  Modal,
-  Select,
-  Space,
-  Table,
-  Typography,
-  message,
-  Spin,
-} from "antd";
-const { Title } = Typography;
+import { Button, Card, Form, Modal, Select, Space, Table, Typography, message, Spin } from "antd";
 import { useSession } from "next-auth/react";
+const { Title } = Typography;
 
 // API-related code and data section
 // Types
@@ -113,15 +102,25 @@ const api = {
         console.error("Error fetching assignments:", result.message);
         return [];
       }
-      return result.data.map((assignment: { room_id: number; tutor_id: string; student_id: string; tutor_name: string; student_name: string; tutor_email?: string; student_email?: string }) => ({
-        id: assignment.room_id,
-        tutorId: assignment.tutor_id,
-        studentId: assignment.student_id,
-        tutor: assignment.tutor_name,
-        student: assignment.student_name,
-        tutorEmail: assignment.tutor_email,
-        studentEmail: assignment.student_email,
-      }));
+      return result.data.map(
+        (assignment: {
+          room_id: number;
+          tutor_id: string;
+          student_id: string;
+          tutor_name: string;
+          student_name: string;
+          tutor_email?: string;
+          student_email?: string;
+        }) => ({
+          id: assignment.room_id,
+          tutorId: assignment.tutor_id,
+          studentId: assignment.student_id,
+          tutor: assignment.tutor_name,
+          student: assignment.student_name,
+          tutorEmail: assignment.tutor_email,
+          studentEmail: assignment.student_email,
+        })
+      );
     } catch (error) {
       console.error("Network error:", error);
       return [];
@@ -129,7 +128,10 @@ const api = {
   },
 
   // Create a new assignment
-  createAssignment: async (assignment: { tutor_id: string; student_id: string }): Promise<Assignment | null> => {
+  createAssignment: async (assignment: {
+    tutor_id: string;
+    student_id: string;
+  }): Promise<Assignment | null> => {
     try {
       const response = await fetch("/api/moderators/users/assign-room", {
         method: "POST",
@@ -139,9 +141,7 @@ const api = {
         body: JSON.stringify(assignment),
       });
       const result = await response.json();
-      return response.ok
-          ? { id: result.id, ...assignment, tutor: "", student: "" }
-          : null;
+      return response.ok ? { id: result.id, ...assignment, tutor: "", student: "" } : null;
     } catch (error) {
       console.error("Network error:", error);
       return null;
@@ -223,7 +223,6 @@ const RelationshipManagement: React.FC = () => {
 
   // Handle edit assignment
   const handleEdit = (record: Assignment) => {
-    console.log("Clicked record:", record);
     setSelectedAssignment(record);
     form.setFieldsValue({
       tutor: tutors.find((t) => t.id === record.tutorId)?.id,
@@ -267,9 +266,7 @@ const RelationshipManagement: React.FC = () => {
       onOk: async () => {
         try {
           await api.deleteAssignment(record.id);
-          setAssignments((prev) =>
-              prev.filter((item) => item.id !== record.id)
-          );
+          setAssignments((prev) => prev.filter((item) => item.id !== record.id));
           message.success("Assignment removed successfully");
         } catch (error) {
           console.error("Error removing assignment:", error);
@@ -300,11 +297,7 @@ const RelationshipManagement: React.FC = () => {
         };
 
         const response = await api.updateAssignment(updatedAssignment);
-        setAssignments((prev) =>
-            prev.map((item) =>
-                item.id === selectedAssignment.id ? response : item
-            )
-        );
+        setAssignments((prev) => prev.map((item) => (item.id === selectedAssignment.id ? response : item)));
         setEditModalVisible(false);
         setSelectedAssignment(null);
         message.success("Assignment updated successfully!");
@@ -348,154 +341,154 @@ const RelationshipManagement: React.FC = () => {
 
   // Subject/Course Assignment Management Section
   const AssignmentManagement = () => (
-      <Card title="Subject/Course Assignments">
-        <Button type="primary" className="mb-4" onClick={showModal}>
-          New Assignment
-        </Button>
-        {loading ? (
-            <div className="flex justify-center items-center min-h-screen">
-              <Spin size="large" />
-            </div>
-        ) : (
-            <Table
-                dataSource={assignments}
-                rowKey="id"
-                columns={[
-                  {
-                    title: "Tutor",
-                    key: "tutor",
-                    render: (_, record) => record.tutor || record.tutorEmail || "N/A",
-                  },
-                  {
-                    title: "Student",
-                    key: "student",
-                    render: (_, record) => record.student || record.studentEmail || "N/A",
-                  },
-                  {
-                    title: "Actions",
-                    key: "actions",
-                    render: (_, record) => (
-                        <Space>
-                          <Button type="link" onClick={() => handleEdit(record)}>
-                            Edit
-                          </Button>
-                          <Button type="link" danger onClick={() => handleRemove(record)}>
-                            Remove
-                          </Button>
-                        </Space>
-                    ),
-                  },
-                ]}
-            />
-        )}
-      </Card>
+    <Card title="Subject/Course Assignments">
+      <Button type="primary" className="mb-4" onClick={showModal}>
+        New Assignment
+      </Button>
+      {loading ? (
+        <div className="flex justify-center items-center min-h-screen">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table
+          dataSource={assignments}
+          rowKey="id"
+          columns={[
+            {
+              title: "Tutor",
+              key: "tutor",
+              render: (_, record) => record.tutor || record.tutorEmail || "N/A",
+            },
+            {
+              title: "Student",
+              key: "student",
+              render: (_, record) => record.student || record.studentEmail || "N/A",
+            },
+            {
+              title: "Actions",
+              key: "actions",
+              render: (_, record) => (
+                <Space>
+                  <Button type="link" onClick={() => handleEdit(record)}>
+                    Edit
+                  </Button>
+                  <Button type="link" danger onClick={() => handleRemove(record)}>
+                    Remove
+                  </Button>
+                </Space>
+              ),
+            },
+          ]}
+        />
+      )}
+    </Card>
   );
 
   return (
-      <div className="p-6">
-        <Title level={2}>Tutor-Student Chatting Rooms Management</Title>
+    <div className="p-6">
+      <Title level={2}>Tutor-Student Chatting Rooms Management</Title>
 
-        {/* Edit Assignment Modal */}
-        <Modal
-            title="Edit Assignment"
-            open={editModalVisible}
-            onCancel={() => {
+      {/* Edit Assignment Modal */}
+      <Modal
+        title="Edit Assignment"
+        open={editModalVisible}
+        onCancel={() => {
+          setEditModalVisible(false);
+          setSelectedAssignment(null);
+        }}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
               setEditModalVisible(false);
               setSelectedAssignment(null);
             }}
-            footer={[
-              <Button
-                  key="cancel"
-                  onClick={() => {
-                    setEditModalVisible(false);
-                    setSelectedAssignment(null);
-                  }}
-              >
-                Cancel
-              </Button>,
-              <Button key="submit" type="primary" onClick={handleEditSubmit}>
-                Save Changes
-              </Button>,
-            ]}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-                name="tutor"
-                label="Tutor"
-                rules={[{ required: true, message: "Please select a tutor" }]}
-            >
-              <Select placeholder="Select a tutor">
-                {tutors.map((tutor) => (
-                    <Select.Option key={tutor.id} value={tutor.id}>
-                      {tutor.name || tutor.email}
-                    </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
+          >
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleEditSubmit}>
+            Save Changes
+          </Button>,
+        ]}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="tutor"
+            label="Tutor"
+            rules={[{ required: true, message: "Please select a tutor" }]}
+          >
+            <Select placeholder="Select a tutor">
+              {tutors.map((tutor) => (
+                <Select.Option key={tutor.id} value={tutor.id}>
+                  {tutor.name || tutor.email}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-                name="student"
-                label="Student"
-                rules={[{ required: true, message: "Please select a student" }]}
-            >
-              <Select placeholder="Select a student">
-                {students.map((student) => (
-                    <Select.Option key={student.id} value={student.id}>
-                      {student.name || student.email}
-                    </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
+          <Form.Item
+            name="student"
+            label="Student"
+            rules={[{ required: true, message: "Please select a student" }]}
+          >
+            <Select placeholder="Select a student">
+              {students.map((student) => (
+                <Select.Option key={student.id} value={student.id}>
+                  {student.name || student.email}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-        {/* New Assignment Modal */}
-        <Modal
-            title="Create New Assignment"
-            open={isModalVisible}
-            onCancel={handleCancel}
-            footer={[
-              <Button key="cancel" onClick={handleCancel}>
-                Cancel
-              </Button>,
-              <Button key="submit" type="primary" onClick={handleSubmit}>
-                Create Assignment
-              </Button>,
-            ]}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item
-                name="tutor"
-                label="Tutor"
-                rules={[{ required: true, message: "Please select a tutor" }]}
-            >
-              <Select placeholder="Select a tutor">
-                {tutors.map((tutor) => (
-                    <Select.Option key={tutor.id} value={tutor.id}>
-                      {tutor.name || tutor.email}
-                    </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
+      {/* New Assignment Modal */}
+      <Modal
+        title="Create New Assignment"
+        open={isModalVisible}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleSubmit}>
+            Create Assignment
+          </Button>,
+        ]}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="tutor"
+            label="Tutor"
+            rules={[{ required: true, message: "Please select a tutor" }]}
+          >
+            <Select placeholder="Select a tutor">
+              {tutors.map((tutor) => (
+                <Select.Option key={tutor.id} value={tutor.id}>
+                  {tutor.name || tutor.email}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-                name="student"
-                label="Student"
-                rules={[{ required: true, message: "Please select a student" }]}
-            >
-              <Select placeholder="Select a student">
-                {students.map((student) => (
-                    <Select.Option key={student.id} value={student.id}>
-                      {student.name || student.email}
-                    </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
+          <Form.Item
+            name="student"
+            label="Student"
+            rules={[{ required: true, message: "Please select a student" }]}
+          >
+            <Select placeholder="Select a student">
+              {students.map((student) => (
+                <Select.Option key={student.id} value={student.id}>
+                  {student.name || student.email}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-        <AssignmentManagement />
-      </div>
+      <AssignmentManagement />
+    </div>
   );
 };
 

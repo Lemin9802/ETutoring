@@ -62,28 +62,17 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       return true;
     },
   };
-  console.log("Session: ", session?.data?.user?.roles);
+
   return (
-    <Modal
-      title="Add Document"
-      open={isOpen}
-      onCancel={handleCancel}
-      footer={null}
-    >
+    <Modal title="Add Document" open={isOpen} onCancel={handleCancel} footer={null}>
       <Form layout="vertical" form={form} onFinish={handleSubmit}>
-        <Form.Item
-          label="Title"
-          name="title"
-          rules={[{ required: true, message: "Title is required!" }]}
-        >
+        <Form.Item label="Title" name="title" rules={[{ required: true, message: "Title is required!" }]}>
           <Input placeholder="Enter document title" />
         </Form.Item>
         <Form.Item
           label="Select Recipient"
           name="tutor"
-          rules={[
-            { required: true, message: "Recipient selection is required!" },
-          ]}
+          rules={[{ required: true, message: "Recipient selection is required!" }]}
         >
           {session?.data?.user?.roles === "Student" && (
             <Select placeholder="Choose recipient">

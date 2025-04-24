@@ -87,22 +87,20 @@ const DocumentListPage: React.FC = () => {
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await axios.post<APIResponse>(
-          "/api/students/get-tutors"
-        );
+        const response = await axios.post<APIResponse>("/api/students/get-tutors");
         const resData = response.data.data as Tutor[];
 
         if (response.data.success) {
           // Adjust mapping if necessary. Assuming API returns complete Tutor objects.
           setTutorList(resData);
         }
-        console.log("Tutors:", resData);
       } catch (error) {
         console.error("Unexpected error:", error);
       }
     };
     fetchTutors();
   }, []);
+
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -134,25 +132,37 @@ const DocumentListPage: React.FC = () => {
           },
         };
 
-        const response = await axios.post(
-          "/api/tutors/get-students",
-          bodyData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
+        const response = await axios.post("/api/tutors/get-students", bodyData, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data: APIResponse = await response.data;
+
+        const tutorData = data.data.map(
+          (item: {
+            tutor_id: string;
+            full_name: string;
+            address?: string;
+            phone_number?: string;
+            email?: string;
+          }) => {
+            return {
+              student_id: item.tutor_id,
+              full_name: item.full_name,
+              address: item.address,
+              phone_number: item.phone_number,
+              email: item.email,
+            };
           }
         );
 
-        const data: APIResponse = await response.data;
-        console.log("Fetch Student Response: ", data);
-        setStudentList(data.data ?? []);
+        setStudentList(tutorData);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           message.error({
-            content:
-              error.response?.data?.message ||
-              "An error occurred while fetching students",
+            content: error.response?.data?.message || "An error occurred while fetching students",
             key: "students-fetch-error",
             duration: 3,
           });
@@ -174,8 +184,7 @@ const DocumentListPage: React.FC = () => {
     try {
       const senderId = session?.user?.id;
       const tutorId: string = values.tutor;
-      const uploadedFile: File | undefined =
-        values.file?.fileList?.[0]?.originFileObj;
+      const uploadedFile: File | undefined = values.file?.fileList?.[0]?.originFileObj;
 
       if (!uploadedFile || !senderId || !tutorId) {
         message.error("Missing required information!");
@@ -209,10 +218,7 @@ const DocumentListPage: React.FC = () => {
     }
   };
 
-  const handleTableChange = (pagination: {
-    current?: number;
-    pageSize?: number;
-  }) => {
+  const handleTableChange = (pagination: { current?: number; pageSize?: number }) => {
     setCurrentPage(pagination.current || 1);
     setPageSize(pagination.pageSize || 10);
   };
@@ -237,10 +243,7 @@ const DocumentListPage: React.FC = () => {
       dataIndex: "status",
       key: "status",
       render: (status: number) => (
-        <Badge
-          color={convertDocumentStatusColor(status)}
-          text={convertDocumentStatusName(status)}
-        />
+        <Badge color={convertDocumentStatusColor(status)} text={convertDocumentStatusName(status)} />
       ),
     },
     {
@@ -261,9 +264,7 @@ const DocumentListPage: React.FC = () => {
       ),
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (updatedAt: string) => (
-        <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>
-      ),
+      render: (updatedAt: string) => <Text>{format(updatedAt).format("MMMM D, YYYY h:mm A")}</Text>,
     },
     {
       title: "Action",

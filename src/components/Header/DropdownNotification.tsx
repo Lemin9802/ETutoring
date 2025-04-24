@@ -57,8 +57,6 @@ const DropdownNotification = () => {
 
             // Handle cases where the content might be plain text
             const finalContent = textContent || email.body || "";
-            console.log(email.created_at); // kiểm tra dữ liệu
-            console.log(new Date(email.created_at)); // kiểm tra parse
             return {
               id: email.id,
               subject: email.subject,

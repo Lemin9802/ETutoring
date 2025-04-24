@@ -17,18 +17,13 @@ interface CommentType {
   replies?: CommentType[];
 }
 
-
 interface CommentSectionProps {
   comments: CommentType[];
   onAddComment: (content: string, parentId?: string) => void;
   onDeleteComment: (commentId: string) => void;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({
-  comments,
-  onAddComment,
-  onDeleteComment,
-}) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ comments, onAddComment, onDeleteComment }) => {
   const [newComment, setNewComment] = useState("");
   const lastCommentRef = useRef<HTMLDivElement | null>(null);
   const { data: session } = useSession(); // Lấy session từ next-auth
@@ -59,7 +54,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     });
   };
 
-  console.log("Comment: ",comments)
   return (
     <div className="mt-4 p-4 bg-white rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4">Comments</h3>
@@ -81,9 +75,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               />
               <div className="w-full">
                 <div className="bg-gray-100 p-3 rounded-lg shadow-sm">
-                  <strong className="text-gray-700">
-                    {comment.user?.user_name || "Anonymous"}
-                  </strong>
+                  <strong className="text-gray-700">{comment.user?.user_name || "Anonymous"}</strong>
                   <p className="text-gray-700 mt-1">{comment?.text}</p>
                 </div>
                 <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
