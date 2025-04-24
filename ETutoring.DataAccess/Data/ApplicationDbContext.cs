@@ -10,8 +10,8 @@ namespace ETutoring.DataAccess.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-
     public DbSet<Blog> Blogs { get; set; }
+    public DbSet<BlogLike> BlogLikes { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<BlogComment> BlogsComments { get; set; }
     public DbSet<EmailSent> EmailSent { get; set; }
