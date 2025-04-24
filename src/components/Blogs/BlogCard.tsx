@@ -96,7 +96,6 @@ const BlogCard = ({ blog, onBlogUpdated, onBlogDeleted, filter }: BlogCardProps)
   };
 
   const handleToggleLike = async () => {
-    console.log("[BlogCard] Sending like for blog.id =", blog.id);
     if (!session?.user?.accessToken) {
       return message.error("Please log in to like the blog.");
     }

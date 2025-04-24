@@ -1,16 +1,7 @@
-import {
-  Button,
-  Card,
-  Input,
-  message,
-  Space,
-  Table,
-  TableColumnsType,
-  TableProps,
-} from "antd";
+import { Button, Card, Input, message, Space, Table, TableColumnsType, TableProps } from "antd";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface AllocationsListType {
   student_id: string;
@@ -81,8 +72,7 @@ const AllocationsList = () => {
       } else {
         message.error("Remove failed");
       }
-    } catch (error) {
-      console.log("Error: ", error)
+    } catch {
       message.error("Network error");
     }
   };
@@ -109,8 +99,7 @@ const AllocationsList = () => {
       } else {
         message.error("Failed to remove allocations.");
       }
-    } catch (error) {
-      console.log("Error: ", error)
+    } catch {
       message.error("Network error.");
     }
   };

@@ -23,7 +23,6 @@ export interface UserListType {
   role: UserRole;
   is_active: boolean;
   last_login_time: string | null;
-  
 }
 
 const ManageUserPage = () => {
@@ -67,20 +66,17 @@ const ManageUserPage = () => {
 
   useEffect(() => {
     if (!session) return;
-    fetchUsers(1, 5); 
+    fetchUsers(1, 5);
   }, [session]);
 
   const selectedUsers = useMemo(() => {
-    if(!users) return [];
+    if (!users) return [];
     return users.filter((user) => selectedRowKeys.includes(user.id));
   }, [selectedRowKeys, users]);
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
-    return users.filter(
-      (user) =>
-        user.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return users.filter((user) => user.full_name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [searchQuery, users]);
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -110,26 +106,18 @@ const ManageUserPage = () => {
     {
       title: "Last Login",
       dataIndex: "last_login_time",
-      render: (date) =>
-        date ? moment(date).format("DD/MM/YYYY HH:mm") : "Never logged in",
+      render: (date) => (date ? moment(date).format("DD/MM/YYYY HH:mm") : "Never logged in"),
     },
     {
       title: "Status",
       dataIndex: "is_active",
-      render: (isActive) =>
-        isActive ? <Tag color="green">Active</Tag> : <Tag color="red">Inactive</Tag>,
+      render: (isActive) => (isActive ? <Tag color="green">Active</Tag> : <Tag color="red">Inactive</Tag>),
     },
     {
       title: "Action",
-      render: (_text, record) => (
-        <a onClick={() => handleViewDetails(record.id)}>Details</a>
-      ),
+      render: (_text, record) => <a onClick={() => handleViewDetails(record.id)}>Details</a>,
     },
   ];
-
-  useEffect(()=>{
-    console.log("userDetails: ", userDetails)
-  },[userDetails])
 
   const handleViewDetails = async (userId: string) => {
     try {
@@ -140,11 +128,9 @@ const ManageUserPage = () => {
         },
         body: JSON.stringify({ id: userId }),
       });
-  
+
       const result = await response.json();
 
-      console.log("Profile của user: ", result)
-      
       if (response.ok) {
         setUserDetails(result);
         setIsModalVisible(true);
@@ -155,7 +141,6 @@ const ManageUserPage = () => {
       console.error("Network error:", error);
     }
   };
-  
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
@@ -170,20 +155,31 @@ const ManageUserPage = () => {
     <div className="p-6 bg-gray-100 min-h-screen">
       <Card className="shadow-lg mb-4">
         <h2 className="text-xl font-bold text-gray-800 mb-4">⚡ Bulk Actions</h2>
-        <Input placeholder="Search users..." allowClear onChange={(e) => setSearchQuery(e.target.value)} className="mb-4" />
+        <Input
+          placeholder="Search users..."
+          allowClear
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="mb-4"
+        />
         <Space>
           <AssignTutorButton selectedUsers={selectedUsers} />
           <SendEmailButton selectedUsers={selectedUsers} allUsers={users} />
           <ScheduleMeetingButton selectedUsers={selectedUsers} />
         </Space>
       </Card>
-      <Table rowSelection={rowSelection} columns={columns} dataSource={filteredUsers} loading={loading} pagination={{
+      <Table
+        rowSelection={rowSelection}
+        columns={columns}
+        dataSource={filteredUsers}
+        loading={loading}
+        pagination={{
           total: total,
           current: current,
           pageSize: pageSize,
           onChange: handlePaginationChange,
-        }}  rowKey="id" 
-        />
+        }}
+        rowKey="id"
+      />
 
       {/* Modal for User Details */}
       <Modal
@@ -232,7 +228,11 @@ const ManageUserPage = () => {
               </div>
               <div>
                 <p className="font-medium text-gray-600">Date of Birth:</p>
-                <p>{userDetails.date_of_birth !== "0001-01-01T00:00:00" ? moment(userDetails.date_of_birth).format("DD/MM/YYYY") : "N/A"}</p>
+                <p>
+                  {userDetails.date_of_birth !== "0001-01-01T00:00:00"
+                    ? moment(userDetails.date_of_birth).format("DD/MM/YYYY")
+                    : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="font-medium text-gray-600">Email Confirmed:</p>
@@ -252,18 +252,22 @@ const ManageUserPage = () => {
               </div>
               <div>
                 <p className="font-medium text-gray-600">Last Login:</p>
-                <p>{userDetails.last_login_time ? moment(userDetails.last_login_time).format("DD/MM/YYYY HH:mm") : "Never logged in"}</p>
+                <p>
+                  {userDetails.last_login_time
+                    ? moment(userDetails.last_login_time).format("DD/MM/YYYY HH:mm")
+                    : "Never logged in"}
+                </p>
               </div>
             </div>
           </div>
         ) : (
           <div className="flex justify-center items-center">
             <Spin size="large" />
-          </div>  
+          </div>
         )}
       </Modal>
     </div>
   );
 };
 
-export default ManageUserPage; 
+export default ManageUserPage;

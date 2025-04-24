@@ -39,11 +39,7 @@ const DropdownUser = () => {
               className="rounded-full ring-2 ring-gray-200 dark:ring-gray-700"
             />
           ) : (
-            <Avatar
-              size={40}
-              icon={<UserOutlined />}
-              className="ring-2 ring-gray-200 dark:ring-gray-700"
-            />
+            <Avatar size={40} icon={<UserOutlined />} className="ring-2 ring-gray-200 dark:ring-gray-700" />
           )}
           <motion.svg
             className="w-4 h-4 text-gray-600 dark:text-gray-400"
@@ -128,12 +124,7 @@ const DropdownUser = () => {
                 }}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

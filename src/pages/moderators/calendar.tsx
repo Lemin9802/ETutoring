@@ -32,8 +32,6 @@ const ModeratorCalendarPage: React.FC = () => {
     fetchAllMeetings();
   }, []);
 
-  console.log("meetings", meetings);
-
   return (
     <Content className="content-container" style={{ padding: "24px" }}>
       <Card className="h-full">
