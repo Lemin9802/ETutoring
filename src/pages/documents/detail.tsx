@@ -30,6 +30,8 @@ const DocumentViewer: React.FC = () => {
   const [scale, setScale] = useState<number>(1);
   const router = useRouter();
   const { id } = router.query;
+  const [fileType, setFileType] = useState<string | null>(null);
+  const [textContent, setTextContent] = useState<string | null>(null);
 
   interface DocumentData {
     id: string;
@@ -62,22 +64,44 @@ const DocumentViewer: React.FC = () => {
 
   useEffect(() => {
     if (fileUrl) {
-      // Load the PDF and get the number of pages
-      pdfjsLib
-        .getDocument(fileUrl)
-        .promise.then((pdf) => {
-          setNumPages(pdf.numPages);
-        })
-        .catch((error) => {
-          console.error("Error loading PDF:", error);
-        });
+      const extension = fileUrl.split(".").pop()?.toLowerCase();
 
-      // Fetch the file and calculate its size
+      // Xác định loại file dựa trên đuôi file
+      if (extension === "pdf") setFileType("pdf");
+      else if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension!))
+        setFileType("image");
+      else if (["mp4", "webm", "ogg"].includes(extension!))
+        setFileType("video");
+      else if (["mp3", "wav", "ogg"].includes(extension!))
+        setFileType("audio");
+      else if (["txt", "csv"].includes(extension!)) {
+        setFileType("text");
+        fetch(fileUrl)
+          .then((res) => res.text())
+          .then(setTextContent)
+          .catch((err) => console.error("Error loading text file:", err));
+      }else if (["doc", "docx"].includes(extension!)) {
+        setFileType("word");
+      } else {
+        setFileType("other");
+      }
+
+      // PDF logic (page count, file size) chỉ áp dụng cho PDF
+      if (extension === "pdf") {
+        pdfjsLib
+          .getDocument(fileUrl)
+          .promise.then((pdf) => {
+            setNumPages(pdf.numPages);
+          })
+          .catch((error) => console.error("Error loading PDF:", error));
+      }
+
+      // Kích thước file
       fetch(fileUrl)
         .then((response) => response.blob())
         .then((blob) => {
           const sizeInBytes = blob.size;
-          const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2); // Convert to MB
+          const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
           setFileSize(`${sizeInMB} MB`);
         })
         .catch((error) => {
@@ -85,6 +109,47 @@ const DocumentViewer: React.FC = () => {
         });
     }
   }, [fileUrl]);
+
+  const renderFilePreview = () => {
+    switch (fileType) {
+      case "pdf":
+        return (
+          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <div style={{ zoom: scale }}>
+              <Viewer fileUrl={fileUrl!} plugins={[pageNavigationPluginInstance]} />
+            </div>
+          </Worker>
+        );
+      case "image":
+        return (
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
+            <img src={fileUrl!} alt="Document" style={{ maxWidth: "100%" }} />
+          </div>
+        );
+      case "video":
+        return <video src={fileUrl!} controls style={{ width: "100%" }} />;
+      case "audio":
+        return <audio src={fileUrl!} controls style={{ width: "100%" }} />;
+      case "text":
+        return (
+          <pre style={{ whiteSpace: "pre-wrap", textAlign: "left", background: "#f4f4f4", padding: "1rem", height: "100%", overflow: "auto" }}>
+            {textContent ?? "Đang tải nội dung..."}
+          </pre>
+        );
+      case "word":
+        return (
+          <iframe
+            src={`https://docs.google.com/gview?url=${fileUrl}&embedded=true`}
+            style={{ width: "100%", height: "80vh" }}
+            frameBorder="0"
+          />
+        );
+      case "other":
+        return <p>Không thể hiển thị trực tiếp. Vui lòng tải xuống để xem.</p>;
+      default:
+        return <p>Đang tải...</p>;
+    }
+  };  
 
   if (loading) return <p>Loading document...</p>;
   if (!fileUrl) return <p>No file found.</p>;
@@ -138,28 +203,19 @@ const DocumentViewer: React.FC = () => {
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h1 style={headingStyle}>Document Details</h1>
       <div className="flex flex-row justify-center items-center">
-        <div style={{ width: "60%", height: "80vh", overflow: "auto" }}>
-          <Worker
-            workerUrl={
-              "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js"
-            }
-          >
-            <div style={{ zoom: scale }}>
-              <Viewer
-                fileUrl={fileUrl}
-                plugins={[pageNavigationPluginInstance]}
-              />
-            </div>
-          </Worker>
+      <div style={{ width: "60%", height: "80vh", overflow: "auto" }}>
+          {renderFilePreview()}
         </div>
+
         <div className="flex flex-col justify-start items-center gap-2 absolute right-[20px] top-[25%] transform translate-y-[-50%]">
-          <ButtonWithIcon
-            icon={<DownloadOutlined />}
-            onClick={handleDownload}
-          />
+          <ButtonWithIcon icon={<DownloadOutlined />} onClick={handleDownload} />
           <ButtonWithIcon icon={<InfoCircleOutlined />} onClick={handleInfo} />
-          <ButtonWithIcon icon={<PlusOutlined />} onClick={zoomIn} />
-          <ButtonWithIcon icon={<MinusOutlined />} onClick={zoomOut} />
+          {(fileType === "pdf" || fileType === "image")&& (
+            <>
+              <ButtonWithIcon icon={<PlusOutlined />} onClick={zoomIn} />
+              <ButtonWithIcon icon={<MinusOutlined />} onClick={zoomOut} />
+            </>
+          )}
         </div>
 
         {isInfoVisible && (
@@ -187,12 +243,6 @@ const DocumentViewer: React.FC = () => {
               </p>
               <p>
                 <strong>Pages:</strong> {numPages ?? "Loading..."}
-              </p>
-              <p>
-                <strong>URL:</strong>{" "}
-                <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-                  {fileUrl}
-                </a>
               </p>
             </div>
           </div>
