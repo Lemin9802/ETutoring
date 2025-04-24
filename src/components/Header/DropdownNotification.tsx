@@ -41,7 +41,7 @@ const DropdownNotification = () => {
           session.user.id,
           { headers: { "Content-Type": "application/json" } }
         );
-
+        
         if (Array.isArray(response.data)) {
           const formattedData = response.data.map((email) => {
             // Create a DOMParser instance for safer HTML parsing
@@ -57,27 +57,40 @@ const DropdownNotification = () => {
 
             // Handle cases where the content might be plain text
             const finalContent = textContent || email.body || "";
-
+            console.log(email.created_at); // kiểm tra dữ liệu
+            console.log(new Date(email.created_at)); // kiểm tra parse
             return {
               id: email.id,
               subject: email.subject,
-              createdAt: new Date(email.created_at).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
+              createdAt: (() => {
+                // Trường hợp email.created_at là '17-04-2025'
+                const parts = email.created_at.split("-");
+                if (parts.length === 3) {
+                  const [day, month, year] = parts;
+                  return `${day}-${month}-${year}`;
                 }
-              ),
+            
+                // Nếu email.created_at là dạng timestamp
+                const date = new Date(email.created_at);
+                if (!isNaN(date.getTime())) {
+                  const d = String(date.getDate()).padStart(2, "0");
+                  const m = String(date.getMonth() + 1).padStart(2, "0");
+                  const y = date.getFullYear();
+                  return `${d}-${m}-${y}`;
+                }
+            
+                return "Invalid Date";
+              })(),
               isRead: false,
               details:
-                finalContent.slice(0, 150) +
-                (finalContent.length > 150 ? "..." : ""),
+                finalContent.slice(0, 150) + (finalContent.length > 150 ? "..." : ""),
               body: email.body,
-            };
+            };            
+            
           });
 
           setNotifications(formattedData);
+          
         } else {
           throw new Error("Invalid email data format");
         }
