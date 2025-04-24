@@ -31,6 +31,7 @@ namespace ETutoring.DataAccess.Migrations
                     sender_id = table.Column<string>(type: "text", nullable: false),
                     receiver_id = table.Column<string>(type: "text", nullable: false),
                     content = table.Column<string>(type: "text", nullable: false),
+                    chatroom_id = table.Column<string>(type: "text", nullable: false),
                     timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
