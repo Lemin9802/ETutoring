@@ -167,37 +167,22 @@ namespace ETutoring.DataAccess.Services.Messages
         {
             var userIdStr = request.UserId.ToString();
 
-            // Truy vấn ChattingRoom theo text
-            var chatroomsRaw = await _context.ChattingRooms
+            var chatrooms = await _context.ChattingRooms
                 .Where(cr => cr.StudentId.ToString() == userIdStr || cr.TutorId.ToString() == userIdStr)
-                .Select(cr => new
-                {
-                    Id = cr.Id.ToString(),
-                    StudentId = cr.StudentId.ToString(),
-                    TutorId = cr.TutorId.ToString(),
-                    CreatedAt = cr.CreatedAt
-                })
                 .ToListAsync();
 
             var conversationResponses = new List<ConversationResponse>();
 
-            foreach (var cr in chatroomsRaw)
+            foreach (var room in chatrooms)
             {
                 var lastMessage = await _context.Messages
-                    .Where(m => m.ChatroomId.ToString() == cr.Id && !m.IsDeleted)
+                    .Where(m => m.ChatroomId == room.Id && !m.IsDeleted)
                     .OrderByDescending(m => m.Timestamp)
-                    .Select(m => new
-                    {
-                        m.Id,
-                        m.Content,
-                        m.Timestamp,
-                        SenderId = m.SenderId.ToString(),
-                        ReceiverId = m.ReceiverId.ToString()
-                    })
                     .FirstOrDefaultAsync();
 
-                // Xác định participant
-                var participantIdStr = cr.StudentId == userIdStr ? cr.TutorId : cr.StudentId;
+                Guid participantId = room.StudentId == request.UserId ? room.TutorId : room.StudentId;
+                var participantIdStr = participantId.ToString();
+
                 var participant = await _context.Users
                     .Where(u => u.Id.ToString() == participantIdStr)
                     .Select(u => new { u.Id, u.FullName, u.ProfilePicture })
@@ -205,15 +190,15 @@ namespace ETutoring.DataAccess.Services.Messages
 
                 conversationResponses.Add(new ConversationResponse
                 {
-                    ChatroomId = Guid.Parse(cr.Id),
+                    ChatroomId = room.Id,
                     ConversationId = lastMessage?.Id ?? Guid.Empty,
-                    ParticipantId = Guid.Parse(participantIdStr),
+                    ParticipantId = participantId,
                     FullName = participant?.FullName ?? "Unknown",
                     ProfilePicture = participant?.ProfilePicture ?? string.Empty,
                     LastMessage = lastMessage?.Content ?? "No messages yet",
-                    LastMessageTime = lastMessage?.Timestamp ?? cr.CreatedAt,
-                    SenderId = lastMessage != null ? Guid.Parse(lastMessage.SenderId) : Guid.Empty,
-                    ReceiverId = lastMessage != null ? Guid.Parse(lastMessage.ReceiverId) : Guid.Empty
+                    LastMessageTime = lastMessage?.Timestamp ?? room.CreatedAt,
+                    SenderId = lastMessage?.SenderId ?? Guid.Empty,
+                    ReceiverId = lastMessage?.ReceiverId ?? Guid.Empty,
                 });
             }
 
@@ -223,7 +208,6 @@ namespace ETutoring.DataAccess.Services.Messages
 
             return ApiResponse<List<ConversationResponse>>.SuccessResponse(conversationResponses);
         }
-
 
         public async Task<ApiResponse<MessageListResponse>> GetUserMessagesAsync(GetMessagesRequest request)
         {
@@ -235,43 +219,30 @@ namespace ETutoring.DataAccess.Services.Messages
 
             var query = _context.Messages
                 .Where(m =>
-                    (m.SenderId.ToString() == userIdStr && m.ReceiverId.ToString() == participantIdStr) ||
-                    (m.SenderId.ToString() == participantIdStr && m.ReceiverId.ToString() == userIdStr));
+                    (EF.Functions.Like(m.SenderId.ToString(), userIdStr) && EF.Functions.Like(m.ReceiverId.ToString(), participantIdStr)) ||
+                    (EF.Functions.Like(m.SenderId.ToString(), participantIdStr) && EF.Functions.Like(m.ReceiverId.ToString(), userIdStr)));
 
             if (request.ChatroomId.HasValue)
-            {
-                var chatroomIdStr = request.ChatroomId.Value.ToString();
-                query = query.Where(m => m.ChatroomId.ToString() == chatroomIdStr);
-            }
+                query = query.Where(m => m.ChatroomId == request.ChatroomId);
 
             var messages = await query
                 .OrderBy(m => m.Timestamp)
-                .Select(m => new
+                .Select(m => new MessageResponse
                 {
-                    m.Id,
-                    m.Content,
-                    m.Timestamp,
-                    SenderId = m.SenderId.ToString(),
-                    ReceiverId = m.ReceiverId.ToString()
+                    Id = m.Id,
+                    SenderId = m.SenderId,
+                    ReceiverId = m.ReceiverId,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp
                 })
                 .ToListAsync();
 
-            var responseMessages = messages.Select(m => new MessageResponse
-            {
-                Id = m.Id,
-                Content = m.Content,
-                Timestamp = m.Timestamp,
-                SenderId = Guid.Parse(m.SenderId),
-                ReceiverId = Guid.Parse(m.ReceiverId)
-            }).ToList();
-
             return ApiResponse<MessageListResponse>.SuccessResponse(new MessageListResponse
             {
-                TotalMessages = responseMessages.Count,
-                Messages = responseMessages
+                TotalMessages = messages.Count,
+                Messages = messages
             });
         }
-
 
         public async Task<ApiResponse<SendMessageResponse>> SendMessageAsync(SendMessageRequest request)
         {
