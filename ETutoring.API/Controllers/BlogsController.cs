@@ -7,10 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ETutoring.API.Controllers
 {
@@ -35,6 +31,7 @@ namespace ETutoring.API.Controllers
             var blog = await _blogService.CreateBlogAsync(request, cancellationToken);
             return Ok(ApiResponseHandler.SuccessResponse(blog, "Blog Created Successfully"));
         }
+
         [HttpPost("get-all")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<List<GetAllBlogRequest>>>> GetAllBlogsAsync(CancellationToken cancellationToken = default)

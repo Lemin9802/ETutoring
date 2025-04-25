@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ETutoring.Core.Entities
 {
@@ -17,7 +15,7 @@ namespace ETutoring.Core.Entities
         [MaxLength(500)]
         public string Content { get; set; }
 
-        public Guid? ChatroomId { get; set; }
+        public Guid ChatroomId { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 

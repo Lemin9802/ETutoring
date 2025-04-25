@@ -1,21 +1,16 @@
-﻿using ETutoring.Business.Dtos.Request;
+﻿using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Request.Message;
 using ETutoring.Business.Dtos.Request.Moderator;
-using ETutoring.Business.Dtos.Response;
-using ETutoring.Business.Dtos.Response.User;
-using ETutoring.Core.Common;
-using ETutoring.Business.Dtos.Students;
-using ETutoring.Business.Interfaces.Message;
-using ETutoring.Business.Interfaces.Moderator;
-using ETutoring.Business.Interfaces.Students;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
-using System.Security.Claims;
-using ETutoring.Business.Dtos;
 using ETutoring.Business.Dtos.Response.Message;
 using ETutoring.Business.Dtos.Response.Moderator;
 using ETutoring.Business.Dtos.Response.Students;
+using ETutoring.Business.Dtos.Response.User;
+using ETutoring.Business.Dtos.Students;
+using ETutoring.Business.Interfaces.Message;
+using ETutoring.Business.Interfaces.Moderator;
+using ETutoring.Core.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ETutoring.API.Controllers.Moderator
 {
@@ -26,13 +21,11 @@ namespace ETutoring.API.Controllers.Moderator
     {
         private readonly IModeratorService _moderatorService;
         private readonly IMessageService _messageService;
-        private readonly IStudentService _studentService;
 
-        public ModeratorController(IModeratorService moderatorService, IMessageService messageService, IStudentService studentService)
+        public ModeratorController(IModeratorService moderatorService, IMessageService messageService)
         {
             _moderatorService = moderatorService;
             _messageService = messageService;
-            _studentService = studentService;
         }
 
         [HttpPost("list-tutors")]

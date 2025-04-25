@@ -165,10 +165,8 @@ namespace ETutoring.DataAccess.Services.Messages
 
         public async Task<ApiResponse<List<ConversationResponse>>> GetUserConversationsAsync(GetConversationsRequest request)
         {
-            var userIdStr = request.UserId.ToString();
-
             var chatrooms = await _context.ChattingRooms
-                .Where(cr => cr.StudentId.ToString() == userIdStr || cr.TutorId.ToString() == userIdStr)
+                .Where(cr => cr.StudentId == request.UserId || cr.TutorId == request.UserId)
                 .ToListAsync();
 
             var conversationResponses = new List<ConversationResponse>();
