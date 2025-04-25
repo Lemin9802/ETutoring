@@ -424,164 +424,102 @@ namespace ETutoring.DataAccess.Services.Moderator
 
         public async Task<ApiResponse<List<ChatRoomDto>>> GetAllChatroomsAsync(MetaRequest meta)
         {
-            // 1) Truy vấn mọi thứ với Guid → string
-            var raw = await _context.ChattingRooms
-                .Select(cr => new
+            var query = _context.ChattingRooms
+                .Select(cr => new ChatRoomDto
                 {
-                    IdText = cr.Id.ToString(),
-                    StudentIdText = cr.StudentId.ToString(),
-                    TutorIdText = cr.TutorId.ToString(),
-                    cr.CreatedAt,
-
+                    Id = cr.Id,
+                    StudentId = cr.StudentId,
+                    TutorId = cr.TutorId,
+                    CreatedAt = cr.CreatedAt,
+                    // Lấy tên đầy đủ và email của học sinh
                     StudentName = _context.Users
-                        .Where(u => u.Id.ToString() == cr.StudentId.ToString())
+                        .Where(u => u.Id == cr.StudentId)
                         .Select(u => u.FullName)
                         .FirstOrDefault(),
                     StudentEmail = _context.Users
-                        .Where(u => u.Id.ToString() == cr.StudentId.ToString())
+                        .Where(u => u.Id == cr.StudentId)
                         .Select(u => u.Email)
                         .FirstOrDefault(),
+                    // Lấy tên đầy đủ và email của gia sư
                     TutorName = _context.Users
-                        .Where(u => u.Id.ToString() == cr.TutorId.ToString())
+                        .Where(u => u.Id == cr.TutorId)
                         .Select(u => u.FullName)
                         .FirstOrDefault(),
                     TutorEmail = _context.Users
-                        .Where(u => u.Id.ToString() == cr.TutorId.ToString())
+                        .Where(u => u.Id == cr.TutorId)
                         .Select(u => u.Email)
                         .FirstOrDefault(),
-
-                    NumberOfMessages = _context.Messages.Count(m =>
-                        m.ChatroomId.HasValue
-                        && m.ChatroomId.Value.ToString() == cr.Id.ToString()
-                        && !m.IsDeleted
-                    ),
-
+                    NumberOfMessages = _context.Messages
+                        .Count(m => m.ChatroomId == cr.Id && !m.IsDeleted),
                     LastActivity = _context.Messages
-                        .Where(m =>
-                            m.ChatroomId.HasValue
-                            && m.ChatroomId.Value.ToString() == cr.Id.ToString()
-                            && !m.IsDeleted
-                        )
+                        .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
                         .Max(m => (DateTime?)m.Timestamp),
-
-                    MessageIdText = _context.Messages
-                        .Where(m =>
-                            m.ChatroomId.HasValue
-                            && m.ChatroomId.Value.ToString() == cr.Id.ToString()
-                            && !m.IsDeleted
-                        )
+                    // Lấy MessageId của tin nhắn cuối cùng nếu có, ngược lại Guid.Empty
+                    MessageId = _context.Messages
+                        .Where(m => m.ChatroomId == cr.Id && !m.IsDeleted)
                         .OrderByDescending(m => m.Timestamp)
-                        .Select(m => m.Id.ToString())
-                        .FirstOrDefault()
-                })
-                .AsNoTracking()
-                .ToListAsync();
+                        .Select(m => m.Id)
+                        .FirstOrDefault(),
+                    NumberOfReports = 0 // Gán cố định vì không có dữ liệu report
+                });
 
-            // 2) Map in-memory string → Guid và paging/order
-            var dtos = raw
-                .Select(r => new ChatRoomDto
-                {
-                    Id = Guid.Parse(r.IdText),
-                    StudentId = Guid.Parse(r.StudentIdText),
-                    TutorId = Guid.Parse(r.TutorIdText),
-                    CreatedAt = r.CreatedAt,
-                    StudentName = r.StudentName,
-                    StudentEmail = r.StudentEmail,
-                    TutorName = r.TutorName,
-                    TutorEmail = r.TutorEmail,
-                    NumberOfMessages = r.NumberOfMessages,
-                    LastActivity = r.LastActivity,
-                    MessageId = string.IsNullOrEmpty(r.MessageIdText)
-                                        ? Guid.Empty
-                                        : Guid.Parse(r.MessageIdText),
-                    NumberOfReports = 0
-                })
-                .OrderByDescending(d => d.LastActivity)
-                .ToList();
+            var totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
 
-            var totalItems = dtos.Count;
-            var totalPages = (int)Math.Ceiling((double)totalItems / meta.PageSize);
-            var paged = dtos
+            var chatrooms = await query
+                .OrderByDescending(c => c.LastActivity)
                 .Skip((meta.PageNumber - 1) * meta.PageSize)
                 .Take(meta.PageSize)
-                .ToList();
+                .ToListAsync();
 
             var metaData = new MetaDataResponse(meta.PageNumber, meta.PageSize, totalPages, totalItems);
-            return ApiResponse<List<ChatRoomDto>>.SuccessResponseWithMeta(paged, metaData);
+            return ApiResponse<List<ChatRoomDto>>.SuccessResponseWithMeta(chatrooms, metaData);
         }
-
 
         public async Task<ApiResponse<MessageListResponse>> GetChatroomByIdAsync(Guid chatroomId)
         {
-            var idText = chatroomId.ToString();
-
-            // 1) Lấy messages với Guid → string
-            var msgsRaw = await _context.Messages
-                .Where(m =>
-                    m.ChatroomId.HasValue &&
-                    m.ChatroomId.Value.ToString() == idText &&
-                    !m.IsDeleted
-                )
-                .Select(m => new
-                {
-                    IdText = m.Id.ToString(),
-                    SenderIdText = m.SenderId.ToString(),
-                    ReceiverIdText = m.ReceiverId.ToString(),
-                    m.Content,
-                    m.Timestamp
-                })
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (!msgsRaw.Any())
-                return ApiResponse<MessageListResponse>.FailureResponse("No messages found for the chatroom.");
-
-            // 2) Lấy danh sách user liên quan (in-memory)
-            var userIds = msgsRaw
-                .SelectMany(m => new[] { m.SenderIdText, m.ReceiverIdText })
-                .Distinct()
-                .ToList();
-
-            var usersRaw = await _context.Users
-                .Where(u => userIds.Contains(u.Id.ToString()))
-                .Select(u => new
-                {
-                    IdText = u.Id.ToString(),
-                    u.FullName,
-                    u.Email
-                })
-                .AsNoTracking()
-                .ToListAsync();
-
-            var userDict = usersRaw.ToDictionary(u => u.IdText, u => u);
-
-            // 3) Map in-memory sang DTO
-            var messages = msgsRaw
+            var messages = await _context.Messages
+                .Where(m => m.ChatroomId == chatroomId && !m.IsDeleted)
                 .OrderBy(m => m.Timestamp)
-                .Select(m =>
+                .Select(m => new MessageResponse
                 {
-                    userDict.TryGetValue(m.SenderIdText, out var s);
-                    userDict.TryGetValue(m.ReceiverIdText, out var r);
-                    return new MessageResponse
-                    {
-                        Id = Guid.Parse(m.IdText),
-                        SenderId = Guid.Parse(m.SenderIdText),
-                        ReceiverId = Guid.Parse(m.ReceiverIdText),
-                        Content = m.Content,
-                        Timestamp = m.Timestamp,
-                        SenderFullName = s?.FullName,
-                        SenderEmail = s?.Email,
-                        ReceiverFullName = r?.FullName,
-                        ReceiverEmail = r?.Email
-                    };
+                    Id = m.Id,
+                    SenderId = m.SenderId,
+                    ReceiverId = m.ReceiverId,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp,
+                    // Lấy thông tin của người gửi
+                    SenderFullName = _context.Users
+                        .Where(u => u.Id == m.SenderId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    SenderEmail = _context.Users
+                        .Where(u => u.Id == m.SenderId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault(),
+                    // Lấy thông tin của người nhận
+                    ReceiverFullName = _context.Users
+                        .Where(u => u.Id == m.ReceiverId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault(),
+                    ReceiverEmail = _context.Users
+                        .Where(u => u.Id == m.ReceiverId)
+                        .Select(u => u.Email)
+                        .FirstOrDefault()
                 })
-                .ToList();
+                .ToListAsync();
+
+            if (messages == null || messages.Count == 0)
+            {
+                return ApiResponse<MessageListResponse>.FailureResponse("No messages found for the chatroom.");
+            }
 
             var response = new MessageListResponse
             {
                 TotalMessages = messages.Count,
                 Messages = messages
             };
+
             return ApiResponse<MessageListResponse>.SuccessResponse(response);
         }
 
