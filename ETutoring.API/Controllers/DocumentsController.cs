@@ -30,6 +30,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPost("user")]
+    [Authorize]
     public async Task<ActionResult<ApiResponse<DocumentResponse>>> GetDocumentsByTutor(MetaRequest meta, CancellationToken cancellationToken)
     {
         var userId = Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var parsedId) ? parsedId : Guid.Empty;

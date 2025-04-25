@@ -1,11 +1,10 @@
 using ETutoring.Business.Dtos.Email;
+using ETutoring.Business.Interfaces.Services;
 using ETutoring.Business.Mappers;
 using ETutoring.Core.EmailTemplate;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Channels;
-using ETutoring.Business.Interfaces;
 
-using ETutoring.Business.Interfaces.Services;
 namespace ETutoring.API.Controllers
 {
     [Route("api/[controller]")]

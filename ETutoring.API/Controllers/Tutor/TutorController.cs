@@ -1,14 +1,12 @@
 ﻿using ETutoring.Business.Dtos.Request.Tutor;
 using ETutoring.Business.Interfaces.Tutor;
 using ETutoring.Core.Helpers;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ETutoring.API.Controllers.Tutor
 {
     [Route("api/tutor")]
     [ApiController]
-    [Authorize(Roles = "Tutor")]
     public class TutorController : Controller
     {
         private readonly ITutorService _tutorService;
@@ -22,13 +20,13 @@ namespace ETutoring.API.Controllers.Tutor
         public async Task<IActionResult> GetStudentsForTutor([FromBody] GetStudentsForTutorRequest request)
         {
             var userId = User.GetUserId();
-
             request.TutorId = userId;
 
             var response = await _tutorService.GetStudentsForTutorAsync(request.TutorId, request.Meta, request.Search, request.Filters);
 
             return Ok(response);
         }
+
 
     }
 }
