@@ -1,16 +1,4 @@
-import {
-  BarChart,
-  Calendar,
-  File,
-  FileEdit,
-  Home,
-  Layers,
-  MessageSquare,
-  Settings,
-  Table,
-  User,
-  Group
-} from "lucide-react";
+import { BarChart, Calendar, File, FileEdit, Home, Layers, MessageSquare, User, Group } from "lucide-react";
 
 export const menuGroupsStudents = [
   {
@@ -52,7 +40,7 @@ export const menuGroupsStudents = [
         route: "/blogs",
       },
     ],
-  }
+  },
   // ,
   // {
   //   name: "OTHERS",
@@ -103,24 +91,20 @@ export const menuGroupsAdmin = [
         label: "Users",
         route: "/admin/users",
       },
-      // {
-      //   icon: FileText,
-      //   label: "Forms",
-      //   route: "#",
-      //   children: [
-      //     { label: "Form Elements", route: "/forms/form-elements" },
-      //     { label: "Form Layout", route: "/forms/form-layout" },
-      //   ],
-      // },
       {
-        icon: FileEdit,
-        label: "Blogs",
-        route: "/blogs",
+        icon: Group,
+        label: "Manage allocations",
+        route: "/moderators/manage/allocations",
       },
       {
-        icon: Table,
-        label: "Tables",
-        route: "/admin/tables",
+        icon: Layers,
+        label: "Chatting Rooms",
+        route: "/moderators/manage/relationships",
+      },
+      {
+        icon: MessageSquare,
+        label: "Chat Management",
+        route: "/moderators/manage/chat",
       },
       {
         icon: BarChart,
@@ -128,9 +112,9 @@ export const menuGroupsAdmin = [
         route: "/reports",
       },
       {
-        icon: Settings,
-        label: "Settings",
-        route: "/settings",
+        icon: FileEdit,
+        label: "Blogs",
+        route: "/blogs",
       },
     ],
   },
