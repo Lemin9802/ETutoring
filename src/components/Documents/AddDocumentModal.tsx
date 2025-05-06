@@ -63,6 +63,8 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     },
   };
 
+  console.log("Student list: ", studentList)
+
   return (
     <Modal title="Add Document" open={isOpen} onCancel={handleCancel} footer={null}>
       <Form layout="vertical" form={form} onFinish={handleSubmit}>

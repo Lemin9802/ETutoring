@@ -140,16 +140,18 @@ const DocumentListPage: React.FC = () => {
 
         const data: APIResponse = await response.data;
 
+        console.log("Data list user: ", data)
+
         const tutorData = data.data.map(
           (item: {
-            tutor_id: string;
+            student_id: string;
             full_name: string;
             address?: string;
             phone_number?: string;
             email?: string;
           }) => {
             return {
-              student_id: item.tutor_id,
+              student_id: item.student_id,
               full_name: item.full_name,
               address: item.address,
               phone_number: item.phone_number,
