@@ -1,0 +1,29 @@
+import { NextApiRequest, NextApiResponse } from "next";
+import axios from "axios";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method Not Allowed" });
+  }
+
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: "Missing userId" });
+  }
+
+  try {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/email/get-mail-by-user-id`, {
+      userId,
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Error calling .NET API:", error);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
